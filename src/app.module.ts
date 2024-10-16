@@ -8,6 +8,7 @@ import {
 import { APP_FILTER } from '@nestjs/core';
 import { AllExceptionFilter } from './common/filter/all-exception.filter';
 import { PrismaModule } from './modules/prisma/prisma.module';
+import { CategoryModule } from './modules/category/category.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PrismaModule } from './modules/prisma/prisma.module';
       load: [appConfig, dbConfig, rabbitConfig],
     }),
     PrismaModule,
+    CategoryModule
   ],
   controllers: [],
   providers: [
@@ -25,4 +27,4 @@ import { PrismaModule } from './modules/prisma/prisma.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
