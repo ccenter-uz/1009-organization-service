@@ -16,7 +16,8 @@ datasource db {
 model Category {
   id             Int       @id @default(autoincrement())
   name           Json 
-  staffNumber    Int       @map("staff_number") @db.Integer 
+  staffNumber    Int       @map("staff_number") @db.Integer
+  status         Int       @db.SmallInt() @default(1)
   createdAt      DateTime  @map("created_at") @default(now()) @db.Timestamp
   updatedAt      DateTime? @map("updated_at") @updatedAt @db.Timestamp
   deletedAt      DateTime? @map("deleted_at") @updatedAt @db.Timestamp
@@ -29,6 +30,7 @@ model SubCategory {
   id          Int       @id @default(autoincrement())
   name        Json
   staffNumber Int       @map("staff_number") @db.Integer 
+  status      Int       @db.SmallInt() @default(1)
   categoryId  Int       @map("category_id")
   createdAt   DateTime  @map("created_at") @default(now()) @db.Timestamp
   updatedAt   DateTime? @map("updated_at") @updatedAt @db.Timestamp
