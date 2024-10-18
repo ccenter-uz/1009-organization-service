@@ -15,11 +15,10 @@ datasource db {
 
 model Category {
   id                   Int                    @id @default(autoincrement())
-  name                 Json
   staffNumber          Int                    @map("staff_number") @db.Integer
   createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamp
-  updatedAt            DateTime?              @updatedAt @map("updated_at") @db.Timestamp
-  deletedAt            DateTime?              @updatedAt @map("deleted_at") @db.Timestamp
+  updatedAt            DateTime?              @updatedAt @map("updated_at")
+  deletedAt            DateTime?              @updatedAt @map("deleted_at")
   sub_categories       SubCategory[]
   CategoryTranslations CategoryTranslations[]
 
@@ -32,7 +31,7 @@ model CategoryTranslations {
   languageCode String    @map("language_code")
   name         String
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt    DateTime? @updatedAt @map("updated_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
 
   category Category @relation(fields: [categoryId], references: [id])
 
@@ -41,12 +40,11 @@ model CategoryTranslations {
 
 model SubCategory {
   id          Int       @id @default(autoincrement())
-  name        Json
   staffNumber Int       @map("staff_number") @db.Integer
   categoryId  Int       @map("category_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt   DateTime? @updatedAt @map("updated_at") @db.Timestamp
-  deletedAt   DateTime? @updatedAt @map("deleted_at") @db.Timestamp
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  deletedAt   DateTime? @updatedAt @map("deleted_at")
 
   category                Category                  @relation(fields: [categoryId], references: [id])
   SubCategoryTranslations SubCategoryTranslations[]
@@ -60,7 +58,7 @@ model SubCategoryTranslations {
   languageCode  String    @map("language_code")
   name          String
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt     DateTime? @updatedAt @map("updated_at") @db.Timestamp
+  updatedAt     DateTime? @updatedAt @map("updated_at")
 
   subCategory SubCategory @relation(fields: [subCategoryId], references: [id])
 

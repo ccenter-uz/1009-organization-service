@@ -12,6 +12,7 @@ export class CategoryController {
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
   create(@Payload() data: CategoryCreateDto): Promise<CategoryInterfaces.Response> {
+    console.log(data, 'DATA')
     return this.categoryService.create(data);
   }
 

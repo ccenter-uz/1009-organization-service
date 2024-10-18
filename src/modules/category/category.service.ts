@@ -3,19 +3,30 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import { CategoryCreateDto, CategoryInterfaces, CategoryUpdateDto } from 'types/organization/category';
 import { JsonValue } from 'types/global/types';
-import { DeleteDto, GetOneDto, ListQueryDto } from 'types/global';
+import { DeleteDto, GetOneDto, LanguageRequestEnum, ListQueryDto } from 'types/global';
 
 @Injectable()
 export class CategoryService {
   constructor(private readonly prisma: PrismaService) { }
 
   async create(data: CategoryCreateDto): Promise<CategoryInterfaces.Response> {
-    return await this.prisma.category.create({
+    const category = await this.prisma.category.create({
       data: {
         staffNumber: data.staffNumber,
-        name: data.name as JsonValue,
+        CategoryTranslations: {
+          create: [
+            { languageCode: LanguageRequestEnum.RU, name: data.name[LanguageRequestEnum.RU] },
+            { languageCode: LanguageRequestEnum.UZ, name: data.name[LanguageRequestEnum.UZ] },
+            { languageCode: LanguageRequestEnum.CY, name: data.name[LanguageRequestEnum.CY] },
+          ]
+        }
+      },
+      include: {
+        CategoryTranslations: true,
       },
     });
+
+    return category
   }
 
   async findAll(
@@ -78,7 +89,7 @@ export class CategoryService {
       },
       data: {
         staffNumber: data.staffNumber,
-        name: data.name as JsonValue
+        // name: data.name as JsonValue
       },
     });
   }
