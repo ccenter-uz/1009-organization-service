@@ -1,8 +1,12 @@
 import { Controller, Delete, Get, Patch, Post, Put } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CategoryService } from './category.service';
-import { CategoryServiceCommands as Commands } from 'types/organization/category/commands'
-import { CategoryCreateDto, CategoryInterfaces, CategoryUpdateDto } from 'types/organization/category';
+import { CategoryServiceCommands as Commands } from 'types/organization/category/commands';
+import {
+  CategoryCreateDto,
+  CategoryInterfaces,
+  CategoryUpdateDto,
+} from 'types/organization/category';
 import { DeleteDto, GetOneDto, ListQueryDto } from 'types/global';
 
 @Controller('category')
@@ -11,8 +15,9 @@ export class CategoryController {
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
-  create(@Payload() data: CategoryCreateDto): Promise<CategoryInterfaces.Response> {
-    console.log(data, 'DATA')
+  create(
+    @Payload() data: CategoryCreateDto
+  ): Promise<CategoryInterfaces.Response> {
     return this.categoryService.create(data);
   }
 
@@ -25,7 +30,7 @@ export class CategoryController {
   @Get()
   @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
   findAllByPagination(
-    @Payload() data: ListQueryDto,
+    @Payload() data: ListQueryDto
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
     return this.categoryService.findAllByPagination(data);
   }
@@ -38,7 +43,9 @@ export class CategoryController {
 
   @Put()
   @MessagePattern({ cmd: Commands.UPDATE })
-  update(@Payload() data: CategoryUpdateDto): Promise<CategoryInterfaces.Response> {
+  update(
+    @Payload() data: CategoryUpdateDto
+  ): Promise<CategoryInterfaces.Response> {
     return this.categoryService.update(data);
   }
 

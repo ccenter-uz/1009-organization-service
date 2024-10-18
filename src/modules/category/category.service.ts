@@ -1,9 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
-import { CategoryCreateDto, CategoryInterfaces, CategoryUpdateDto } from 'types/organization/category';
-import { JsonValue } from 'types/global/types';
-import { DeleteDto, GetOneDto, LanguageRequestEnum, ListQueryDto } from 'types/global';
+import {
+  CategoryCreateDto,
+  CategoryInterfaces,
+  CategoryUpdateDto,
+} from 'types/organization/category';
+import { JsonValue, LanguageRequestType } from 'types/global/types';
+import {
+  DefaultStatus,
+  DeleteDto,
+  GetOneDto,
+  LanguageRequestEnum,
+  ListQueryDto,
+} from 'types/global';
 
 @Injectable()
 export class CategoryService {
@@ -25,12 +35,16 @@ export class CategoryService {
         CategoryTranslations: true,
       },
     });
-
     return category
+
+    // return {
+    //   name: category[data.lang],
+    //   ...category,
+    // };
   }
 
   async findAll(
-    data: ListQueryDto,
+    data: ListQueryDto
   ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
     const categories = await this.prisma.category.findMany({
       orderBy: { createdAt: 'desc' },
@@ -43,9 +57,13 @@ export class CategoryService {
   }
 
   async findAllByPagination(
-    data: ListQueryDto,
+    data: ListQueryDto
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
-    const count = await this.prisma.category.count();
+    const count = await this.prisma.category.count({
+      where: {
+        status: DefaultStatus.ACTIVE,
+      },
+    });
 
     const pagination = createPagination({
       count,
@@ -53,14 +71,17 @@ export class CategoryService {
       perPage: data.limit,
     });
 
-    const currencies = await this.prisma.category.findMany({
+    const categories = await this.prisma.category.findMany({
+      where: {
+        status: DefaultStatus.ACTIVE,
+      },
       orderBy: { createdAt: 'desc' },
       take: pagination.take,
       skip: pagination.skip,
     });
 
     return {
-      data: currencies,
+      data: categories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
@@ -70,6 +91,7 @@ export class CategoryService {
     const category = await this.prisma.category.findFirst({
       where: {
         id: data.id,
+        status: DefaultStatus.ACTIVE,
       },
     });
 
@@ -101,18 +123,16 @@ export class CategoryService {
       });
     }
 
-    // return await this.prisma.category.update({
-    //   where: { id: data.id, status: DefaultStatus.ACTIVE },
-    //   data: { status: DefaultStatus.DELETED },
-    // });
-    return
+    return await this.prisma.category.update({
+      where: { id: data.id, status: DefaultStatus.ACTIVE },
+      data: { status: DefaultStatus.INACTIVE },
+    });
   }
 
   async restore(data: GetOneDto): Promise<CategoryInterfaces.Response> {
-    // return this.prisma.category.update({
-    //   where: { id: data.id, status: DefaultStatus.DELETED },
-    //   data: { status: DefaultStatus.ACTIVE },
-    // });
-    return
+    return this.prisma.category.update({
+      where: { id: data.id, status: DefaultStatus.INACTIVE },
+      data: { status: DefaultStatus.ACTIVE },
+    });
   }
 }
