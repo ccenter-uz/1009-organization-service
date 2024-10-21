@@ -185,12 +185,34 @@ export class CategoryService {
     if (data.delete) {
       return await this.prisma.category.delete({
         where: { id: data.id },
+        include: {
+          CategoryTranslations: {
+            where: true ? {} : {
+              languageCode: LanguageRequestEnum.RU, // lang_code from request
+            },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          }
+        },
       });
     }
 
     return await this.prisma.category.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
+      include: {
+        CategoryTranslations: {
+          where: true ? {} : {
+            languageCode: LanguageRequestEnum.RU, // lang_code from request
+          },
+          select: {
+            languageCode: true,
+            name: true,
+          },
+        }
+      },
     });
   }
 
@@ -198,6 +220,17 @@ export class CategoryService {
     return this.prisma.category.update({
       where: { id: data.id, status: DefaultStatus.INACTIVE },
       data: { status: DefaultStatus.ACTIVE },
+      include: {
+        CategoryTranslations: {
+          where: true ? {} : {
+            languageCode: LanguageRequestEnum.RU, // lang_code from request
+          },
+          select: {
+            languageCode: true,
+            name: true,
+          },
+        }
+      },
     });
   }
 }
