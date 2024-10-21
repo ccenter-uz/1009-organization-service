@@ -13,6 +13,7 @@ import {
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
+import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 
 @Injectable()
 export class CategoryService {
@@ -42,19 +43,28 @@ export class CategoryService {
       orderBy: { createdAt: 'desc' },
       include: {
         CategoryTranslations: {
-          where: {
+          where: false ? {} : {
             languageCode: LanguageRequestEnum.RU, // lang_code from request
           },
           select: {
-            languageCode: true,  // Select only languageCode
-            name: true,          // Select only name
+            languageCode: true,
+            name: true,
           },
         }
       },
     });
 
+    const formattedCategories = categories.map((category) => {
+      const translations = category.CategoryTranslations;
+
+      const name = formatLanguageResponse(translations)
+      delete category.CategoryTranslations
+
+      return { ...category, name };
+    });
+
     return {
-      data: categories,
+      data: formattedCategories,
       totalDocs: categories.length,
     };
   }
@@ -81,13 +91,12 @@ export class CategoryService {
       orderBy: { createdAt: 'desc' },
       include: {
         CategoryTranslations: {
-          where: {
+          where: false ? {} : {
             languageCode: LanguageRequestEnum.RU, // lang_code from request
-
           },
           select: {
-            languageCode: true,  // Select only languageCode
-            name: true,          // Select only name
+            languageCode: true,
+            name: true,
           },
         }
       },
@@ -95,11 +104,20 @@ export class CategoryService {
       skip: pagination.skip,
     });
 
+    const formattedCategories = categories.map((category) => {
+      const translations = category.CategoryTranslations;
+
+      const name = formatLanguageResponse(translations)
+      delete category.CategoryTranslations
+
+      return { ...category, name };
+    });
+
     return {
-      data: categories,
+      data: formattedCategories,
       totalPage: pagination.totalPage,
-      totalDocs: count,
-    };
+      totalDocs: count
+    }
   }
 
   async findOne(data: GetOneDto): Promise<CategoryInterfaces.Response> {
@@ -110,13 +128,12 @@ export class CategoryService {
       },
       include: {
         CategoryTranslations: {
-          where: {
+          where: true ? {} : {
             languageCode: LanguageRequestEnum.RU, // lang_code from request
-
           },
           select: {
-            languageCode: true,  // Select only languageCode
-            name: true,          // Select only name
+            languageCode: true,
+            name: true,
           },
         }
       },
@@ -126,7 +143,10 @@ export class CategoryService {
       throw new NotFoundException('Category is not found');
     }
 
-    return category;
+    const name = formatLanguageResponse(category.CategoryTranslations)
+    delete category.CategoryTranslations
+
+    return { ...category, name };
   }
 
   async update(data: CategoryUpdateDto): Promise<CategoryInterfaces.Response> {
