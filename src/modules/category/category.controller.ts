@@ -24,7 +24,7 @@ export class CategoryController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(): Promise<CategoryInterfaces.ResponseWithoutPagination> {
-    return;
+    return this.categoryService.findAll()
   }
 
   @Get()

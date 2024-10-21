@@ -6,7 +6,6 @@ import {
   CategoryInterfaces,
   CategoryUpdateDto,
 } from 'types/organization/category';
-import { JsonValue, LanguageRequestType } from 'types/global/types';
 import {
   DefaultStatus,
   DeleteDto,
@@ -36,18 +35,22 @@ export class CategoryService {
       },
     });
     return category
-
-    // return {
-    //   name: category[data.lang],
-    //   ...category,
-    // };
   }
 
-  async findAll(
-    data: ListQueryDto
-  ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
+  async findAll(): Promise<CategoryInterfaces.ResponseWithoutPagination> {
     const categories = await this.prisma.category.findMany({
       orderBy: { createdAt: 'desc' },
+      include: {
+        CategoryTranslations: {
+          where: {
+            languageCode: LanguageRequestEnum.RU, // lang_code from request
+          },
+          select: {
+            languageCode: true,  // Select only languageCode
+            name: true,          // Select only name
+          },
+        }
+      },
     });
 
     return {
@@ -76,6 +79,18 @@ export class CategoryService {
         status: DefaultStatus.ACTIVE,
       },
       orderBy: { createdAt: 'desc' },
+      include: {
+        CategoryTranslations: {
+          where: {
+            languageCode: LanguageRequestEnum.RU, // lang_code from request
+
+          },
+          select: {
+            languageCode: true,  // Select only languageCode
+            name: true,          // Select only name
+          },
+        }
+      },
       take: pagination.take,
       skip: pagination.skip,
     });
@@ -92,6 +107,18 @@ export class CategoryService {
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
+      },
+      include: {
+        CategoryTranslations: {
+          where: {
+            languageCode: LanguageRequestEnum.RU, // lang_code from request
+
+          },
+          select: {
+            languageCode: true,  // Select only languageCode
+            name: true,          // Select only name
+          },
+        }
       },
     });
 
@@ -111,7 +138,25 @@ export class CategoryService {
       },
       data: {
         staffNumber: data.staffNumber,
-        // name: data.name as JsonValue
+        CategoryTranslations: {
+          updateMany: [
+            {
+              where: { languageCode: LanguageRequestEnum.RU },
+              data: { name: data.name[LanguageRequestEnum.RU] },
+            },
+            {
+              where: { languageCode: LanguageRequestEnum.UZ },
+              data: { name: data.name[LanguageRequestEnum.UZ] },
+            },
+            {
+              where: { languageCode: LanguageRequestEnum.CY },
+              data: { name: data.name[LanguageRequestEnum.CY] },
+            },
+          ]
+        }
+      },
+      include: {
+        CategoryTranslations: true, // Include translations in the response
       },
     });
   }
