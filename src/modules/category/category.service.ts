@@ -10,6 +10,7 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
+  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -38,13 +39,13 @@ export class CategoryService {
     return category
   }
 
-  async findAll(): Promise<CategoryInterfaces.ResponseWithoutPagination> {
+  async findAll(data: LanguageRequestDto): Promise<CategoryInterfaces.ResponseWithoutPagination> {
     const categories = await this.prisma.category.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
         CategoryTranslations: {
-          where: false ? {} : {
-            languageCode: LanguageRequestEnum.RU, // lang_code from request
+          where: data.all_lang ? {} : {
+            languageCode: data.lang_code, // lang_code from request
           },
           select: {
             languageCode: true,
@@ -91,8 +92,8 @@ export class CategoryService {
       orderBy: { createdAt: 'desc' },
       include: {
         CategoryTranslations: {
-          where: false ? {} : {
-            languageCode: LanguageRequestEnum.RU, // lang_code from request
+          where: data.all_lang ? {} : {
+            languageCode: data.lang_code, // lang_code from request
           },
           select: {
             languageCode: true,
@@ -128,8 +129,8 @@ export class CategoryService {
       },
       include: {
         CategoryTranslations: {
-          where: true ? {} : {
-            languageCode: LanguageRequestEnum.RU, // lang_code from request
+          where: data.all_lang ? {} : {
+            languageCode: data.lang_code, // lang_code from request
           },
           select: {
             languageCode: true,

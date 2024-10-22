@@ -7,7 +7,7 @@ import {
   CategoryInterfaces,
   CategoryUpdateDto,
 } from 'types/organization/category';
-import { DeleteDto, GetOneDto, ListQueryDto } from 'types/global';
+import { DeleteDto, GetOneDto, LanguageRequestDto, ListQueryDto } from 'types/global';
 
 @Controller('category')
 export class CategoryController {
@@ -23,8 +23,8 @@ export class CategoryController {
 
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
-  findAll(): Promise<CategoryInterfaces.ResponseWithoutPagination> {
-    return this.categoryService.findAll()
+  findAll(@Payload() data: LanguageRequestDto): Promise<CategoryInterfaces.ResponseWithoutPagination> {
+    return this.categoryService.findAll(data)
   }
 
   @Get()
