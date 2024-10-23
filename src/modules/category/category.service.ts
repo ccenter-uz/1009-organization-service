@@ -205,9 +205,6 @@ export class CategoryService {
       data: { status: DefaultStatus.INACTIVE },
       include: {
         CategoryTranslations: {
-          where: true ? {} : {
-            languageCode: LanguageRequestEnum.RU, // lang_code from request
-          },
           select: {
             languageCode: true,
             name: true,
@@ -223,9 +220,6 @@ export class CategoryService {
       data: { status: DefaultStatus.ACTIVE },
       include: {
         CategoryTranslations: {
-          where: true ? {} : {
-            languageCode: LanguageRequestEnum.RU, // lang_code from request
-          },
           select: {
             languageCode: true,
             name: true,
