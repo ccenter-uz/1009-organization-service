@@ -4,15 +4,20 @@ import { SubCategoryCreateDto, SubCategoryInterfaces, SubCategoryUpdateDto } fro
 import { DefaultStatus, DeleteDto, GetOneDto, LanguageRequestDto, LanguageRequestEnum, ListQueryDto } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
+import { CategoryService } from '../category/category.service';
 @Injectable()
 export class SubCategoryService {
-    constructor(private readonly prisma : PrismaService) {}
+    constructor(
+        private readonly prisma : PrismaService,
+        private readonly categoryService : CategoryService
+        ) {}
 
     async create(data : SubCategoryCreateDto) : Promise<SubCategoryInterfaces.Response> {
+        const category = await this.categoryService.findOne({id: data.categoryId})
         const subCategory = await this.prisma.subCategory.create({
             data : {
                 staffNumber : data.staffNumber,
-                categoryId : data.categoryId,
+                categoryId : category.id,
                 SubCategoryTranslations : {
                     create :[
                         {languageCode : LanguageRequestEnum.RU , name: data.name[LanguageRequestEnum.RU ] },
@@ -148,6 +153,10 @@ export class SubCategoryService {
 
     async update(data: SubCategoryUpdateDto): Promise<SubCategoryInterfaces.Response> {
         const subCategory = await this.findOne({ id: data.id });
+
+        if (data.categoryId) {
+			await this.categoryService.findOne({ id: data.categoryId });
+		}
       
         // Prepare the updateMany data conditionally based on the provided language names
         const translationUpdates = [];
