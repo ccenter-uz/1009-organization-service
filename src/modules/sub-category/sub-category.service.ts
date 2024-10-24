@@ -158,7 +158,6 @@ export class SubCategoryService {
 			await this.categoryService.findOne({ id: data.categoryId });
 		}
       
-        // Prepare the updateMany data conditionally based on the provided language names
         const translationUpdates = [];
       
         if (data.name?.[LanguageRequestEnum.RU]) {
@@ -182,25 +181,24 @@ export class SubCategoryService {
           });
         }
       
-        // Perform the update only for the fields that are provided
         return await this.prisma.subCategory.update({
           where: {
             id: subCategory.id,
           },
           data: {
-            staffNumber: data.staffNumber || subCategory.staffNumber, // Retain the old value if not provided
+            staffNumber: data.staffNumber || subCategory.staffNumber, 
             SubCategoryTranslations: {
-              updateMany: translationUpdates.length > 0 ? translationUpdates : undefined, // Only update if translations are present
+              updateMany: translationUpdates.length > 0 ? translationUpdates : undefined, 
             },
           },
           include: {
-            SubCategoryTranslations: true, // Include translations in the response
+            SubCategoryTranslations: true, 
           },
         });
       }
 
     async remove(data : DeleteDto) : Promise<SubCategoryInterfaces.Response> {
-        // try {
+
             if(data.delete) {
                 return await this.prisma.subCategory.delete({
                     where : {id : data.id},
@@ -230,16 +228,10 @@ export class SubCategoryService {
                     }
                 }
             })
-        // } catch (error) {
-        //     console.log(error.message);
-        //     throw Error(error.message)
-            
-        // }
 
     }
 
     async restore(data : GetOneDto) : Promise<SubCategoryInterfaces.Response> {
-        console.log(data);
         
         return this.prisma.subCategory.update({
             where : {
