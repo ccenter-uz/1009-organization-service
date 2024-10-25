@@ -86,7 +86,7 @@ export class MainOrganizationService {
       throw new NotFoundException('Main Organization is not found');
     }
 
-    return { ...mainOrganization };
+    return mainOrganization;
   }
 
 
