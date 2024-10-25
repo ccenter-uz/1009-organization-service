@@ -10,6 +10,7 @@ import { AllExceptionFilter } from './common/filter/all-exception.filter';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { CategoryModule } from './modules/category/category.module';
 import { SubCategoryModule } from './modules/sub-category/sub-category.module';
+import { MainOrganizationModule } from './modules/main-rganization/main-organization.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { SubCategoryModule } from './modules/sub-category/sub-category.module';
     PrismaModule,
     CategoryModule,
     SubCategoryModule,
+    MainOrganizationModule,
   ],
   controllers: [],
   providers: [

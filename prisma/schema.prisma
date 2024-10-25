@@ -66,3 +66,15 @@ model SubCategoryTranslations {
 
   @@map("sub_category_translations")
 }
+
+model MainOrganization {
+  id                   Int                    @id @default(autoincrement())
+  name                 String
+  staffNumber          Int                    @map("staff_number") @db.Integer
+  status               Int                    @default(1) @db.SmallInt()
+  createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamp
+  updatedAt            DateTime?              @updatedAt @map("updated_at")
+  deletedAt            DateTime?              @updatedAt @map("deleted_at")
+
+  @@map("main_organization")
+}
