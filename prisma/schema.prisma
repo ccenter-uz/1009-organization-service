@@ -78,3 +78,40 @@ model MainOrganization {
 
   @@map("main_organization")
 }
+
+model Section { 
+  id                   Int                    @id @default(autoincrement())
+  name                 String
+  status               Int                    @default(1) @db.SmallInt()
+  createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamp
+  updatedAt            DateTime?              @updatedAt @map("updated_at")
+  deletedAt            DateTime?              @updatedAt @map("deleted_at")
+
+  @@map("section")
+}
+
+model Segment {
+  id                   Int                    @id @default(autoincrement())
+  status               Int                    @default(1) @db.SmallInt()
+  createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamp
+  updatedAt            DateTime?              @updatedAt @map("updated_at")
+  deletedAt            DateTime?              @updatedAt @map("deleted_at")
+  SegmentTranslations SegmentTranslations[]
+
+  @@map("segment")
+}
+
+model SegmentTranslations {
+  id           Int       @id @default(autoincrement())
+  segmentId   Int       @map("category_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  segment Segment @relation(fields: [segmentId], references: [id])
+
+  @@map("segment_translations")
+} 
+
+

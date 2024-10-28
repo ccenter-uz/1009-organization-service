@@ -11,6 +11,8 @@ import { PrismaModule } from './modules/prisma/prisma.module';
 import { CategoryModule } from './modules/category/category.module';
 import { SubCategoryModule } from './modules/sub-category/sub-category.module';
 import { MainOrganizationModule } from './modules/main-rganization/main-organization.module';
+import { SectionModule } from './modules/section/section.module';
+import { SegmentModule } from './modules/segment/segment.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { MainOrganizationModule } from './modules/main-rganization/main-organiza
     CategoryModule,
     SubCategoryModule,
     MainOrganizationModule,
+    SectionModule,
+    SegmentModule,
   ],
   controllers: [],
   providers: [
@@ -31,4 +35,4 @@ import { MainOrganizationModule } from './modules/main-rganization/main-organiza
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

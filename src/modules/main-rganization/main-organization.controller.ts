@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, Patch, Post, Put } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { MainOrganizationService } from './main-organization.service';
-import { CategoryServiceCommands as Commands } from 'types/organization/category/commands';
+import { MainOrganizationServiceCommands as Commands } from 'types/organization/main-organization/commands';
 import { DeleteDto, GetOneDto, LanguageRequestDto, ListQueryDto } from 'types/global';
 import { MainOrganizationCreateDto, MainOrganizationInterfaces, MainOrganizationUpdateDto } from 'types/organization/main-organization';
 
