@@ -18,7 +18,7 @@ import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CategoryCreateDto): Promise<CategoryInterfaces.Response> {
     const category = await this.prisma.category.create({
@@ -26,40 +26,53 @@ export class CategoryService {
         staffNumber: data.staffNumber,
         CategoryTranslations: {
           create: [
-            { languageCode: LanguageRequestEnum.RU, name: data.name[LanguageRequestEnum.RU] },
-            { languageCode: LanguageRequestEnum.UZ, name: data.name[LanguageRequestEnum.UZ] },
-            { languageCode: LanguageRequestEnum.CY, name: data.name[LanguageRequestEnum.CY] },
-          ]
-        }
+            {
+              languageCode: LanguageRequestEnum.RU,
+              name: data.name[LanguageRequestEnum.RU],
+            },
+            {
+              languageCode: LanguageRequestEnum.UZ,
+              name: data.name[LanguageRequestEnum.UZ],
+            },
+            {
+              languageCode: LanguageRequestEnum.CY,
+              name: data.name[LanguageRequestEnum.CY],
+            },
+          ],
+        },
       },
       include: {
         CategoryTranslations: true,
       },
     });
-    return category
+    return category;
   }
 
-  async findAll(data: LanguageRequestDto): Promise<CategoryInterfaces.ResponseWithoutPagination> {
+  async findAll(
+    data: LanguageRequestDto
+  ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
     const categories = await this.prisma.category.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
         CategoryTranslations: {
-          where: data.all_lang ? {} : {
-            languageCode: data.lang_code, // lang_code from request
-          },
+          where: data.all_lang
+            ? {}
+            : {
+                languageCode: data.lang_code, // lang_code from request
+              },
           select: {
             languageCode: true,
             name: true,
           },
-        }
+        },
       },
     });
 
     const formattedCategories = categories.map((category) => {
       const translations = category.CategoryTranslations;
 
-      const name = formatLanguageResponse(translations)
-      delete category.CategoryTranslations
+      const name = formatLanguageResponse(translations);
+      delete category.CategoryTranslations;
 
       return { ...category, name };
     });
@@ -74,9 +87,7 @@ export class CategoryService {
     data: ListQueryDto
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
     const count = await this.prisma.category.count({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where: { status: DefaultStatus.ACTIVE },
     });
 
     const pagination = createPagination({
@@ -86,20 +97,20 @@ export class CategoryService {
     });
 
     const categories = await this.prisma.category.findMany({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where: { status: DefaultStatus.ACTIVE },
       orderBy: { createdAt: 'desc' },
       include: {
         CategoryTranslations: {
-          where: data.all_lang ? {} : {
-            languageCode: data.lang_code, // lang_code from request
-          },
+          where: data.all_lang
+            ? {}
+            : {
+                languageCode: data.lang_code, // lang_code from request
+              },
           select: {
             languageCode: true,
             name: true,
           },
-        }
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -108,8 +119,8 @@ export class CategoryService {
     const formattedCategories = categories.map((category) => {
       const translations = category.CategoryTranslations;
 
-      const name = formatLanguageResponse(translations)
-      delete category.CategoryTranslations
+      const name = formatLanguageResponse(translations);
+      delete category.CategoryTranslations;
 
       return { ...category, name };
     });
@@ -117,8 +128,8 @@ export class CategoryService {
     return {
       data: formattedCategories,
       totalPage: pagination.totalPage,
-      totalDocs: count
-    }
+      totalDocs: count,
+    };
   }
 
   async findOne(data: GetOneDto): Promise<CategoryInterfaces.Response> {
@@ -129,14 +140,16 @@ export class CategoryService {
       },
       include: {
         CategoryTranslations: {
-          where: data.all_lang ? {} : {
-            languageCode: data.lang_code, // lang_code from request
-          },
+          where: data.all_lang
+            ? {}
+            : {
+                languageCode: data.lang_code, // lang_code from request
+              },
           select: {
             languageCode: true,
             name: true,
           },
-        }
+        },
       },
     });
 
@@ -144,8 +157,8 @@ export class CategoryService {
       throw new NotFoundException('Category is not found');
     }
 
-    const name = formatLanguageResponse(category.CategoryTranslations)
-    delete category.CategoryTranslations
+    const name = formatLanguageResponse(category.CategoryTranslations);
+    delete category.CategoryTranslations;
 
     return { ...category, name };
   }
@@ -173,8 +186,8 @@ export class CategoryService {
               where: { languageCode: LanguageRequestEnum.CY },
               data: { name: data.name[LanguageRequestEnum.CY] },
             },
-          ]
-        }
+          ],
+        },
       },
       include: {
         CategoryTranslations: true, // Include translations in the response
@@ -188,14 +201,16 @@ export class CategoryService {
         where: { id: data.id },
         include: {
           CategoryTranslations: {
-            where: true ? {} : {
-              languageCode: LanguageRequestEnum.RU, // lang_code from request
-            },
+            where: true
+              ? {}
+              : {
+                  languageCode: LanguageRequestEnum.RU, // lang_code from request
+                },
             select: {
               languageCode: true,
               name: true,
             },
-          }
+          },
         },
       });
     }
@@ -205,14 +220,16 @@ export class CategoryService {
       data: { status: DefaultStatus.INACTIVE },
       include: {
         CategoryTranslations: {
-          where: true ? {} : {
-            languageCode: LanguageRequestEnum.RU, // lang_code from request
-          },
+          where: true
+            ? {}
+            : {
+                languageCode: LanguageRequestEnum.RU, // lang_code from request
+              },
           select: {
             languageCode: true,
             name: true,
           },
-        }
+        },
       },
     });
   }
@@ -223,14 +240,16 @@ export class CategoryService {
       data: { status: DefaultStatus.ACTIVE },
       include: {
         CategoryTranslations: {
-          where: true ? {} : {
-            languageCode: LanguageRequestEnum.RU, // lang_code from request
-          },
+          where: true
+            ? {}
+            : {
+                languageCode: LanguageRequestEnum.RU, // lang_code from request
+              },
           select: {
             languageCode: true,
             name: true,
           },
-        }
+        },
       },
     });
   }

@@ -7,11 +7,16 @@ import {
   CategoryInterfaces,
   CategoryUpdateDto,
 } from 'types/organization/category';
-import { DeleteDto, GetOneDto, LanguageRequestDto, ListQueryDto } from 'types/global';
+import {
+  DeleteDto,
+  GetOneDto,
+  LanguageRequestDto,
+  ListQueryDto,
+} from 'types/global';
 
 @Controller('category')
 export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) { }
+  constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
@@ -23,8 +28,10 @@ export class CategoryController {
 
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
-  findAll(@Payload() data: LanguageRequestDto): Promise<CategoryInterfaces.ResponseWithoutPagination> {
-    return this.categoryService.findAll(data)
+  findAll(
+    @Payload() data: LanguageRequestDto
+  ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
+    return this.categoryService.findAll(data);
   }
 
   @Get()

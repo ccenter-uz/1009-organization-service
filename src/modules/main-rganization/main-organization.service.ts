@@ -15,30 +15,38 @@ import {
   ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
-import { MainOrganizationCreateDto, MainOrganizationInterfaces, MainOrganizationUpdateDto } from 'types/organization/main-organization';
+import {
+  MainOrganizationCreateDto,
+  MainOrganizationInterfaces,
+  MainOrganizationUpdateDto,
+} from 'types/organization/main-organization';
 
 @Injectable()
 export class MainOrganizationService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: MainOrganizationCreateDto): Promise<MainOrganizationInterfaces.Response> {
+  async create(
+    data: MainOrganizationCreateDto
+  ): Promise<MainOrganizationInterfaces.Response> {
     // const mainOrganization = await this.prisma.mainOrganization
     const mainOrganization = await this.prisma.mainOrganization.create({
       data: {
         staffNumber: data.staffNumber,
-        name : data.name,
+        name: data.name,
       },
     });
-    return mainOrganization
+    return mainOrganization;
   }
 
-  async findAll(data: LanguageRequestDto): Promise<MainOrganizationInterfaces.ResponseWithoutPagination> {
+  async findAll(
+    data: LanguageRequestDto
+  ): Promise<MainOrganizationInterfaces.ResponseWithoutPagination> {
     const mainOrganization = await this.prisma.mainOrganization.findMany({
       orderBy: { createdAt: 'desc' },
     });
 
     return {
-      data: mainOrganization ,
+      data: mainOrganization,
       totalDocs: mainOrganization.length,
     };
   }
@@ -60,7 +68,7 @@ export class MainOrganizationService {
 
     const mainOrganization = await this.prisma.mainOrganization.findMany({
       where: {
-        status: DefaultStatus.ACTIVE ,
+        status: DefaultStatus.ACTIVE,
       },
       orderBy: { createdAt: 'desc' },
       take: pagination.take,
@@ -70,8 +78,8 @@ export class MainOrganizationService {
     return {
       data: mainOrganization,
       totalPage: pagination.totalPage,
-      totalDocs: count
-    }
+      totalDocs: count,
+    };
   }
 
   async findOne(data: GetOneDto): Promise<MainOrganizationInterfaces.Response> {
@@ -89,9 +97,9 @@ export class MainOrganizationService {
     return mainOrganization;
   }
 
-
-
-  async update(data: MainOrganizationUpdateDto): Promise<MainOrganizationInterfaces.Response> {
+  async update(
+    data: MainOrganizationUpdateDto
+  ): Promise<MainOrganizationInterfaces.Response> {
     const mainOrganization = await this.findOne({ id: data.id });
 
     return await this.prisma.mainOrganization.update({
@@ -100,7 +108,7 @@ export class MainOrganizationService {
       },
       data: {
         staffNumber: data.staffNumber,
-        name : data.name
+        name: data.name,
       },
     });
   }
@@ -115,7 +123,6 @@ export class MainOrganizationService {
     return await this.prisma.mainOrganization.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
-     
     });
   }
 

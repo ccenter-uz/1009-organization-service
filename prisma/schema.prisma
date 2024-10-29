@@ -103,7 +103,7 @@ model Segment {
 
 model SegmentTranslations {
   id           Int       @id @default(autoincrement())
-  segmentId   Int       @map("category_id")
+  segmentId    Int       @map("category_id")
   languageCode String    @map("language_code")
   name         String
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
