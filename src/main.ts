@@ -38,7 +38,7 @@ async function bootstrap() {
         },
       },
     },
-    { inheritAppConfig: true },
+    { inheritAppConfig: true }
   );
 
   app.useGlobalFilters(new AllExceptionFilter());

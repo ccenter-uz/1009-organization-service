@@ -1,28 +1,28 @@
 import { Controller, Delete, Get, Patch, Post, Put } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { CategoryService } from './category.service';
-import { CategoryServiceCommands as Commands } from 'types/organization/category/commands';
-import {
-  CategoryCreateDto,
-  CategoryInterfaces,
-  CategoryUpdateDto,
-} from 'types/organization/category';
+import { SegmentService } from './segment.service';
+import { SegmentServiceCommands as Commands } from 'types/organization/segment/commands';
 import {
   DeleteDto,
   GetOneDto,
   LanguageRequestDto,
   ListQueryDto,
 } from 'types/global';
+import {
+  SegmentCreateDto,
+  SegmentInterfaces,
+  SegmentUpdateDto,
+} from 'types/organization/segment';
 
-@Controller('category')
-export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) {}
+@Controller('segment')
+export class SegmentController {
+  constructor(private readonly categoryService: SegmentService) {}
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
   create(
-    @Payload() data: CategoryCreateDto
-  ): Promise<CategoryInterfaces.Response> {
+    @Payload() data: SegmentCreateDto
+  ): Promise<SegmentInterfaces.Response> {
     return this.categoryService.create(data);
   }
 
@@ -30,7 +30,7 @@ export class CategoryController {
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
     @Payload() data: LanguageRequestDto
-  ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
+  ): Promise<SegmentInterfaces.ResponseWithoutPagination> {
     return this.categoryService.findAll(data);
   }
 
@@ -38,33 +38,33 @@ export class CategoryController {
   @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
   findAllByPagination(
     @Payload() data: ListQueryDto
-  ): Promise<CategoryInterfaces.ResponseWithPagination> {
+  ): Promise<SegmentInterfaces.ResponseWithPagination> {
     return this.categoryService.findAllByPagination(data);
   }
 
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })
-  findOne(@Payload() data: GetOneDto): Promise<CategoryInterfaces.Response> {
+  findOne(@Payload() data: GetOneDto): Promise<SegmentInterfaces.Response> {
     return this.categoryService.findOne(data);
   }
 
   @Put()
   @MessagePattern({ cmd: Commands.UPDATE })
   update(
-    @Payload() data: CategoryUpdateDto
-  ): Promise<CategoryInterfaces.Response> {
+    @Payload() data: SegmentUpdateDto
+  ): Promise<SegmentInterfaces.Response> {
     return this.categoryService.update(data);
   }
 
   @Delete()
   @MessagePattern({ cmd: Commands.DELETE })
-  remove(@Payload() data: DeleteDto): Promise<CategoryInterfaces.Response> {
+  remove(@Payload() data: DeleteDto): Promise<SegmentInterfaces.Response> {
     return this.categoryService.remove(data);
   }
 
   @Patch()
   @MessagePattern({ cmd: Commands.RESTORE })
-  restore(@Payload() data: GetOneDto): Promise<CategoryInterfaces.Response> {
+  restore(@Payload() data: GetOneDto): Promise<SegmentInterfaces.Response> {
     return this.categoryService.restore(data);
   }
 }
