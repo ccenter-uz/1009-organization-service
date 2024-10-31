@@ -91,11 +91,9 @@ export class CategoryService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
-    const count = await this.prisma.category.count({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
-    });
+    const where: any = { status: DefaultStatus.ACTIVE }
+
+    const count = await this.prisma.category.count({ where });
 
     const pagination = createPagination({
       count,
@@ -103,10 +101,19 @@ export class CategoryService {
       perPage: data.limit,
     });
 
+    if (data.search) {
+      where.CategoryTranslations = {
+        some: {
+          languageCode: data.lang_code,
+          name: {
+            contains: data.search,
+          },
+        },
+      };
+    }
+
     const categories = await this.prisma.category.findMany({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         CategoryTranslations: {
