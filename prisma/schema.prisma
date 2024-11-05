@@ -56,7 +56,7 @@ model SubCategory {
 
 model SubCategoryTranslations {
   id            Int       @id @default(autoincrement())
-  subCategoryId Int       @map("category_id")
+  subCategoryId Int       @map("sub_category_id")
   languageCode  String    @map("language_code")
   name          String
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp
@@ -103,7 +103,7 @@ model Segment {
 
 model SegmentTranslations {
   id           Int       @id @default(autoincrement())
-  segmentId   Int       @map("category_id")
+  segmentId   Int       @map("segment_id")
   languageCode String    @map("language_code")
   name         String
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
@@ -114,4 +114,58 @@ model SegmentTranslations {
   @@map("segment_translations")
 } 
 
+
+model ProductServiceCategory {
+  id                   Int                    @id @default(autoincrement())
+  staffNumber          Int                    @map("staff_number") @db.Integer
+  status               Int                    @default(1) @db.SmallInt()
+  createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamp
+  updatedAt            DateTime?              @updatedAt @map("updated_at")
+  deletedAt            DateTime?              @updatedAt @map("deleted_at")
+  product_service_sub_categories       ProductServiceSubCategory[]
+  ProductServiceCategoryTranslations ProductServiceCategoryTranslations[]
+
+  @@map("product_service_category")
+}
+
+model ProductServiceCategoryTranslations {
+  id                         Int       @id @default(autoincrement())
+  productServiceCategoryId   Int       @map("product_service_category_id")
+  languageCode               String    @map("language_code")
+  name                       String
+  createdAt                  DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                  DateTime? @updatedAt @map("updated_at")
+
+  productServiceCategory ProductServiceCategory @relation(fields: [productServiceCategoryId], references: [id])
+
+  @@map("product_service_category_translations")
+}
+
+model ProductServiceSubCategory {
+  id                         Int       @id @default(autoincrement())
+  staffNumber                Int       @map("staff_number") @db.Integer
+  status                     Int       @default(1) @db.SmallInt()
+  productServiceCategoryId   Int       @map("product_service_category_id")
+  createdAt                  DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                  DateTime? @updatedAt @map("updated_at")
+  deletedAt                  DateTime? @updatedAt @map("deleted_at")
+
+  productServiceCategory ProductServiceCategory @relation(fields: [productServiceCategoryId], references: [id])
+  productServiceSubCategoryTranslations ProductServiceSubCategoryTranslations[]
+
+  @@map("product_service_sub_category")
+}
+
+model ProductServiceSubCategoryTranslations {
+  id                           Int       @id @default(autoincrement())
+  productServicSubCategoryId   Int       @map("product_service_sub_category_id")
+  languageCode                 String    @map("language_code")
+  name                         String
+  createdAt                    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                    DateTime? @updatedAt @map("updated_at")
+
+  productServiceSubCategory ProductServiceSubCategory @relation(fields: [productServicSubCategoryId], references: [id])
+
+  @@map("product_service_sub_category_translations")
+}
 
