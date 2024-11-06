@@ -20,49 +20,67 @@ import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 export class CategoryService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async create(data: CategoryCreateDto): Promise<CategoryInterfaces.Response> {
+  async create(
+    data: CategoryCreateDto
+  ): Promise<CategoryInterfaces.Response> {
     const category = await this.prisma.category.create({
       data: {
         staffNumber: data.staffNumber,
         CategoryTranslations: {
           create: [
-            { languageCode: LanguageRequestEnum.RU, name: data.name[LanguageRequestEnum.RU] },
-            { languageCode: LanguageRequestEnum.UZ, name: data.name[LanguageRequestEnum.UZ] },
-            { languageCode: LanguageRequestEnum.CY, name: data.name[LanguageRequestEnum.CY] },
-          ]
-        }
+            {
+              languageCode: LanguageRequestEnum.RU,
+              name: data.name[LanguageRequestEnum.RU],
+            },
+            {
+              languageCode: LanguageRequestEnum.UZ,
+              name: data.name[LanguageRequestEnum.UZ],
+            },
+            {
+              languageCode: LanguageRequestEnum.CY,
+              name: data.name[LanguageRequestEnum.CY],
+            },
+          ],
+        },
       },
       include: {
         CategoryTranslations: true,
       },
     });
-    return category
+    return category;
   }
 
-  async findAll(data: LanguageRequestDto): Promise<CategoryInterfaces.ResponseWithoutPagination> {
+  async findAll(
+    data: LanguageRequestDto
+  ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
     const categories = await this.prisma.category.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
         CategoryTranslations: {
-          where: data.all_lang ? {} : {
-            languageCode: data.lang_code, // lang_code from request
-          },
+          where: data.all_lang
+            ? {}
+            : {
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
           },
-        }
+        },
       },
     });
 
-    const formattedCategories = categories.map((category) => {
+    const formattedCategories = [];
+
+    for (let i = 0; i < categories.length; i++) {
+      const category = categories[i];
       const translations = category.CategoryTranslations;
+      const name = formatLanguageResponse(translations);
 
-      const name = formatLanguageResponse(translations)
-      delete category.CategoryTranslations
+      delete category.CategoryTranslations;
 
-      return { ...category, name };
-    });
+      formattedCategories.push({ ...category, name });
+    }
 
     return {
       data: formattedCategories,
@@ -73,11 +91,9 @@ export class CategoryService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
-    const count = await this.prisma.category.count({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
-    });
+    const where: any = { status: DefaultStatus.ACTIVE }
+
+    const count = await this.prisma.category.count({ where });
 
     const pagination = createPagination({
       count,
@@ -85,40 +101,54 @@ export class CategoryService {
       perPage: data.limit,
     });
 
+    if (data.search) {
+      where.CategoryTranslations = {
+        some: {
+          languageCode: data.lang_code,
+          name: {
+            contains: data.search,
+          },
+        },
+      };
+    }
+
     const categories = await this.prisma.category.findMany({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         CategoryTranslations: {
-          where: data.all_lang ? {} : {
-            languageCode: data.lang_code, // lang_code from request
-          },
+          where: data.all_lang
+            ? {}
+            : {
+              languageCode: data.lang_code,
+            },
           select: {
-            languageCode: true,
             name: true,
+            languageCode: true,
           },
-        }
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
     });
 
-    const formattedCategories = categories.map((category) => {
+    const formattedCategories = [];
+
+    for (let i = 0; i < categories.length; i++) {
+      const category = categories[i];
       const translations = category.CategoryTranslations;
+      const name = formatLanguageResponse(translations);
 
-      const name = formatLanguageResponse(translations)
-      delete category.CategoryTranslations
+      delete category.CategoryTranslations;
 
-      return { ...category, name };
-    });
+      formattedCategories.push({ ...category, name });
+    }
 
     return {
       data: formattedCategories,
       totalPage: pagination.totalPage,
-      totalDocs: count
-    }
+      totalDocs: count,
+    };
   }
 
   async findOne(data: GetOneDto): Promise<CategoryInterfaces.Response> {
@@ -129,55 +159,66 @@ export class CategoryService {
       },
       include: {
         CategoryTranslations: {
-          where: data.all_lang ? {} : {
-            languageCode: data.lang_code, // lang_code from request
-          },
+          where: data.all_lang
+            ? {}
+            : {
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
           },
-        }
+        },
       },
     });
-
     if (!category) {
       throw new NotFoundException('Category is not found');
     }
-
-    const name = formatLanguageResponse(category.CategoryTranslations)
-    delete category.CategoryTranslations
-
+    const name = formatLanguageResponse(category.CategoryTranslations);
     return { ...category, name };
   }
 
-  async update(data: CategoryUpdateDto): Promise<CategoryInterfaces.Response> {
+  async update(
+    data: CategoryUpdateDto
+  ): Promise<CategoryInterfaces.Response> {
     const category = await this.findOne({ id: data.id });
+
+    const translationUpdates = [];
+
+    if (data.name?.[LanguageRequestEnum.RU]) {
+      translationUpdates.push({
+        where: { languageCode: LanguageRequestEnum.RU },
+        data: { name: data.name[LanguageRequestEnum.RU] },
+      });
+    }
+
+    if (data.name?.[LanguageRequestEnum.UZ]) {
+      translationUpdates.push({
+        where: { languageCode: LanguageRequestEnum.UZ },
+        data: { name: data.name[LanguageRequestEnum.UZ] },
+      });
+    }
+
+    if (data.name?.[LanguageRequestEnum.CY]) {
+      translationUpdates.push({
+        where: { languageCode: LanguageRequestEnum.CY },
+        data: { name: data.name[LanguageRequestEnum.CY] },
+      });
+    }
 
     return await this.prisma.category.update({
       where: {
         id: category.id,
       },
       data: {
-        staffNumber: data.staffNumber,
+        staffNumber: data.staffNumber || category.staffNumber,
         CategoryTranslations: {
-          updateMany: [
-            {
-              where: { languageCode: LanguageRequestEnum.RU },
-              data: { name: data.name[LanguageRequestEnum.RU] },
-            },
-            {
-              where: { languageCode: LanguageRequestEnum.UZ },
-              data: { name: data.name[LanguageRequestEnum.UZ] },
-            },
-            {
-              where: { languageCode: LanguageRequestEnum.CY },
-              data: { name: data.name[LanguageRequestEnum.CY] },
-            },
-          ]
-        }
+          updateMany:
+            translationUpdates.length > 0 ? translationUpdates : undefined,
+        },
       },
       include: {
-        CategoryTranslations: true, // Include translations in the response
+        CategoryTranslations: true,
       },
     });
   }
@@ -188,49 +229,43 @@ export class CategoryService {
         where: { id: data.id },
         include: {
           CategoryTranslations: {
-            where: true ? {} : {
-              languageCode: LanguageRequestEnum.RU, // lang_code from request
-            },
             select: {
               languageCode: true,
               name: true,
             },
-          }
+          },
         },
       });
     }
 
-    return await this.prisma.category.update({
+    return await this.prisma.subCategory.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
-        CategoryTranslations: {
-          where: true ? {} : {
-            languageCode: LanguageRequestEnum.RU, // lang_code from request
-          },
+        SubCategoryTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
-        }
+        },
       },
     });
   }
 
   async restore(data: GetOneDto): Promise<CategoryInterfaces.Response> {
     return this.prisma.category.update({
-      where: { id: data.id, status: DefaultStatus.INACTIVE },
+      where: {
+        id: data.id,
+        status: DefaultStatus.INACTIVE,
+      },
       data: { status: DefaultStatus.ACTIVE },
       include: {
         CategoryTranslations: {
-          where: true ? {} : {
-            languageCode: LanguageRequestEnum.RU, // lang_code from request
-          },
           select: {
             languageCode: true,
             name: true,
           },
-        }
+        },
       },
     });
   }

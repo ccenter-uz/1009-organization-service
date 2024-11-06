@@ -22,14 +22,14 @@ export const rabbitConfig = registerAs(
     password: process.env.RMQ_PASSWORD || 'guest',
     host: process.env.RMQ_HOST || 'localhost',
     port: parseInt(process.env.RMQ_PORT) || 5672,
-  }),
+  })
 );
 
 export const dbConfig = registerAs(
   CONFIG_PRISMA_DB_TOKEN,
   (): DbConfig => ({
     url: process.env.DATABASE_URL,
-  }),
+  })
 );
 
 export type RMQConfig = {
