@@ -1,11 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-  SubCategoryCreateDto,
-  SubCategoryInterfaces,
-  SubCategoryUpdateDto,
-} from 'types/organization/sub-category';
-import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
@@ -15,9 +10,12 @@ import {
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
-import { CategoryService } from '../category/category.service';
 import { ProductServiceCategoryService } from '../product-servise-category/product-service-category.service';
-import { ProductServiceSubCategoryCreateDto, ProductServiceSubCategoryInterfaces, ProductServiceSubCategoryUpdateDto } from 'types/organization/product-service-sub-category';
+import {
+  ProductServiceSubCategoryCreateDto,
+  ProductServiceSubCategoryInterfaces,
+  ProductServiceSubCategoryUpdateDto,
+} from 'types/organization/product-service-sub-category';
 @Injectable()
 export class ProductServiceSubCategoryService {
   constructor(
@@ -63,22 +61,23 @@ export class ProductServiceSubCategoryService {
   async findAll(
     data: LanguageRequestDto
   ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithoutPagination> {
-    const productServiceSubCategories = await this.prisma.productServiceSubCategory.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        productServiceSubCategoryTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-                languageCode: data.lang_code,
-              },
-          select: {
-            languageCode: true,
-            name: true,
+    const productServiceSubCategories =
+      await this.prisma.productServiceSubCategory.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+          productServiceSubCategoryTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      });
 
     const formattedSubCategories = [];
 
@@ -101,10 +100,19 @@ export class ProductServiceSubCategoryService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
+    const where: any = { status: DefaultStatus.ACTIVE };
+        if (data.search) {
+          where.productServiceSubCategoryTranslations = {
+            some: {
+              languageCode: data.lang_code,
+              name: {
+                contains: data.search,
+              },
+            },
+          };
+        }
     const count = await this.prisma.productServiceSubCategory.count({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where
     });
 
     const pagination = createPagination({
@@ -113,27 +121,26 @@ export class ProductServiceSubCategoryService {
       perPage: data.limit,
     });
 
-    const productServiceSubCategories = await this.prisma.productServiceSubCategory.findMany({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        productServiceSubCategoryTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-                languageCode: data.lang_code,
-              },
-          select: {
-            name: true,
-            languageCode: true,
+    const productServiceSubCategories =
+      await this.prisma.productServiceSubCategory.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          productServiceSubCategoryTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              name: true,
+              languageCode: true,
+            },
           },
         },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+        take: pagination.take,
+        skip: pagination.skip,
+      });
 
     const formattedSubCategories = [];
 
@@ -157,29 +164,32 @@ export class ProductServiceSubCategoryService {
   async findOne(
     data: GetOneDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
-    const productServiceSubCategory = await this.prisma.productServiceSubCategory.findFirst({
-      where: {
-        id: data.id,
-        status: DefaultStatus.ACTIVE,
-      },
-      include: {
-        productServiceSubCategoryTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-                languageCode: data.lang_code,
-              },
-          select: {
-            languageCode: true,
-            name: true,
+    const productServiceSubCategory =
+      await this.prisma.productServiceSubCategory.findFirst({
+        where: {
+          id: data.id,
+          status: DefaultStatus.ACTIVE,
+        },
+        include: {
+          productServiceSubCategoryTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      });
     if (!productServiceSubCategory) {
       throw new NotFoundException('SubCategory is not found');
     }
-    const name = formatLanguageResponse(productServiceSubCategory.productServiceSubCategoryTranslations);
+    const name = formatLanguageResponse(
+      productServiceSubCategory.productServiceSubCategoryTranslations
+    );
     return { ...productServiceSubCategory, name };
   }
 
@@ -189,7 +199,9 @@ export class ProductServiceSubCategoryService {
     const productServiceSubCategory = await this.findOne({ id: data.id });
 
     if (data.productServiceCategoryId) {
-      await this.productServiceCategoryService.findOne({ id: data.productServiceCategoryId });
+      await this.productServiceCategoryService.findOne({
+        id: data.productServiceCategoryId,
+      });
     }
 
     const translationUpdates = [];
@@ -240,11 +252,6 @@ export class ProductServiceSubCategoryService {
         where: { id: data.id },
         include: {
           productServiceSubCategoryTranslations: {
-            where: data.lang_code
-              ? {}
-              : {
-                  languageCode: LanguageRequestEnum.RU,
-                },
             select: {
               languageCode: true,
               name: true,
@@ -279,11 +286,6 @@ export class ProductServiceSubCategoryService {
       data: { status: DefaultStatus.ACTIVE },
       include: {
         productServiceSubCategoryTranslations: {
-          where: data.lang_code
-            ? {}
-            : {
-                languageCode: LanguageRequestEnum.RU,
-              },
           select: {
             languageCode: true,
             name: true,

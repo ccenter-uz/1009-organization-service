@@ -4,7 +4,6 @@ import { MessagePattern, Payload } from "@nestjs/microservices";
 import { SubCategoryInterfaces } from "types/organization/sub-category/interface/sub-category-group.interface";
 import { SubCategoryServiceCommands as Commands } from "types/organization/sub-category/commands";
 import { SubCategoryCreateDto, SubCategoryUpdateDto } from "types/organization/sub-category";
-import { CategoryInterfaces } from "types/organization/category";
 import { DeleteDto, GetOneDto, LanguageRequestDto, ListQueryDto } from "types/global";
 
 @Controller('sub-category')

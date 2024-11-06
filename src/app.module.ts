@@ -14,7 +14,7 @@ import { MainOrganizationModule } from './modules/main-rganization/main-organiza
 import { SectionModule } from './modules/section/section.module';
 import { SegmentModule } from './modules/segment/segment.module';
 import { ProductServiceCategoryModule } from './modules/product-servise-category/product-service-category.module';
-import { ProductServiceSubCategoryModule } from './modules/product-service-sub-category/sub-category.module';
+import { ProductServiceSubCategoryModule } from './modules/product-service-sub-category/product-service-sub-category.module';
 
 @Module({
   imports: [

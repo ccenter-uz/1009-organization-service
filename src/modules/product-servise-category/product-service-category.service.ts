@@ -94,10 +94,20 @@ export class ProductServiceCategoryService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<ProductServiseCategoryInterfaces.ResponseWithPagination> {
+    const where: any = { status: DefaultStatus.ACTIVE };
+        if (data.search) {
+          where.ProductServiceCategoryTranslations = {
+            some: {
+              languageCode: data.lang_code,
+              name: {
+                contains: data.search,
+              },
+            },
+          };
+        }
+
     const count = await this.prisma.productServiceCategory.count({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where
     });
 
     const pagination = createPagination({
@@ -106,11 +116,10 @@ export class ProductServiceCategoryService {
       perPage: data.limit,
     });
 
+
     const productServiceCategories =
       await this.prisma.productServiceCategory.findMany({
-        where: {
-          status: DefaultStatus.ACTIVE,
-        },
+        where,
         orderBy: { createdAt: 'desc' },
         include: {
           ProductServiceCategoryTranslations: {
@@ -226,11 +235,6 @@ export class ProductServiceCategoryService {
         where: { id: data.id },
         include: {
           ProductServiceCategoryTranslations: {
-            where: true
-              ? {}
-              : {
-                  languageCode: LanguageRequestEnum.RU, // lang_code from request
-                },
             select: {
               languageCode: true,
               name: true,
@@ -245,11 +249,6 @@ export class ProductServiceCategoryService {
       data: { status: DefaultStatus.INACTIVE },
       include: {
         ProductServiceCategoryTranslations: {
-          where: true
-            ? {}
-            : {
-                languageCode: LanguageRequestEnum.RU, // lang_code from request
-              },
           select: {
             languageCode: true,
             name: true,
@@ -265,6 +264,14 @@ export class ProductServiceCategoryService {
     return this.prisma.productServiceCategory.update({
       where: { id: data.id, status: DefaultStatus.INACTIVE },
       data: { status: DefaultStatus.ACTIVE },
+      include: {
+        ProductServiceCategoryTranslations: {
+          select: {
+            languageCode: true,
+            name: true,
+          },
+        },
+      },
     });
   }
 }

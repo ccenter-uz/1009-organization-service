@@ -1,13 +1,7 @@
 import { Controller, Post, Get, Put, Delete, Patch } from '@nestjs/common';
-import { ProductServiceSubCategoryService } from './sub-category.service';
+import { ProductServiceSubCategoryService } from './product-service-sub-category.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { SubCategoryInterfaces } from 'types/organization/sub-category/interface/sub-category-group.interface';
 import { ProductServiceSubCategoryServiceCommands as Commands } from 'types/organization/product-service-sub-category/commands';
-import {
-  SubCategoryCreateDto,
-  SubCategoryUpdateDto,
-} from 'types/organization/sub-category';
-import { CategoryInterfaces } from 'types/organization/category';
 import {
   DeleteDto,
   GetOneDto,
