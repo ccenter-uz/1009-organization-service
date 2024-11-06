@@ -85,10 +85,21 @@ export class SegmentService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<SegmentInterfaces.ResponseWithPagination> {
+    const where: any = { status: DefaultStatus.ACTIVE };
+
+    if (data.search) {
+      where.SegmentTranslations = {
+        some: {
+          languageCode: data.lang_code,
+          name: {
+            contains: data.search,
+          },
+        },
+      };
+    }
+
     const count = await this.prisma.segment.count({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where
     });
 
     const pagination = createPagination({
@@ -98,9 +109,7 @@ export class SegmentService {
     });
 
     const categories = await this.prisma.segment.findMany({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         SegmentTranslations: {
@@ -203,11 +212,6 @@ export class SegmentService {
         where: { id: data.id },
         include: {
           SegmentTranslations: {
-            where: true
-              ? {}
-              : {
-                  languageCode: LanguageRequestEnum.RU, // lang_code from request
-                },
             select: {
               languageCode: true,
               name: true,
@@ -222,11 +226,6 @@ export class SegmentService {
       data: { status: DefaultStatus.INACTIVE },
       include: {
         SegmentTranslations: {
-          where: true
-            ? {}
-            : {
-                languageCode: LanguageRequestEnum.RU, // lang_code from request
-              },
           select: {
             languageCode: true,
             name: true,
@@ -242,11 +241,6 @@ export class SegmentService {
       data: { status: DefaultStatus.ACTIVE },
       include: {
         SegmentTranslations: {
-          where: true
-            ? {}
-            : {
-                languageCode: LanguageRequestEnum.RU, // lang_code from request
-              },
           select: {
             languageCode: true,
             name: true,

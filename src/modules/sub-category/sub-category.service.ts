@@ -98,10 +98,19 @@ export class SubCategoryService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<SubCategoryInterfaces.ResponseWithPagination> {
+    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.search) {
+      where.SubCategoryTranslations = {
+        some: {
+          languageCode: data.lang_code,
+          name: {
+            contains: data.search,
+          },
+        },
+      };
+    }
     const count = await this.prisma.subCategory.count({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where,
     });
 
     const pagination = createPagination({
@@ -233,11 +242,6 @@ export class SubCategoryService {
         where: { id: data.id },
         include: {
           SubCategoryTranslations: {
-            where: data.lang_code
-              ? {}
-              : {
-                  languageCode: LanguageRequestEnum.RU,
-                },
             select: {
               languageCode: true,
               name: true,
@@ -270,11 +274,6 @@ export class SubCategoryService {
       data: { status: DefaultStatus.ACTIVE },
       include: {
         SubCategoryTranslations: {
-          where: data.lang_code
-            ? {}
-            : {
-                languageCode: LanguageRequestEnum.RU,
-              },
           select: {
             languageCode: true,
             name: true,

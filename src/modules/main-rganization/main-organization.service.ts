@@ -1,20 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
-import {
-  CategoryCreateDto,
-  CategoryInterfaces,
-  CategoryUpdateDto,
-} from 'types/organization/category';
+
 import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
   LanguageRequestDto,
-  LanguageRequestEnum,
+
   ListQueryDto,
 } from 'types/global';
-import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import {
   MainOrganizationCreateDto,
   MainOrganizationInterfaces,
@@ -54,10 +49,14 @@ export class MainOrganizationService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<MainOrganizationInterfaces.ResponseWithPagination> {
+    const where: any = { status: DefaultStatus.ACTIVE }
+       if (data.search) {
+         where.name = {
+               contains: data.search,
+         };
+       }
     const count = await this.prisma.mainOrganization.count({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where
     });
 
     const pagination = createPagination({

@@ -18,11 +18,9 @@ import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    data: CategoryCreateDto
-  ): Promise<CategoryInterfaces.Response> {
+  async create(data: CategoryCreateDto): Promise<CategoryInterfaces.Response> {
     const category = await this.prisma.category.create({
       data: {
         staffNumber: data.staffNumber,
@@ -60,8 +58,8 @@ export class CategoryService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -91,15 +89,7 @@ export class CategoryService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE }
-
-    const count = await this.prisma.category.count({ where });
-
-    const pagination = createPagination({
-      count,
-      page: data.page,
-      perPage: data.limit,
-    });
+    const where: any = { status: DefaultStatus.ACTIVE };
 
     if (data.search) {
       where.CategoryTranslations = {
@@ -111,6 +101,13 @@ export class CategoryService {
         },
       };
     }
+    const count = await this.prisma.category.count({ where });
+
+    const pagination = createPagination({
+      count,
+      page: data.page,
+      perPage: data.limit,
+    });
 
     const categories = await this.prisma.category.findMany({
       where,
@@ -120,8 +117,8 @@ export class CategoryService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -162,8 +159,8 @@ export class CategoryService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -178,9 +175,7 @@ export class CategoryService {
     return { ...category, name };
   }
 
-  async update(
-    data: CategoryUpdateDto
-  ): Promise<CategoryInterfaces.Response> {
+  async update(data: CategoryUpdateDto): Promise<CategoryInterfaces.Response> {
     const category = await this.findOne({ id: data.id });
 
     const translationUpdates = [];
