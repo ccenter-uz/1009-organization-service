@@ -5,7 +5,6 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { Prisma } from '@prisma/client';
 import { Response } from 'express';
 
 @Catch()
@@ -19,9 +18,12 @@ export class AllExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     // Prisma error handling block
-    if (exception instanceof Prisma.PrismaClientKnownRequestError) {
-      code = HttpStatus.BAD_REQUEST
-      error = `${exception.meta.modelName}, ${exception.meta.cause}`
+    if (
+      exception &&
+      exception.constructor.name == 'PrismaClientKnownRequestError'
+    ) {
+      code = HttpStatus.BAD_REQUEST;
+      error = `PrismaError: ${exception.meta.cause} ${exception.meta.modelName}!`;
     }
 
     const body = {
