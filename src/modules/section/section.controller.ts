@@ -1,14 +1,18 @@
 import { Controller, Delete, Get, Patch, Post, Put } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { SectionService } from './section.service';
-import { SectionServiceCommands as  Commands } from 'types/organization/section/commands';
+import { SectionServiceCommands as Commands } from 'types/organization/section/commands';
 import {
   DeleteDto,
   GetOneDto,
   LanguageRequestDto,
   ListQueryDto,
 } from 'types/global';
-import { SectionCreateDto, SectionInterfaces, SectionUpdateDto } from 'types/organization/section';
+import {
+  SectionCreateDto,
+  SectionInterfaces,
+  SectionUpdateDto,
+} from 'types/organization/section';
 
 @Controller('section')
 export class SectionController {
