@@ -225,6 +225,7 @@ export class SubCategoryService {
       },
       data: {
         staffNumber: data.staffNumber || subCategory.staffNumber,
+        categoryId: data.categoryId || subCategory.categoryId,
         SubCategoryTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
