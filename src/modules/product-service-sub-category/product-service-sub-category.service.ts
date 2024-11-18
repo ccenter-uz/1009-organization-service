@@ -101,18 +101,18 @@ export class ProductServiceSubCategoryService {
     data: ListQueryDto
   ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
     const where: any = { status: DefaultStatus.ACTIVE };
-        if (data.search) {
-          where.productServiceSubCategoryTranslations = {
-            some: {
-              languageCode: data.lang_code,
-              name: {
-                contains: data.search,
-              },
-            },
-          };
-        }
+    if (data.search) {
+      where.productServiceSubCategoryTranslations = {
+        some: {
+          languageCode: data.lang_code,
+          name: {
+            contains: data.search,
+          },
+        },
+      };
+    }
     const count = await this.prisma.productServiceSubCategory.count({
-      where
+      where,
     });
 
     const pagination = createPagination({
@@ -233,6 +233,10 @@ export class ProductServiceSubCategoryService {
       },
       data: {
         staffNumber: data.staffNumber || productServiceSubCategory.staffNumber,
+        productServiceCategoryId:
+          data.productServiceCategoryId ||
+          productServiceSubCategory.productServiceCategoryId,
+
         productServiceSubCategoryTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
