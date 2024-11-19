@@ -1,11 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { createPagination } from '@/common/helper/pagination.helper';
-import { PrismaService } from '@/modules/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import {
-  CategoryCreateDto,
-  CategoryInterfaces,
-  CategoryUpdateDto,
-} from 'types/organization/category';
+  CityCreateDto,
+  CityUpdateDto,
+  CityInterfaces,
+} from 'types/organization/city';
 import {
   DefaultStatus,
   DeleteDto,
@@ -15,16 +14,23 @@ import {
   ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
-
+import { createPagination } from '@/common/helper/pagination.helper';
+import { RegionService } from '../region/region.service';
 @Injectable()
-export class CategoryService {
-  constructor(private readonly prisma: PrismaService) {}
+export class CityService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly regionService: RegionService
+  ) {}
 
-  async create(data: CategoryCreateDto): Promise<CategoryInterfaces.Response> {
-    const category = await this.prisma.category.create({
+  async create(data: CityCreateDto): Promise<CityInterfaces.Response> {
+    const region = await this.regionService.findOne({
+      id: data.regionId,
+    });
+    const city = await this.prisma.city.create({
       data: {
-        staffNumber: data.staffNumber,
-        CategoryTranslations: {
+        regionId: region.id,
+        CityTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -42,19 +48,19 @@ export class CategoryService {
         },
       },
       include: {
-        CategoryTranslations: true,
+        CityTranslations: true,
       },
     });
-    return category;
+    return city;
   }
 
   async findAll(
     data: LanguageRequestDto
-  ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
-    const categories = await this.prisma.category.findMany({
+  ): Promise<CityInterfaces.ResponseWithoutPagination> {
+    const cities = await this.prisma.city.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        CategoryTranslations: {
+        CityTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -68,31 +74,30 @@ export class CategoryService {
       },
     });
 
-    const formattedCategories = [];
+    const formattedSubCategories = [];
 
-    for (let i = 0; i < categories.length; i++) {
-      const category = categories[i];
-      const translations = category.CategoryTranslations;
+    for (let i = 0; i < cities.length; i++) {
+      const city = cities[i];
+      const translations = city.CityTranslations;
       const name = formatLanguageResponse(translations);
 
-      delete category.CategoryTranslations;
+      delete city.CityTranslations;
 
-      formattedCategories.push({ ...category, name });
+      formattedSubCategories.push({ ...city, name });
     }
 
     return {
-      data: formattedCategories,
-      totalDocs: categories.length,
+      data: formattedSubCategories,
+      totalDocs: cities.length,
     };
   }
 
   async findAllByPagination(
     data: ListQueryDto
-  ): Promise<CategoryInterfaces.ResponseWithPagination> {
+  ): Promise<CityInterfaces.ResponseWithPagination> {
     const where: any = { status: DefaultStatus.ACTIVE };
-
     if (data.search) {
-      where.CategoryTranslations = {
+      where.CityTranslations = {
         some: {
           languageCode: data.lang_code,
           name: {
@@ -101,7 +106,9 @@ export class CategoryService {
         },
       };
     }
-    const count = await this.prisma.category.count({ where });
+    const count = await this.prisma.city.count({
+      where,
+    });
 
     const pagination = createPagination({
       count,
@@ -109,11 +116,13 @@ export class CategoryService {
       perPage: data.limit,
     });
 
-    const categories = await this.prisma.category.findMany({
-      where,
+    const city = await this.prisma.city.findMany({
+      where: {
+        status: DefaultStatus.ACTIVE,
+      },
       orderBy: { createdAt: 'desc' },
       include: {
-        CategoryTranslations: {
+        CityTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -129,33 +138,33 @@ export class CategoryService {
       skip: pagination.skip,
     });
 
-    const formattedCategories = [];
+    const formattedSubCategories = [];
 
-    for (let i = 0; i < categories.length; i++) {
-      const category = categories[i];
-      const translations = category.CategoryTranslations;
+    for (let i = 0; i < city.length; i++) {
+      const subCategory = city[i];
+      const translations = subCategory.CityTranslations;
       const name = formatLanguageResponse(translations);
 
-      delete category.CategoryTranslations;
+      delete subCategory.CityTranslations;
 
-      formattedCategories.push({ ...category, name });
+      formattedSubCategories.push({ ...subCategory, name });
     }
 
     return {
-      data: formattedCategories,
+      data: formattedSubCategories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
   }
 
-  async findOne(data: GetOneDto): Promise<CategoryInterfaces.Response> {
-    const category = await this.prisma.category.findFirst({
+  async findOne(data: GetOneDto): Promise<CityInterfaces.Response> {
+    const city = await this.prisma.city.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
       include: {
-        CategoryTranslations: {
+        CityTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -168,15 +177,19 @@ export class CategoryService {
         },
       },
     });
-    if (!category) {
-      throw new NotFoundException('Category is not found');
+    if (!city) {
+      throw new NotFoundException('city is not found');
     }
-    const name = formatLanguageResponse(category.CategoryTranslations);
-    return { ...category, name };
+    const name = formatLanguageResponse(city.CityTranslations);
+    return { ...city, name };
   }
 
-  async update(data: CategoryUpdateDto): Promise<CategoryInterfaces.Response> {
-    const category = await this.findOne({ id: data.id });
+  async update(data: CityUpdateDto): Promise<CityInterfaces.Response> {
+    const city = await this.findOne({ id: data.id });
+
+    if (data.regionId) {
+      await this.regionService.findOne({ id: data.regionId });
+    }
 
     const translationUpdates = [];
 
@@ -201,29 +214,29 @@ export class CategoryService {
       });
     }
 
-    return await this.prisma.category.update({
+    return await this.prisma.city.update({
       where: {
-        id: category.id,
+        id: city.id,
       },
       data: {
-        staffNumber: data.staffNumber || category.staffNumber,
-        CategoryTranslations: {
+        regionId: data.regionId || city.regionId,
+        CityTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
         },
       },
       include: {
-        CategoryTranslations: true,
+        CityTranslations: true,
       },
     });
   }
 
-  async remove(data: DeleteDto): Promise<CategoryInterfaces.Response> {
+  async remove(data: DeleteDto): Promise<CityInterfaces.Response> {
     if (data.delete) {
-      return await this.prisma.category.delete({
+      return await this.prisma.city.delete({
         where: { id: data.id },
         include: {
-          CategoryTranslations: {
+          CityTranslations: {
             select: {
               languageCode: true,
               name: true,
@@ -233,11 +246,11 @@ export class CategoryService {
       });
     }
 
-    return await this.prisma.category.update({
+    return await this.prisma.city.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
-        CategoryTranslations: {
+        CityTranslations: {
           select: {
             languageCode: true,
             name: true,
@@ -247,15 +260,15 @@ export class CategoryService {
     });
   }
 
-  async restore(data: GetOneDto): Promise<CategoryInterfaces.Response> {
-    return this.prisma.category.update({
+  async restore(data: GetOneDto): Promise<CityInterfaces.Response> {
+    return this.prisma.city.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-        CategoryTranslations: {
+      CityTranslations: {
           select: {
             languageCode: true,
             name: true,

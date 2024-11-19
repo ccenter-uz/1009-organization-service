@@ -167,3 +167,56 @@ model ProductServiceSubCategoryTranslations {
 
   @@map("product_service_sub_category_translations")
 }
+
+
+model Region {
+  id                                 Int                                  @id @default(autoincrement())
+  status                             Int                                  @default(1) @db.SmallInt()
+  createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                          DateTime?                            @updatedAt @map("updated_at")
+  deletedAt                          DateTime?                            @updatedAt @map("deleted_at")
+  City                               City[]
+  RegionTranslations                 RegionTranslations[]
+ 
+  @@map("region")
+}
+
+model RegionTranslations {
+  id                       Int       @id @default(autoincrement())
+  regionId                 Int       @map("region_id")
+  languageCode             String    @map("language_code")
+  name                     String
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                DateTime? @updatedAt @map("updated_at")
+
+  Region Region @relation(fields: [regionId], references: [id])
+
+  @@map("region_translations")
+}
+
+model City {
+  id                                 Int                                  @id @default(autoincrement())
+  regionId                           Int                                  @map("region_id")
+  status                             Int                                  @default(1) @db.SmallInt()
+  createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                          DateTime?                            @updatedAt @map("updated_at")
+  deletedAt                          DateTime?                            @updatedAt @map("deleted_at")
+  Region                Region            @relation(fields: [regionId],   references: [id])
+  // product_service_sub_categories     ProductServiceSubCategory[] 
+  CityTranslations CityTranslations[]
+
+  @@map("city")
+}
+
+model CityTranslations {
+  id                       Int       @id @default(autoincrement())
+  cityId                   Int       @map("city_id")
+  languageCode             String    @map("language_code")
+  name                     String
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                DateTime? @updatedAt @map("updated_at")
+
+  City City @relation(fields: [cityId], references: [id])
+
+  @@map("city_translations")
+}
