@@ -167,3 +167,118 @@ model ProductServiceSubCategoryTranslations {
 
   @@map("product_service_sub_category_translations")
 }
+
+
+model Region {
+  id                                 Int                                  @id @default(autoincrement())
+  status                             Int                                  @default(1) @db.SmallInt()
+  createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                          DateTime?                            @updatedAt @map("updated_at")
+  deletedAt                          DateTime?                            @updatedAt @map("deleted_at")
+  City                               City[]
+  District                           District[]
+  RegionTranslations                 RegionTranslations[]
+
+ 
+  @@map("region")
+}
+
+model RegionTranslations {
+  id                       Int       @id @default(autoincrement())
+  regionId                 Int       @map("region_id")
+  languageCode             String    @map("language_code")
+  name                     String
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                DateTime? @updatedAt @map("updated_at")
+
+  Region Region @relation(fields: [regionId], references: [id])
+
+  @@map("region_translations")
+}
+
+model City {
+  id                                 Int                                  @id @default(autoincrement())
+  regionId                           Int                                  @map("region_id")
+  status                             Int                                  @default(1) @db.SmallInt()
+  createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                          DateTime?                            @updatedAt @map("updated_at")
+  deletedAt                          DateTime?                            @updatedAt @map("deleted_at")
+  Region                             Region            @relation(fields: [regionId],   references: [id])
+  District                           District[] 
+  CityTranslations                   CityTranslations[]
+
+  @@map("city")
+}
+
+model CityTranslations {
+  id                       Int       @id @default(autoincrement())
+  cityId                   Int       @map("city_id")
+  languageCode             String    @map("language_code")
+  name                     String
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                DateTime? @updatedAt @map("updated_at")
+
+  City City @relation(fields: [cityId], references: [id])
+
+  @@map("city_translations")
+}
+
+model District {
+  id                                 Int                                  @id @default(autoincrement())
+  regionId                           Int                                  @map("region_id")
+  cityId                             Int                                  @map("city_id")
+  status                             Int                                  @default(1) @db.SmallInt()
+  index                              Int                                  @default(1) @db.SmallInt()
+  staffId                            Int                                  @default(1) @db.SmallInt() @map("staff_id")
+  createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                          DateTime?                            @updatedAt @map("updated_at")
+  deletedAt                          DateTime?                            @updatedAt @map("deleted_at")
+  Region                             Region                               @relation(fields: [regionId],   references: [id])
+  City                               City                                 @relation(fields: [cityId],   references: [id])
+  DistrictTranslations               DistrictTranslations[]
+  DistrictOldNameTranslations        DistrictOldNameTranslations[]
+  DistrictNewNameTranslations        DistrictNewNameTranslations[]
+
+  @@map("district")
+}
+
+model DistrictTranslations {
+  id                       Int       @id @default(autoincrement())
+  districtId                   Int       @map("district_id")
+  languageCode             String    @map("language_code")
+  name                     String
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                DateTime? @updatedAt @map("updated_at")
+
+  District District @relation(fields: [districtId], references: [id])
+
+  @@map("district_translations")
+}
+
+
+model DistrictOldNameTranslations {
+  id                       Int       @id @default(autoincrement())
+  districtId                   Int       @map("district_id")
+  languageCode             String    @map("language_code")
+  name                     String
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                DateTime? @updatedAt @map("updated_at")
+
+  District District @relation(fields: [districtId], references: [id])
+
+  @@map("district_new_name_translations")
+}
+
+
+model DistrictNewNameTranslations {
+  id                       Int       @id @default(autoincrement())
+  districtId                   Int       @map("district_id")
+  languageCode             String    @map("language_code")
+  name                     String
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                DateTime? @updatedAt @map("updated_at")
+
+  District District @relation(fields: [districtId], references: [id])
+
+  @@map("district_old_name_translations")
+}

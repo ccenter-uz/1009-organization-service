@@ -2,10 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import {
-  CategoryCreateDto,
-  CategoryInterfaces,
-  CategoryUpdateDto,
-} from 'types/organization/category';
+  RegionCreateDto,
+  RegionInterfaces,
+  RegionUpdateDto
+} from 'types/organization/region';
 import {
   DefaultStatus,
   DeleteDto,
@@ -17,14 +17,13 @@ import {
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 
 @Injectable()
-export class CategoryService {
+export class RegionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CategoryCreateDto): Promise<CategoryInterfaces.Response> {
-    const category = await this.prisma.category.create({
+  async create(data: RegionCreateDto): Promise<RegionInterfaces.Response> {
+    const region = await this.prisma.region.create({
       data: {
-        staffNumber: data.staffNumber,
-        CategoryTranslations: {
+        RegionTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -42,19 +41,19 @@ export class CategoryService {
         },
       },
       include: {
-        CategoryTranslations: true,
+        RegionTranslations: true,
       },
     });
-    return category;
+    return region;
   }
 
   async findAll(
     data: LanguageRequestDto
-  ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
-    const categories = await this.prisma.category.findMany({
+  ): Promise<RegionInterfaces.ResponseWithoutPagination> {
+    const regions = await this.prisma.region.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        CategoryTranslations: {
+        RegionTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -70,29 +69,29 @@ export class CategoryService {
 
     const formattedCategories = [];
 
-    for (let i = 0; i < categories.length; i++) {
-      const category = categories[i];
-      const translations = category.CategoryTranslations;
+    for (let i = 0; i < regions.length; i++) {
+      const region = regions[i];
+      const translations = region.RegionTranslations;
       const name = formatLanguageResponse(translations);
 
-      delete category.CategoryTranslations;
+      delete region.RegionTranslations;
 
-      formattedCategories.push({ ...category, name });
+      formattedCategories.push({ ...region, name });
     }
 
     return {
       data: formattedCategories,
-      totalDocs: categories.length,
+      totalDocs: regions.length,
     };
   }
 
   async findAllByPagination(
     data: ListQueryDto
-  ): Promise<CategoryInterfaces.ResponseWithPagination> {
+  ): Promise<RegionInterfaces.ResponseWithPagination> {
     const where: any = { status: DefaultStatus.ACTIVE };
 
     if (data.search) {
-      where.CategoryTranslations = {
+      where.RegionTranslations = {
         some: {
           languageCode: data.lang_code,
           name: {
@@ -101,7 +100,7 @@ export class CategoryService {
         },
       };
     }
-    const count = await this.prisma.category.count({ where });
+    const count = await this.prisma.region.count({ where });
 
     const pagination = createPagination({
       count,
@@ -109,11 +108,11 @@ export class CategoryService {
       perPage: data.limit,
     });
 
-    const categories = await this.prisma.category.findMany({
+    const regions = await this.prisma.region.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: {
-        CategoryTranslations: {
+        RegionTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -131,14 +130,14 @@ export class CategoryService {
 
     const formattedCategories = [];
 
-    for (let i = 0; i < categories.length; i++) {
-      const category = categories[i];
-      const translations = category.CategoryTranslations;
+    for (let i = 0; i < regions.length; i++) {
+      const region = regions[i];
+      const translations = region.RegionTranslations;
       const name = formatLanguageResponse(translations);
 
-      delete category.CategoryTranslations;
+      delete region.RegionTranslations;
 
-      formattedCategories.push({ ...category, name });
+      formattedCategories.push({ ...region, name });
     }
 
     return {
@@ -148,14 +147,14 @@ export class CategoryService {
     };
   }
 
-  async findOne(data: GetOneDto): Promise<CategoryInterfaces.Response> {
-    const category = await this.prisma.category.findFirst({
+  async findOne(data: GetOneDto): Promise<RegionInterfaces.Response> {
+    const region = await this.prisma.region.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
       include: {
-        CategoryTranslations: {
+        RegionTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -168,15 +167,15 @@ export class CategoryService {
         },
       },
     });
-    if (!category) {
-      throw new NotFoundException('Category is not found');
+    if (!region) {
+      throw new NotFoundException('Region is not found');
     }
-    const name = formatLanguageResponse(category.CategoryTranslations);
-    return { ...category, name };
+    const name = formatLanguageResponse(region.RegionTranslations);
+    return { ...region, name };
   }
 
-  async update(data: CategoryUpdateDto): Promise<CategoryInterfaces.Response> {
-    const category = await this.findOne({ id: data.id });
+  async update(data: RegionUpdateDto): Promise<RegionInterfaces.Response> {
+    const region = await this.findOne({ id: data.id });
 
     const translationUpdates = [];
 
@@ -201,29 +200,28 @@ export class CategoryService {
       });
     }
 
-    return await this.prisma.category.update({
+    return await this.prisma.region.update({
       where: {
-        id: category.id,
+        id: region.id,
       },
       data: {
-        staffNumber: data.staffNumber || category.staffNumber,
-        CategoryTranslations: {
+        RegionTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
         },
       },
       include: {
-        CategoryTranslations: true,
+        RegionTranslations: true,
       },
     });
   }
 
-  async remove(data: DeleteDto): Promise<CategoryInterfaces.Response> {
+  async remove(data: DeleteDto): Promise<RegionInterfaces.Response> {
     if (data.delete) {
-      return await this.prisma.category.delete({
+      return await this.prisma.region.delete({
         where: { id: data.id },
         include: {
-          CategoryTranslations: {
+          RegionTranslations: {
             select: {
               languageCode: true,
               name: true,
@@ -233,11 +231,11 @@ export class CategoryService {
       });
     }
 
-    return await this.prisma.category.update({
+    return await this.prisma.region.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
-        CategoryTranslations: {
+        RegionTranslations: {
           select: {
             languageCode: true,
             name: true,
@@ -247,15 +245,15 @@ export class CategoryService {
     });
   }
 
-  async restore(data: GetOneDto): Promise<CategoryInterfaces.Response> {
-    return this.prisma.category.update({
+  async restore(data: GetOneDto): Promise<RegionInterfaces.Response> {
+    return this.prisma.region.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-        CategoryTranslations: {
+        RegionTranslations: {
           select: {
             languageCode: true,
             name: true,

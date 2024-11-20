@@ -15,6 +15,9 @@ import { SectionModule } from './modules/section/section.module';
 import { SegmentModule } from './modules/segment/segment.module';
 import { ProductServiceCategoryModule } from './modules/product-servise-category/product-service-category.module';
 import { ProductServiceSubCategoryModule } from './modules/product-service-sub-category/product-service-sub-category.module';
+import { RegionModule } from './modules/region/region.module';
+import { CityModule } from './modules/city/city.module';
+import { DistrictModule } from './modules/district/district.module';
 
 @Module({
   imports: [
@@ -30,6 +33,9 @@ import { ProductServiceSubCategoryModule } from './modules/product-service-sub-c
     SegmentModule,
     ProductServiceCategoryModule,
     ProductServiceSubCategoryModule,
+    RegionModule,
+    CityModule,
+    DistrictModule,
   ],
   controllers: [],
   providers: [
