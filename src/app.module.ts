@@ -17,6 +17,7 @@ import { ProductServiceCategoryModule } from './modules/product-servise-category
 import { ProductServiceSubCategoryModule } from './modules/product-service-sub-category/product-service-sub-category.module';
 import { RegionModule } from './modules/region/region.module';
 import { CityModule } from './modules/city/city.module';
+import { DistrictModule } from './modules/district/district.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CityModule } from './modules/city/city.module';
     ProductServiceSubCategoryModule,
     RegionModule,
     CityModule,
+    DistrictModule,
   ],
   controllers: [],
   providers: [
