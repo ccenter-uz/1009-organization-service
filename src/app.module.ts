@@ -18,6 +18,8 @@ import { ProductServiceSubCategoryModule } from './modules/product-service-sub-c
 import { RegionModule } from './modules/region/region.module';
 import { CityModule } from './modules/city/city.module';
 import { DistrictModule } from './modules/district/district.module';
+import { NearbyCategoryModule } from './modules/nearby-category/nearby-category.module';
+import { NearbyModule } from './modules/nearby/nearby.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { DistrictModule } from './modules/district/district.module';
     RegionModule,
     CityModule,
     DistrictModule,
+    NearbyCategoryModule,
+    NearbyModule,
   ],
   controllers: [],
   providers: [
