@@ -46,15 +46,15 @@ export class SectionService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<SectionInterfaces.ResponseWithPagination> {
-        const where: any = { status: DefaultStatus.ACTIVE };
+    const where: any = { status: DefaultStatus.ACTIVE };
 
-        if (data.search) {
-          where.name = {
-            contains: data.search,
-          };
-        }
+    if (data.search) {
+      where.name = {
+        contains: data.search,
+      };
+    }
     const count = await this.prisma.section.count({
-      where
+      where,
     });
 
     const pagination = createPagination({
@@ -64,10 +64,7 @@ export class SectionService {
     });
 
     const section = await this.prisma.section.findMany({
-      where: {
-        status: DefaultStatus.ACTIVE,
-        
-      },
+      where: where,
       orderBy: { createdAt: 'desc' },
       take: pagination.take,
       skip: pagination.skip,
@@ -103,7 +100,7 @@ export class SectionService {
         id: section.id,
       },
       data: {
-        name: data.name,
+        name: data.name || section.name,
       },
     });
   }

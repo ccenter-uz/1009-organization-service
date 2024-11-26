@@ -10,7 +10,6 @@ import { AllExceptionFilter } from './common/filter/all-exception.filter';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { CategoryModule } from './modules/category/category.module';
 import { SubCategoryModule } from './modules/sub-category/sub-category.module';
-import { MainOrganizationModule } from './modules/main-rganization/main-organization.module';
 import { SectionModule } from './modules/section/section.module';
 import { SegmentModule } from './modules/segment/segment.module';
 import { ProductServiceCategoryModule } from './modules/product-servise-category/product-service-category.module';
@@ -18,6 +17,9 @@ import { ProductServiceSubCategoryModule } from './modules/product-service-sub-c
 import { RegionModule } from './modules/region/region.module';
 import { CityModule } from './modules/city/city.module';
 import { DistrictModule } from './modules/district/district.module';
+import { NearbyCategoryModule } from './modules/nearby-category/nearby-category.module';
+import { NearbyModule } from './modules/nearby/nearby.module';
+import { MainOrganizationModule } from './modules/main-organization/main-organization.module';
 import { PassageModule } from './modules/passage/passage.module';
 
 @Module({
@@ -37,6 +39,8 @@ import { PassageModule } from './modules/passage/passage.module';
     RegionModule,
     CityModule,
     DistrictModule,
+    NearbyCategoryModule,
+    NearbyModule,
     PassageModule,
   ],
   controllers: [],
