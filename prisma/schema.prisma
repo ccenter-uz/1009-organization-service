@@ -168,28 +168,27 @@ model ProductServiceSubCategoryTranslations {
   @@map("product_service_sub_category_translations")
 }
 
-
 model Region {
-  id                                 Int                                  @id @default(autoincrement())
-  status                             Int                                  @default(1) @db.SmallInt()
-  createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                          DateTime?                            @updatedAt @map("updated_at")
-  deletedAt                          DateTime?                            @updatedAt @map("deleted_at")
-  City                               City[]
-  District                           District[]
-  RegionTranslations                 RegionTranslations[]
+  id                 Int                  @id @default(autoincrement())
+  status             Int                  @default(1) @db.SmallInt()
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamp
+  updatedAt          DateTime?            @updatedAt @map("updated_at")
+  deletedAt          DateTime?            @updatedAt @map("deleted_at")
+  City               City[]
+  District           District[]
+  RegionTranslations RegionTranslations[]
+  Passage            Passage[]
 
- 
   @@map("region")
 }
 
 model RegionTranslations {
-  id                       Int       @id @default(autoincrement())
-  regionId                 Int       @map("region_id")
-  languageCode             String    @map("language_code")
-  name                     String
-  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                DateTime? @updatedAt @map("updated_at")
+  id           Int       @id @default(autoincrement())
+  regionId     Int       @map("region_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
 
   Region Region @relation(fields: [regionId], references: [id])
 
@@ -197,26 +196,27 @@ model RegionTranslations {
 }
 
 model City {
-  id                                 Int                                  @id @default(autoincrement())
-  regionId                           Int                                  @map("region_id")
-  status                             Int                                  @default(1) @db.SmallInt()
-  createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                          DateTime?                            @updatedAt @map("updated_at")
-  deletedAt                          DateTime?                            @updatedAt @map("deleted_at")
-  Region                             Region            @relation(fields: [regionId],   references: [id])
-  District                           District[] 
-  CityTranslations                   CityTranslations[]
+  id               Int                @id @default(autoincrement())
+  regionId         Int                @map("region_id")
+  status           Int                @default(1) @db.SmallInt()
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamp
+  updatedAt        DateTime?          @updatedAt @map("updated_at")
+  deletedAt        DateTime?          @updatedAt @map("deleted_at")
+  Region           Region             @relation(fields: [regionId], references: [id])
+  District         District[]
+  Passage          Passage[]
+  CityTranslations CityTranslations[]
 
   @@map("city")
 }
 
 model CityTranslations {
-  id                       Int       @id @default(autoincrement())
-  cityId                   Int       @map("city_id")
-  languageCode             String    @map("language_code")
-  name                     String
-  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                DateTime? @updatedAt @map("updated_at")
+  id           Int       @id @default(autoincrement())
+  cityId       Int       @map("city_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
 
   City City @relation(fields: [cityId], references: [id])
 
@@ -224,61 +224,121 @@ model CityTranslations {
 }
 
 model District {
-  id                                 Int                                  @id @default(autoincrement())
-  regionId                           Int                                  @map("region_id")
-  cityId                             Int                                  @map("city_id")
-  status                             Int                                  @default(1) @db.SmallInt()
-  index                              Int                                  @default(1) @db.SmallInt()
-  staffId                            Int                                  @default(1) @db.SmallInt() @map("staff_id")
-  createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                          DateTime?                            @updatedAt @map("updated_at")
-  deletedAt                          DateTime?                            @updatedAt @map("deleted_at")
-  Region                             Region                               @relation(fields: [regionId],   references: [id])
-  City                               City                                 @relation(fields: [cityId],   references: [id])
-  DistrictTranslations               DistrictTranslations[]
-  DistrictOldNameTranslations        DistrictOldNameTranslations[]
-  DistrictNewNameTranslations        DistrictNewNameTranslations[]
+  id                          Int                           @id @default(autoincrement())
+  regionId                    Int                           @map("region_id")
+  cityId                      Int                           @map("city_id")
+  status                      Int                           @default(1) @db.SmallInt()
+  index                       Int                           @default(1) @db.SmallInt()
+  staffId                     Int                           @default(1) @map("staff_id") @db.SmallInt()
+  createdAt                   DateTime                      @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                   DateTime?                     @updatedAt @map("updated_at")
+  deletedAt                   DateTime?                     @updatedAt @map("deleted_at")
+  Region                      Region                        @relation(fields: [regionId], references: [id])
+  City                        City                          @relation(fields: [cityId], references: [id])
+  DistrictTranslations        DistrictTranslations[]
+  DistrictOldNameTranslations DistrictOldNameTranslations[]
+  DistrictNewNameTranslations DistrictNewNameTranslations[]
+  Passage                     Passage[]
 
   @@map("district")
 }
 
 model DistrictTranslations {
-  id                       Int       @id @default(autoincrement())
-  districtId                   Int       @map("district_id")
-  languageCode             String    @map("language_code")
-  name                     String
-  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                DateTime? @updatedAt @map("updated_at")
+  id           Int       @id @default(autoincrement())
+  districtId   Int       @map("district_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
 
   District District @relation(fields: [districtId], references: [id])
 
   @@map("district_translations")
 }
 
-
 model DistrictOldNameTranslations {
-  id                       Int       @id @default(autoincrement())
-  districtId                   Int       @map("district_id")
-  languageCode             String    @map("language_code")
-  name                     String
-  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                DateTime? @updatedAt @map("updated_at")
+  id           Int       @id @default(autoincrement())
+  districtId   Int       @map("district_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
 
   District District @relation(fields: [districtId], references: [id])
 
   @@map("district_new_name_translations")
 }
 
-
 model DistrictNewNameTranslations {
-  id                       Int       @id @default(autoincrement())
-  districtId                   Int       @map("district_id")
-  languageCode             String    @map("language_code")
-  name                     String
-  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                DateTime? @updatedAt @map("updated_at")
+  id           Int       @id @default(autoincrement())
+  districtId   Int       @map("district_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
 
   District District @relation(fields: [districtId], references: [id])
 
   @@map("district_old_name_translations")
+}
+
+model Passage {
+  id         Int       @id @default(autoincrement())
+  regionId   Int       @map("region_id")
+  cityId     Int       @map("city_id")
+  index      Int
+  status     Int       @default(1) @db.SmallInt()
+  staffId    Int       @map("staff_id")
+  districtId Int       @map("district_id")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  region                     Region                       @relation(fields: [regionId], references: [id])
+  city                       City                         @relation(fields: [cityId], references: [id])
+  district                   District                     @relation(fields: [districtId], references: [id])
+  PassageTranslations        PassageTranslations[]
+  PassageOldNameTranslations PassageOldNameTranslations[]
+  PassageNewNameTranslations PassageNewNameTranslations[]
+
+  @@map("passage")
+}
+
+model PassageTranslations {
+  id           Int       @id @default(autoincrement())
+  passageId    Int       @map("passage_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  Passage Passage @relation(fields: [passageId], references: [id])
+
+  @@map("passage_translations")
+}
+
+model PassageOldNameTranslations {
+  id           Int       @id @default(autoincrement())
+  passageId    Int       @map("passage_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  Passage Passage @relation(fields: [passageId], references: [id])
+
+  @@map("passage_old_name_translations")
+}
+
+model PassageNewNameTranslations {
+  id           Int       @id @default(autoincrement())
+  passageId    Int       @map("passage_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  Passage Passage @relation(fields: [passageId], references: [id])
+
+  @@map("passage_new_name_translations")
 }
