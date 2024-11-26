@@ -21,6 +21,8 @@ import { NearbyCategoryModule } from './modules/nearby-category/nearby-category.
 import { NearbyModule } from './modules/nearby/nearby.module';
 import { MainOrganizationModule } from './modules/main-organization/main-organization.module';
 import { PassageModule } from './modules/passage/passage.module';
+import { AreaModule } from './modules/area/area.module';
+import { AvenueModule } from './modules/avenue/avenue.module';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { PassageModule } from './modules/passage/passage.module';
     NearbyCategoryModule,
     NearbyModule,
     PassageModule,
+    AreaModule,
+    AvenueModule,
   ],
   controllers: [],
   providers: [

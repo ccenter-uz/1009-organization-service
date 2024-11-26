@@ -13,9 +13,9 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
-import { PassageCreateDto, PassageInterfaces, PassageUpdateDto } from 'types/organization/passage';
+import { AvenueCreateDto, AvenueInterfaces, AvenueUpdateDto } from 'types/organization/avenue';
 @Injectable()
-export class PassageService {
+export class AvenueService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -24,8 +24,8 @@ export class PassageService {
   ) { }
 
   async create(
-    data: PassageCreateDto
-  ): Promise<PassageInterfaces.Response> {
+    data: AvenueCreateDto
+  ): Promise<AvenueInterfaces.Response> {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -35,14 +35,14 @@ export class PassageService {
     const district = await this.districtService.findOne({
       id: data.districtId,
     });
-    const passage = await this.prisma.passage.create({
+    const avenue = await this.prisma.avenue.create({
       data: {
         regionId: region.id,
         cityId: city.id,
         districtId: district.id,
         index: data.index,
         staffId: data.staffId,
-        PassageTranslations: {
+        AvenueTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -58,7 +58,7 @@ export class PassageService {
             },
           ],
         },
-        PassageNewNameTranslations: {
+        AvenueNewNameTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -74,7 +74,7 @@ export class PassageService {
             },
           ],
         },
-        PassageOldNameTranslations: {
+        AvenueOldNameTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -92,21 +92,21 @@ export class PassageService {
         }
       },
       include: {
-        PassageTranslations: true,
-        PassageNewNameTranslations: true,
-        PassageOldNameTranslations: true,
+        AvenueTranslations: true,
+        AvenueNewNameTranslations: true,
+        AvenueOldNameTranslations: true,
       },
     });
-    return passage;
+    return avenue;
   }
 
   async findAll(
     data: LanguageRequestDto
-  ): Promise<PassageInterfaces.ResponseWithoutPagination> {
-    const passages = await this.prisma.passage.findMany({
+  ): Promise<AvenueInterfaces.ResponseWithoutPagination> {
+    const avenues = await this.prisma.avenue.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        PassageTranslations: {
+        AvenueTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -117,7 +117,7 @@ export class PassageService {
             name: true,
           },
         },
-        PassageOldNameTranslations: {
+        AvenueOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -128,7 +128,7 @@ export class PassageService {
             name: true,
           },
         },
-        PassageNewNameTranslations: {
+        AvenueNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -142,22 +142,22 @@ export class PassageService {
       },
     });
 
-    const formattedPassage = [];
+    const formattedAvenue = [];
 
-    for (let i = 0; i < passages.length; i++) {
-      const passageData = passages[i];
-      const translations = passageData.PassageTranslations;
+    for (let i = 0; i < avenues.length; i++) {
+      const avenueData = avenues[i];
+      const translations = avenueData.AvenueTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = passageData.PassageNewNameTranslations;
+      const translationsNew = avenueData.AvenueNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = passageData.PassageOldNameTranslations;
+      const translationsOld = avenueData.AvenueOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
-      delete passageData.PassageTranslations;
-      delete passageData.PassageNewNameTranslations;
-      delete passageData.PassageOldNameTranslations;
+      delete avenueData.AvenueTranslations;
+      delete avenueData.AvenueNewNameTranslations;
+      delete avenueData.AvenueOldNameTranslations;
 
-      formattedPassage.push({
-        ...passageData,
+      formattedAvenue.push({
+        ...avenueData,
         name,
         new_name: nameNew,
         old_name: nameOld,
@@ -165,17 +165,17 @@ export class PassageService {
     }
 
     return {
-      data: formattedPassage,
-      totalDocs: passages.length,
+      data: formattedAvenue,
+      totalDocs: avenues.length,
     };
   }
 
   async findAllByPagination(
     data: ListQueryDto
-  ): Promise<PassageInterfaces.ResponseWithPagination> {
+  ): Promise<AvenueInterfaces.ResponseWithPagination> {
     const where: any = { status: DefaultStatus.ACTIVE };
     if (data.search) {
-      where.PassageTranslations = {
+      where.AvenueTranslations = {
         some: {
           languageCode: data.lang_code,
           name: {
@@ -184,7 +184,7 @@ export class PassageService {
         },
       };
     }
-    const count = await this.prisma.passage.count({
+    const count = await this.prisma.avenue.count({
       where,
     });
 
@@ -194,11 +194,11 @@ export class PassageService {
       perPage: data.limit,
     });
 
-    const passages = await this.prisma.passage.findMany({
+    const avenues = await this.prisma.avenue.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: {
-        PassageTranslations: {
+        AvenueTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -209,7 +209,7 @@ export class PassageService {
             languageCode: true,
           },
         },
-        PassageNewNameTranslations: {
+        AvenueNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -220,7 +220,7 @@ export class PassageService {
             languageCode: true,
           },
         },
-        PassageOldNameTranslations: {
+        AvenueOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -236,23 +236,23 @@ export class PassageService {
       skip: pagination.skip,
     });
 
-    const formattedPassage = [];
+    const formattedAvenue = [];
 
-    for (let i = 0; i < passages.length; i++) {
-      const passageData = passages[i];
-      const translations = passageData.PassageTranslations;
+    for (let i = 0; i < avenues.length; i++) {
+      const avenueData = avenues[i];
+      const translations = avenueData.AvenueTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = passageData.PassageNewNameTranslations;
+      const translationsNew = avenueData.AvenueNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = passageData.PassageOldNameTranslations;
+      const translationsOld = avenueData.AvenueOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
 
-      delete passageData.PassageTranslations;
-      delete passageData.PassageNewNameTranslations;
-      delete passageData.PassageOldNameTranslations;
+      delete avenueData.AvenueTranslations;
+      delete avenueData.AvenueNewNameTranslations;
+      delete avenueData.AvenueOldNameTranslations;
 
-      formattedPassage.push({
-        ...passageData,
+      formattedAvenue.push({
+        ...avenueData,
         name,
         new_name: nameNew,
         old_name: nameOld,
@@ -260,20 +260,20 @@ export class PassageService {
     }
 
     return {
-      data: formattedPassage,
+      data: formattedAvenue,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
   }
 
-  async findOne(data: GetOneDto): Promise<PassageInterfaces.Response> {
-    const passage = await this.prisma.passage.findFirst({
+  async findOne(data: GetOneDto): Promise<AvenueInterfaces.Response> {
+    const avenue = await this.prisma.avenue.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
       include: {
-        PassageTranslations: {
+        AvenueTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -284,7 +284,7 @@ export class PassageService {
             name: true,
           },
         },
-        PassageNewNameTranslations: {
+        AvenueNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -295,7 +295,7 @@ export class PassageService {
             name: true,
           },
         },
-        PassageOldNameTranslations: {
+        AvenueOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -308,21 +308,21 @@ export class PassageService {
         },
       },
     });
-    if (!passage) {
-      throw new NotFoundException('Passage is not found');
+    if (!avenue) {
+      throw new NotFoundException('Avenue is not found');
     }
-    const name = formatLanguageResponse(passage.PassageTranslations);
+    const name = formatLanguageResponse(avenue.AvenueTranslations);
     const nameNew = formatLanguageResponse(
-      passage.PassageNewNameTranslations
+      avenue.AvenueNewNameTranslations
     );
     const nameOld = formatLanguageResponse(
-      passage.PassageOldNameTranslations
+      avenue.AvenueOldNameTranslations
     );
-    return { ...passage, name, new_name: nameNew, old_name: nameOld };
+    return { ...avenue, name, new_name: nameNew, old_name: nameOld };
   }
 
-  async update(data: PassageUpdateDto): Promise<PassageInterfaces.Response> {
-    const passage = await this.findOne({ id: data.id });
+  async update(data: AvenueUpdateDto): Promise<AvenueInterfaces.Response> {
+    const avenue = await this.findOne({ id: data.id });
 
     if (data.regionId) {
       await this.regionService.findOne({ id: data.regionId });
@@ -402,26 +402,26 @@ export class PassageService {
       });
     }
 
-    return await this.prisma.passage.update({
+    return await this.prisma.avenue.update({
       where: {
-        id: passage.id,
+        id: avenue.id,
       },
       data: {
-        regionId: data.regionId || passage.regionId,
-        cityId: data.cityId || passage.cityId,
-        districtId: data.districtId || passage.districtId,
-        staffId: data.staffId || passage.staffId,
-        PassageTranslations: {
+        regionId: data.regionId || avenue.regionId,
+        cityId: data.cityId || avenue.cityId,
+        districtId: data.districtId || avenue.districtId,
+        staffId: data.staffId || avenue.staffId,
+        AvenueTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
         },
-        PassageNewNameTranslations: {
+        AvenueNewNameTranslations: {
           updateMany:
             translationNewNameUpdates.length > 0
               ? translationNewNameUpdates
               : undefined,
         },
-        PassageOldNameTranslations: {
+        AvenueOldNameTranslations: {
           updateMany:
             translationOldNameUpdates.length > 0
               ? translationOldNameUpdates
@@ -429,31 +429,31 @@ export class PassageService {
         },
       },
       include: {
-        PassageTranslations: true,
-        PassageNewNameTranslations: true,
-        PassageOldNameTranslations: true,
+        AvenueTranslations: true,
+        AvenueNewNameTranslations: true,
+        AvenueOldNameTranslations: true,
       },
     });
   }
 
-  async remove(data: DeleteDto): Promise<PassageInterfaces.Response> {
+  async remove(data: DeleteDto): Promise<AvenueInterfaces.Response> {
     if (data.delete) {
-      return await this.prisma.passage.delete({
+      return await this.prisma.avenue.delete({
         where: { id: data.id },
         include: {
-          PassageTranslations: {
+          AvenueTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          PassageNewNameTranslations: {
+          AvenueNewNameTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          PassageOldNameTranslations: {
+          AvenueOldNameTranslations: {
             select: {
               languageCode: true,
               name: true,
@@ -463,23 +463,23 @@ export class PassageService {
       });
     }
 
-    return await this.prisma.passage.update({
+    return await this.prisma.avenue.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
-        PassageTranslations: {
+        AvenueTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        PassageNewNameTranslations: {
+        AvenueNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        PassageOldNameTranslations: {
+        AvenueOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
@@ -489,27 +489,27 @@ export class PassageService {
     });
   }
 
-  async restore(data: GetOneDto): Promise<PassageInterfaces.Response> {
-    return this.prisma.passage.update({
+  async restore(data: GetOneDto): Promise<AvenueInterfaces.Response> {
+    return this.prisma.avenue.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-        PassageTranslations: {
+        AvenueTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        PassageNewNameTranslations: {
+        AvenueNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        PassageOldNameTranslations: {
+        AvenueOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
