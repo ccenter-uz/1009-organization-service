@@ -184,6 +184,8 @@ model Region {
   ResidentialArea    ResidentialArea[]
   Impasse            Impasse[]
   Street             Street[]
+  Village            Village[]
+  Lane               Lane[]
 
   @@map("region")
 }
@@ -217,7 +219,9 @@ model City {
   Avenue           Avenue[]
   ResidentialArea  ResidentialArea[]
   Impasse          Impasse[]
-  Street             Street[]
+  Street           Street[]
+  Village          Village[]
+  Lane             Lane[]
 
   @@map("city")
 }
@@ -256,6 +260,8 @@ model District {
   ResidentialArea             ResidentialArea[]
   Impasse                     Impasse[]
   Street                      Street[]
+  Village                     Village[]
+  Lane                        Lane[]
 
   @@map("district")
 }
@@ -650,6 +656,127 @@ model ImpasseNewNameTranslations {
   @@map("impasse_new_name_translations")
 }
 
+model Village {
+  id         Int       @id @default(autoincrement())
+  regionId   Int       @map("region_id")
+  cityId     Int       @map("city_id")
+  index      Int
+  status     Int       @default(1) @db.SmallInt()
+  staffId    Int       @map("staff_id")
+  districtId Int       @map("district_id")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  region                     Region                       @relation(fields: [regionId], references: [id])
+  city                       City                         @relation(fields: [cityId], references: [id])
+  district                   District                     @relation(fields: [districtId], references: [id])
+  VillageTranslations        VillageTranslations[]
+  VillageOldNameTranslations VillageOldNameTranslations[]
+  VillageNewNameTranslations VillageNewNameTranslations[]
+
+  @@map("village")
+}
+
+model VillageTranslations {
+  id           Int       @id @default(autoincrement())
+  villageId    Int       @map("village_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  Village Village @relation(fields: [villageId], references: [id])
+
+  @@map("village_translations")
+}
+
+model VillageOldNameTranslations {
+  id           Int       @id @default(autoincrement())
+  villageId    Int       @map("village_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  Village Village @relation(fields: [villageId], references: [id])
+
+  @@map("village_old_name_translations")
+}
+
+model VillageNewNameTranslations {
+  id           Int       @id @default(autoincrement())
+  villageId    Int       @map("village_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  Village Village @relation(fields: [villageId], references: [id])
+
+  @@map("village_new_name_translations")
+}
+
+model Lane {
+  id         Int       @id @default(autoincrement())
+  regionId   Int       @map("region_id")
+  cityId     Int       @map("city_id")
+  index      Int
+  status     Int       @default(1) @db.SmallInt()
+  staffId    Int       @map("staff_id")
+  districtId Int       @map("district_id")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  region                  Region                    @relation(fields: [regionId], references: [id])
+  city                    City                      @relation(fields: [cityId], references: [id])
+  district                District                  @relation(fields: [districtId], references: [id])
+  LaneTranslations        LaneTranslations[]
+  LaneOldNameTranslations LaneOldNameTranslations[]
+  LaneNewNameTranslations LaneNewNameTranslations[]
+
+  @@map("lane")
+}
+
+model LaneTranslations {
+  id           Int       @id @default(autoincrement())
+  laneId       Int       @map("lane_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  Lane Lane @relation(fields: [laneId], references: [id])
+
+  @@map("lane_translations")
+}
+
+model LaneOldNameTranslations {
+  id           Int       @id @default(autoincrement())
+  laneId       Int       @map("lane_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  Lane Lane @relation(fields: [laneId], references: [id])
+
+  @@map("lane_old_name_translations")
+}
+
+model LaneNewNameTranslations {
+  id           Int       @id @default(autoincrement())
+  laneId       Int       @map("lane_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  Lane Lane @relation(fields: [laneId], references: [id])
+
+  @@map("lane_new_name_translations")
+}
 
 model Street {
   id         Int       @id @default(autoincrement())
@@ -663,19 +790,19 @@ model Street {
   updatedAt  DateTime? @updatedAt @map("updated_at")
   deletedAt  DateTime? @map("deleted_at")
 
-  region                      Region                       @relation(fields: [regionId], references: [id])
-  city                        City                         @relation(fields: [cityId], references: [id])
-  district                    District                     @relation(fields: [districtId], references: [id])
-  StreetTranslations          StreetTranslations[]
-  StreetOldNameTranslations   StreetOldNameTranslations[]
-  StreetNewNameTranslations   StreetNewNameTranslations[]
+  region                    Region                      @relation(fields: [regionId], references: [id])
+  city                      City                        @relation(fields: [cityId], references: [id])
+  district                  District                    @relation(fields: [districtId], references: [id])
+  StreetTranslations        StreetTranslations[]
+  StreetOldNameTranslations StreetOldNameTranslations[]
+  StreetNewNameTranslations StreetNewNameTranslations[]
 
   @@map("street")
 }
- 
+
 model StreetTranslations {
   id           Int       @id @default(autoincrement())
-  streetId    Int       @map("street_id")
+  streetId     Int       @map("street_id")
   languageCode String    @map("language_code")
   name         String
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
@@ -688,7 +815,7 @@ model StreetTranslations {
 
 model StreetOldNameTranslations {
   id           Int       @id @default(autoincrement())
-  streetId    Int       @map("street_id")
+  streetId     Int       @map("street_id")
   languageCode String    @map("language_code")
   name         String
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
@@ -701,7 +828,7 @@ model StreetOldNameTranslations {
 
 model StreetNewNameTranslations {
   id           Int       @id @default(autoincrement())
-  streetId    Int       @map("street_id")
+  streetId     Int       @map("street_id")
   languageCode String    @map("language_code")
   name         String
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
