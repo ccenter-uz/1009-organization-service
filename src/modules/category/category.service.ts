@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import {
@@ -18,9 +18,15 @@ import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 
 @Injectable()
 export class CategoryService {
+  private logger = new Logger(CategoryService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CategoryCreateDto): Promise<CategoryInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     const category = await this.prisma.category.create({
       data: {
         staffNumber: data.staffNumber,
@@ -45,12 +51,19 @@ export class CategoryService {
         CategoryTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, data);
+
     return category;
   }
 
   async findAll(
     data: LanguageRequestDto
   ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
+    const methodName: string = this.findAll.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     const categories = await this.prisma.category.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
@@ -80,6 +93,11 @@ export class CategoryService {
       formattedCategories.push({ ...category, name });
     }
 
+    this.logger.debug(
+      `Method: ${methodName} -  Response: `,
+      formattedCategories
+    );
+
     return {
       data: formattedCategories,
       totalDocs: categories.length,
@@ -89,6 +107,10 @@ export class CategoryService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAllByPagination.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     const where: any = { status: DefaultStatus.ACTIVE };
 
     if (data.search) {
@@ -141,6 +163,11 @@ export class CategoryService {
       formattedCategories.push({ ...category, name });
     }
 
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedCategories
+    );
+
     return {
       data: formattedCategories,
       totalPage: pagination.totalPage,
@@ -149,6 +176,10 @@ export class CategoryService {
   }
 
   async findOne(data: GetOneDto): Promise<CategoryInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     const category = await this.prisma.category.findFirst({
       where: {
         id: data.id,
@@ -168,14 +199,23 @@ export class CategoryService {
         },
       },
     });
+
     if (!category) {
       throw new NotFoundException('Category is not found');
     }
+
     const name = formatLanguageResponse(category.CategoryTranslations);
+
+    this.logger.debug(`Method: ${methodName} - Response: `, category);
+
     return { ...category, name };
   }
 
   async update(data: CategoryUpdateDto): Promise<CategoryInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     const category = await this.findOne({ id: data.id });
 
     const translationUpdates = [];
@@ -201,7 +241,7 @@ export class CategoryService {
       });
     }
 
-    return await this.prisma.category.update({
+    const updatedCategory = await this.prisma.category.update({
       where: {
         id: category.id,
       },
@@ -216,11 +256,19 @@ export class CategoryService {
         CategoryTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
+
+    return updatedCategory;
   }
 
   async remove(data: DeleteDto): Promise<CategoryInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     if (data.delete) {
-      return await this.prisma.category.delete({
+      const category = await this.prisma.category.delete({
         where: { id: data.id },
         include: {
           CategoryTranslations: {
@@ -231,9 +279,16 @@ export class CategoryService {
           },
         },
       });
+
+      this.logger.debug(
+        `Method: ${methodName} - Rresponse when delete true: `,
+        category
+      );
+
+      return category;
     }
 
-    return await this.prisma.category.update({
+    const category = await this.prisma.category.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -245,10 +300,21 @@ export class CategoryService {
         },
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Rresponse when delete false: `,
+      category
+    );
+
+    return category;
   }
 
   async restore(data: GetOneDto): Promise<CategoryInterfaces.Response> {
-    return this.prisma.category.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
+    const category = this.prisma.category.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -263,5 +329,9 @@ export class CategoryService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Rresponse: `, category);
+
+    return category;
   }
 }
