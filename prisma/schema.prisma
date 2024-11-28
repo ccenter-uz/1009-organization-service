@@ -208,7 +208,7 @@ model City {
   CityTranslations CityTranslations[]
 
 
-  Nearby                             Nearby[]
+  Nearby            Nearby[]
   @@map("city")
 }
 
