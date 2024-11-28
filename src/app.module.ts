@@ -20,6 +20,7 @@ import { DistrictModule } from './modules/district/district.module';
 import { NearbyCategoryModule } from './modules/nearby-category/nearby-category.module';
 import { NearbyModule } from './modules/nearby/nearby.module';
 import { MainOrganizationModule } from './modules/main-organization/main-organization.module';
+import { PassageModule } from './modules/passage/passage.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { MainOrganizationModule } from './modules/main-organization/main-organiz
     DistrictModule,
     NearbyCategoryModule,
     NearbyModule,
+    PassageModule,
   ],
   controllers: [],
   providers: [
