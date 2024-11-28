@@ -177,9 +177,8 @@ model Region {
   City               City[]
   District           District[]
   RegionTranslations RegionTranslations[]
-  Nearby                             Nearby[]
   Passage            Passage[]
-
+  Nearby             Nearby[]
   @@map("region")
 }
 
@@ -197,18 +196,19 @@ model RegionTranslations {
 }
 
 model City {
-  id                                 Int                                  @id @default(autoincrement())
-  regionId                           Int                                  @map("region_id")
-  status                             Int                                  @default(1) @db.SmallInt()
-  createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                          DateTime?                            @updatedAt @map("updated_at")
-  deletedAt                          DateTime?                            @updatedAt @map("deleted_at")
-  Region                             Region            @relation(fields: [regionId],   references: [id])
-  District                           District[] 
-  CityTranslations                   CityTranslations[]
-  Nearby                             Nearby[]
-  Passage                            Passage[]
+  id               Int                @id @default(autoincrement())
+  regionId         Int                @map("region_id")
+  status           Int                @default(1) @db.SmallInt()
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamp
+  updatedAt        DateTime?          @updatedAt @map("updated_at")
+  deletedAt        DateTime?          @updatedAt @map("deleted_at")
+  Region           Region             @relation(fields: [regionId], references: [id])
+  District         District[]
+  Passage          Passage[]
+  CityTranslations CityTranslations[]
 
+
+  Nearby                             Nearby[]
   @@map("city")
 }
 
@@ -282,53 +282,6 @@ model DistrictNewNameTranslations {
   District District @relation(fields: [districtId], references: [id])
 
   @@map("district_old_name_translations")
-}
-
-model NearbyCategory {
-  id                   Int                    @id @default(autoincrement())
-  name                 String    
-  staffNumber          Int                    @map("staff_number") @db.Integer
-  status               Int                    @default(1) @db.SmallInt()
-  createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamp
-  updatedAt            DateTime?              @updatedAt @map("updated_at")
-  deletedAt            DateTime?              @updatedAt @map("deleted_at")
-  Nearby               Nearby[]
-  // CategoryTranslations CategoryTranslations[]
-
-  @@map("nearby_category")
-}
-
-model Nearby {
-  id                Int             @id @default(autoincrement())
-  staffNumber       Int             @map("staff_number") @db.Integer
-  status            Int             @default(1) @db.SmallInt()
-  nearbyCategoryId  Int             @map("nearby_category_id")
-    regionId        Int             @map("region_id")
-  cityId            Int             @map("city_id")
-  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamp
-  updatedAt         DateTime?       @updatedAt @map("updated_at")
-  deletedAt         DateTime?       @updatedAt @map("deleted_at")
-
-  NearbyCategory                NearbyCategory                  @relation(fields: [nearbyCategoryId], references: [id])
-  Region                        Region                          @relation(fields: [regionId], references: [id])
-  City                          City                            @relation(fields: [cityId], references: [id])
-  NearbyTranslations       NearbyTranslations[]
-  @@map("nearby")
-}
-
-model NearbyTranslations {
-  id            Int       @id @default(autoincrement())
-  nearbyId      Int       @map("nearby_id")
-
-  languageCode  String    @map("language_code")
-  name          String
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt     DateTime? @updatedAt @map("updated_at")
-
-  Nearby Nearby @relation(fields: [nearbyId], references: [id])
-
-
-  @@map("nearby_translations")
 }
 
 model Passage {
