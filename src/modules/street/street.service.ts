@@ -14,10 +14,10 @@ import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
 import {
-  PassageCreateDto,
-  PassageInterfaces,
-  PassageUpdateDto,
-} from 'types/organization/passage';
+  StreetCreateDto,
+  StreetInterfaces,
+  StreetUpdateDto,
+} from 'types/organization/street';
 @Injectable()
 export class StreetService {
   constructor(
@@ -27,7 +27,7 @@ export class StreetService {
     private readonly districtService: DistrictService
   ) {}
 
-  async create(data: PassageCreateDto): Promise<PassageInterfaces.Response> {
+  async create(data: StreetCreateDto): Promise<StreetInterfaces.Response> {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -37,14 +37,14 @@ export class StreetService {
     const district = await this.districtService.findOne({
       id: data.districtId,
     });
-    const passage = await this.prisma.passage.create({
+    const street = await this.prisma.street.create({
       data: {
         regionId: region.id,
         cityId: city.id,
         districtId: district.id,
         index: data.index,
         staffId: data.staffId,
-        PassageTranslations: {
+        StreetTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -60,7 +60,7 @@ export class StreetService {
             },
           ],
         },
-        PassageNewNameTranslations: {
+        StreetNewNameTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -76,7 +76,7 @@ export class StreetService {
             },
           ],
         },
-        PassageOldNameTranslations: {
+        StreetOldNameTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -94,21 +94,21 @@ export class StreetService {
         },
       },
       include: {
-        PassageTranslations: true,
-        PassageNewNameTranslations: true,
-        PassageOldNameTranslations: true,
+        StreetTranslations: true,
+        StreetNewNameTranslations: true,
+        StreetOldNameTranslations: true,
       },
     });
-    return passage;
+    return street;
   }
 
   async findAll(
     data: LanguageRequestDto
-  ): Promise<PassageInterfaces.ResponseWithoutPagination> {
-    const passages = await this.prisma.passage.findMany({
+  ): Promise<StreetInterfaces.ResponseWithoutPagination> {
+    const streets = await this.prisma.street.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        PassageTranslations: {
+        StreetTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -119,7 +119,7 @@ export class StreetService {
             name: true,
           },
         },
-        PassageOldNameTranslations: {
+        StreetOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -130,7 +130,7 @@ export class StreetService {
             name: true,
           },
         },
-        PassageNewNameTranslations: {
+        StreetNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -144,22 +144,22 @@ export class StreetService {
       },
     });
 
-    const formattedPassage = [];
+    const formattedStreet = [];
 
-    for (let i = 0; i < passages.length; i++) {
-      const passageData = passages[i];
-      const translations = passageData.PassageTranslations;
+    for (let i = 0; i < streets.length; i++) {
+      const streetData = streets[i];
+      const translations = streetData.StreetTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = passageData.PassageNewNameTranslations;
+      const translationsNew = streetData.StreetNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = passageData.PassageOldNameTranslations;
+      const translationsOld = streetData.StreetOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
-      delete passageData.PassageTranslations;
-      delete passageData.PassageNewNameTranslations;
-      delete passageData.PassageOldNameTranslations;
+      delete streetData.StreetTranslations;
+      delete streetData.StreetNewNameTranslations;
+      delete streetData.StreetOldNameTranslations;
 
-      formattedPassage.push({
-        ...passageData,
+      formattedStreet.push({
+        ...streetData,
         name,
         new_name: nameNew,
         old_name: nameOld,
@@ -167,17 +167,17 @@ export class StreetService {
     }
 
     return {
-      data: formattedPassage,
-      totalDocs: passages.length,
+      data: formattedStreet,
+      totalDocs: streets.length,
     };
   }
 
   async findAllByPagination(
     data: ListQueryDto
-  ): Promise<PassageInterfaces.ResponseWithPagination> {
+  ): Promise<StreetInterfaces.ResponseWithPagination> {
     const where: any = { status: DefaultStatus.ACTIVE };
     if (data.search) {
-      where.PassageTranslations = {
+      where.StreetTranslations = {
         some: {
           languageCode: data.lang_code,
           name: {
@@ -186,7 +186,7 @@ export class StreetService {
         },
       };
     }
-    const count = await this.prisma.passage.count({
+    const count = await this.prisma.street.count({
       where,
     });
 
@@ -196,11 +196,11 @@ export class StreetService {
       perPage: data.limit,
     });
 
-    const passages = await this.prisma.passage.findMany({
+    const streets = await this.prisma.street.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: {
-        PassageTranslations: {
+        StreetTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -211,7 +211,7 @@ export class StreetService {
             languageCode: true,
           },
         },
-        PassageNewNameTranslations: {
+        StreetNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -222,7 +222,7 @@ export class StreetService {
             languageCode: true,
           },
         },
-        PassageOldNameTranslations: {
+        StreetOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -238,23 +238,23 @@ export class StreetService {
       skip: pagination.skip,
     });
 
-    const formattedPassage = [];
+    const formattedStreet = [];
 
-    for (let i = 0; i < passages.length; i++) {
-      const passageData = passages[i];
-      const translations = passageData.PassageTranslations;
+    for (let i = 0; i < streets.length; i++) {
+      const streetData = streets[i];
+      const translations = streetData.StreetTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = passageData.PassageNewNameTranslations;
+      const translationsNew = streetData.StreetNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = passageData.PassageOldNameTranslations;
+      const translationsOld = streetData.StreetOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
 
-      delete passageData.PassageTranslations;
-      delete passageData.PassageNewNameTranslations;
-      delete passageData.PassageOldNameTranslations;
+      delete streetData.StreetTranslations;
+      delete streetData.StreetNewNameTranslations;
+      delete streetData.StreetOldNameTranslations;
 
-      formattedPassage.push({
-        ...passageData,
+      formattedStreet.push({
+        ...streetData,
         name,
         new_name: nameNew,
         old_name: nameOld,
@@ -262,20 +262,20 @@ export class StreetService {
     }
 
     return {
-      data: formattedPassage,
+      data: formattedStreet,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
   }
 
-  async findOne(data: GetOneDto): Promise<PassageInterfaces.Response> {
-    const passage = await this.prisma.passage.findFirst({
+  async findOne(data: GetOneDto): Promise<StreetInterfaces.Response> {
+    const street = await this.prisma.street.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
       include: {
-        PassageTranslations: {
+        StreetTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -286,7 +286,7 @@ export class StreetService {
             name: true,
           },
         },
-        PassageNewNameTranslations: {
+        StreetNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -297,7 +297,7 @@ export class StreetService {
             name: true,
           },
         },
-        PassageOldNameTranslations: {
+        StreetOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -310,17 +310,17 @@ export class StreetService {
         },
       },
     });
-    if (!passage) {
-      throw new NotFoundException('Passage is not found');
+    if (!street) {
+      throw new NotFoundException('Street is not found');
     }
-    const name = formatLanguageResponse(passage.PassageTranslations);
-    const nameNew = formatLanguageResponse(passage.PassageNewNameTranslations);
-    const nameOld = formatLanguageResponse(passage.PassageOldNameTranslations);
-    return { ...passage, name, new_name: nameNew, old_name: nameOld };
+    const name = formatLanguageResponse(street.StreetTranslations);
+    const nameNew = formatLanguageResponse(street.StreetNewNameTranslations);
+    const nameOld = formatLanguageResponse(street.StreetOldNameTranslations);
+    return { ...street, name, new_name: nameNew, old_name: nameOld };
   }
 
-  async update(data: PassageUpdateDto): Promise<PassageInterfaces.Response> {
-    const passage = await this.findOne({ id: data.id });
+  async update(data: StreetUpdateDto): Promise<StreetInterfaces.Response> {
+    const street = await this.findOne({ id: data.id });
 
     if (data.regionId) {
       await this.regionService.findOne({ id: data.regionId });
@@ -400,26 +400,26 @@ export class StreetService {
       });
     }
 
-    return await this.prisma.passage.update({
+    return await this.prisma.street.update({
       where: {
-        id: passage.id,
+        id: street.id,
       },
       data: {
-        regionId: data.regionId || passage.regionId,
-        cityId: data.cityId || passage.cityId,
-        districtId: data.districtId || passage.districtId,
-        staffId: data.staffId || passage.staffId,
-        PassageTranslations: {
+        regionId: data.regionId || street.regionId,
+        cityId: data.cityId || street.cityId,
+        districtId: data.districtId || street.districtId,
+        staffId: data.staffId || street.staffId,
+        StreetTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
         },
-        PassageNewNameTranslations: {
+        StreetNewNameTranslations: {
           updateMany:
             translationNewNameUpdates.length > 0
               ? translationNewNameUpdates
               : undefined,
         },
-        PassageOldNameTranslations: {
+        StreetOldNameTranslations: {
           updateMany:
             translationOldNameUpdates.length > 0
               ? translationOldNameUpdates
@@ -427,31 +427,31 @@ export class StreetService {
         },
       },
       include: {
-        PassageTranslations: true,
-        PassageNewNameTranslations: true,
-        PassageOldNameTranslations: true,
+        StreetTranslations: true,
+        StreetNewNameTranslations: true,
+        StreetOldNameTranslations: true,
       },
     });
   }
 
-  async remove(data: DeleteDto): Promise<PassageInterfaces.Response> {
+  async remove(data: DeleteDto): Promise<StreetInterfaces.Response> {
     if (data.delete) {
-      return await this.prisma.passage.delete({
+      return await this.prisma.street.delete({
         where: { id: data.id },
         include: {
-          PassageTranslations: {
+          StreetTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          PassageNewNameTranslations: {
+          StreetNewNameTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          PassageOldNameTranslations: {
+          StreetOldNameTranslations: {
             select: {
               languageCode: true,
               name: true,
@@ -461,23 +461,23 @@ export class StreetService {
       });
     }
 
-    return await this.prisma.passage.update({
+    return await this.prisma.street.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
-        PassageTranslations: {
+        StreetTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        PassageNewNameTranslations: {
+        StreetNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        PassageOldNameTranslations: {
+        StreetOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
@@ -487,27 +487,27 @@ export class StreetService {
     });
   }
 
-  async restore(data: GetOneDto): Promise<PassageInterfaces.Response> {
-    return this.prisma.passage.update({
+  async restore(data: GetOneDto): Promise<StreetInterfaces.Response> {
+    return this.prisma.street.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-        PassageTranslations: {
+        StreetTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        PassageNewNameTranslations: {
+        StreetNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        PassageOldNameTranslations: {
+        StreetOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
