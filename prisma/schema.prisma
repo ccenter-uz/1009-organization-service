@@ -183,6 +183,7 @@ model Region {
   Avenue             Avenue[]
   ResidentialArea    ResidentialArea[]
   Impasse            Impasse[]
+  Street             Street[]
   Village            Village[]
   Lane               Lane[]
 
@@ -218,6 +219,7 @@ model City {
   Avenue           Avenue[]
   ResidentialArea  ResidentialArea[]
   Impasse          Impasse[]
+  Street           Street[]
   Village          Village[]
   Lane             Lane[]
 
@@ -245,7 +247,7 @@ model District {
   index                       Int                           @default(1) @db.SmallInt()
   staffId                     Int                           @default(1) @map("staff_id") @db.SmallInt()
   createdAt                   DateTime                      @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                   DateTime?                     @updatedAt @map("updated_at")
+  updatedAt                   DateTime?                     @updatedAt @map("upd ated_at")
   deletedAt                   DateTime?                     @updatedAt @map("deleted_at")
   Region                      Region                        @relation(fields: [regionId], references: [id])
   City                        City                          @relation(fields: [cityId], references: [id])
@@ -257,6 +259,7 @@ model District {
   Avenue                      Avenue[]
   ResidentialArea             ResidentialArea[]
   Impasse                     Impasse[]
+  Street                      Street[]
   Village                     Village[]
   Lane                        Lane[]
 
@@ -311,7 +314,6 @@ model NearbyCategory {
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @updatedAt @map("deleted_at")
   Nearby      Nearby[]
-  // CategoryTranslations CategoryTranslations[]
 
   @@map("nearby_category")
 }
@@ -774,4 +776,65 @@ model LaneNewNameTranslations {
   Lane Lane @relation(fields: [laneId], references: [id])
 
   @@map("lane_new_name_translations")
+}
+
+model Street {
+  id         Int       @id @default(autoincrement())
+  regionId   Int       @map("region_id")
+  cityId     Int       @map("city_id")
+  districtId Int       @map("district_id")
+  index      Int
+  status     Int       @default(1) @db.SmallInt()
+  staffId    Int       @map("staff_id")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  region                    Region                      @relation(fields: [regionId], references: [id])
+  city                      City                        @relation(fields: [cityId], references: [id])
+  district                  District                    @relation(fields: [districtId], references: [id])
+  StreetTranslations        StreetTranslations[]
+  StreetOldNameTranslations StreetOldNameTranslations[]
+  StreetNewNameTranslations StreetNewNameTranslations[]
+
+  @@map("street")
+}
+
+model StreetTranslations {
+  id           Int       @id @default(autoincrement())
+  streetId     Int       @map("street_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  Street Street @relation(fields: [streetId], references: [id])
+
+  @@map("street_translations")
+}
+
+model StreetOldNameTranslations {
+  id           Int       @id @default(autoincrement())
+  streetId     Int       @map("street_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  Street Street @relation(fields: [streetId], references: [id])
+
+  @@map("street_old_name_translations")
+}
+
+model StreetNewNameTranslations {
+  id           Int       @id @default(autoincrement())
+  streetId     Int       @map("street_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  Street Street @relation(fields: [streetId], references: [id])
+
+  @@map("street_new_name_translations")
 }
