@@ -13,9 +13,9 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
-import { PassageCreateDto, PassageInterfaces, PassageUpdateDto } from 'types/organization/passage';
+import { AreaCreateDto, AreaInterfaces, AreaUpdateDto } from 'types/organization/area';
 @Injectable()
-export class PassageService {
+export class AreaService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -24,8 +24,8 @@ export class PassageService {
   ) { }
 
   async create(
-    data: PassageCreateDto
-  ): Promise<PassageInterfaces.Response> {
+    data: AreaCreateDto
+  ): Promise<AreaInterfaces.Response> {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -35,14 +35,14 @@ export class PassageService {
     const district = await this.districtService.findOne({
       id: data.districtId,
     });
-    const passage = await this.prisma.passage.create({
+    const area = await this.prisma.area.create({
       data: {
         regionId: region.id,
         cityId: city.id,
         districtId: district.id,
         index: data.index,
         staffId: data.staffId,
-        PassageTranslations: {
+        AreaTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -58,7 +58,7 @@ export class PassageService {
             },
           ],
         },
-        PassageNewNameTranslations: {
+        AreaNewNameTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -74,7 +74,7 @@ export class PassageService {
             },
           ],
         },
-        PassageOldNameTranslations: {
+        AreaOldNameTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -92,21 +92,21 @@ export class PassageService {
         }
       },
       include: {
-        PassageTranslations: true,
-        PassageNewNameTranslations: true,
-        PassageOldNameTranslations: true,
+        AreaTranslations: true,
+        AreaNewNameTranslations: true,
+        AreaOldNameTranslations: true,
       },
     });
-    return passage;
+    return area;
   }
 
   async findAll(
     data: LanguageRequestDto
-  ): Promise<PassageInterfaces.ResponseWithoutPagination> {
-    const passages = await this.prisma.passage.findMany({
+  ): Promise<AreaInterfaces.ResponseWithoutPagination> {
+    const areas = await this.prisma.area.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        PassageTranslations: {
+        AreaTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -117,7 +117,7 @@ export class PassageService {
             name: true,
           },
         },
-        PassageOldNameTranslations: {
+        AreaOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -128,7 +128,7 @@ export class PassageService {
             name: true,
           },
         },
-        PassageNewNameTranslations: {
+        AreaNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -142,22 +142,22 @@ export class PassageService {
       },
     });
 
-    const formattedPassage = [];
+    const formattedArea = [];
 
-    for (let i = 0; i < passages.length; i++) {
-      const passageData = passages[i];
-      const translations = passageData.PassageTranslations;
+    for (let i = 0; i < areas.length; i++) {
+      const areaData = areas[i];
+      const translations = areaData.AreaTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = passageData.PassageNewNameTranslations;
+      const translationsNew = areaData.AreaNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = passageData.PassageOldNameTranslations;
+      const translationsOld = areaData.AreaOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
-      delete passageData.PassageTranslations;
-      delete passageData.PassageNewNameTranslations;
-      delete passageData.PassageOldNameTranslations;
+      delete areaData.AreaTranslations;
+      delete areaData.AreaNewNameTranslations;
+      delete areaData.AreaOldNameTranslations;
 
-      formattedPassage.push({
-        ...passageData,
+      formattedArea.push({
+        ...areaData,
         name,
         new_name: nameNew,
         old_name: nameOld,
@@ -165,17 +165,17 @@ export class PassageService {
     }
 
     return {
-      data: formattedPassage,
-      totalDocs: passages.length,
+      data: formattedArea,
+      totalDocs: areas.length,
     };
   }
 
   async findAllByPagination(
     data: ListQueryDto
-  ): Promise<PassageInterfaces.ResponseWithPagination> {
+  ): Promise<AreaInterfaces.ResponseWithPagination> {
     const where: any = { status: DefaultStatus.ACTIVE };
     if (data.search) {
-      where.PassageTranslations = {
+      where.AreaTranslations = {
         some: {
           languageCode: data.lang_code,
           name: {
@@ -184,7 +184,7 @@ export class PassageService {
         },
       };
     }
-    const count = await this.prisma.passage.count({
+    const count = await this.prisma.area.count({
       where,
     });
 
@@ -194,11 +194,11 @@ export class PassageService {
       perPage: data.limit,
     });
 
-    const passages = await this.prisma.passage.findMany({
+    const areas = await this.prisma.area.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: {
-        PassageTranslations: {
+        AreaTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -209,7 +209,7 @@ export class PassageService {
             languageCode: true,
           },
         },
-        PassageNewNameTranslations: {
+        AreaNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -220,7 +220,7 @@ export class PassageService {
             languageCode: true,
           },
         },
-        PassageOldNameTranslations: {
+        AreaOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -236,23 +236,23 @@ export class PassageService {
       skip: pagination.skip,
     });
 
-    const formattedPassage = [];
+    const formattedArea = [];
 
-    for (let i = 0; i < passages.length; i++) {
-      const passageData = passages[i];
-      const translations = passageData.PassageTranslations;
+    for (let i = 0; i < areas.length; i++) {
+      const areaData = areas[i];
+      const translations = areaData.AreaTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = passageData.PassageNewNameTranslations;
+      const translationsNew = areaData.AreaNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = passageData.PassageOldNameTranslations;
+      const translationsOld = areaData.AreaOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
 
-      delete passageData.PassageTranslations;
-      delete passageData.PassageNewNameTranslations;
-      delete passageData.PassageOldNameTranslations;
+      delete areaData.AreaTranslations;
+      delete areaData.AreaNewNameTranslations;
+      delete areaData.AreaOldNameTranslations;
 
-      formattedPassage.push({
-        ...passageData,
+      formattedArea.push({
+        ...areaData,
         name,
         new_name: nameNew,
         old_name: nameOld,
@@ -260,20 +260,20 @@ export class PassageService {
     }
 
     return {
-      data: formattedPassage,
+      data: formattedArea,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
   }
 
-  async findOne(data: GetOneDto): Promise<PassageInterfaces.Response> {
-    const passage = await this.prisma.passage.findFirst({
+  async findOne(data: GetOneDto): Promise<AreaInterfaces.Response> {
+    const area = await this.prisma.area.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
       include: {
-        PassageTranslations: {
+        AreaTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -284,7 +284,7 @@ export class PassageService {
             name: true,
           },
         },
-        PassageNewNameTranslations: {
+        AreaNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -295,7 +295,7 @@ export class PassageService {
             name: true,
           },
         },
-        PassageOldNameTranslations: {
+        AreaOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -308,21 +308,21 @@ export class PassageService {
         },
       },
     });
-    if (!passage) {
-      throw new NotFoundException('Passage is not found');
+    if (!area) {
+      throw new NotFoundException('Area is not found');
     }
-    const name = formatLanguageResponse(passage.PassageTranslations);
+    const name = formatLanguageResponse(area.AreaTranslations);
     const nameNew = formatLanguageResponse(
-      passage.PassageNewNameTranslations
+      area.AreaNewNameTranslations
     );
     const nameOld = formatLanguageResponse(
-      passage.PassageOldNameTranslations
+      area.AreaOldNameTranslations
     );
-    return { ...passage, name, new_name: nameNew, old_name: nameOld };
+    return { ...area, name, new_name: nameNew, old_name: nameOld };
   }
 
-  async update(data: PassageUpdateDto): Promise<PassageInterfaces.Response> {
-    const passage = await this.findOne({ id: data.id });
+  async update(data: AreaUpdateDto): Promise<AreaInterfaces.Response> {
+    const area = await this.findOne({ id: data.id });
 
     if (data.regionId) {
       await this.regionService.findOne({ id: data.regionId });
@@ -402,26 +402,26 @@ export class PassageService {
       });
     }
 
-    return await this.prisma.passage.update({
+    return await this.prisma.area.update({
       where: {
-        id: passage.id,
+        id: area.id,
       },
       data: {
-        regionId: data.regionId || passage.regionId,
-        cityId: data.cityId || passage.cityId,
-        districtId: data.districtId || passage.districtId,
-        staffId: data.staffId || passage.staffId,
-        PassageTranslations: {
+        regionId: data.regionId || area.regionId,
+        cityId: data.cityId || area.cityId,
+        districtId: data.districtId || area.districtId,
+        staffId: data.staffId || area.staffId,
+        AreaTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
         },
-        PassageNewNameTranslations: {
+        AreaNewNameTranslations: {
           updateMany:
             translationNewNameUpdates.length > 0
               ? translationNewNameUpdates
               : undefined,
         },
-        PassageOldNameTranslations: {
+        AreaOldNameTranslations: {
           updateMany:
             translationOldNameUpdates.length > 0
               ? translationOldNameUpdates
@@ -429,31 +429,31 @@ export class PassageService {
         },
       },
       include: {
-        PassageTranslations: true,
-        PassageNewNameTranslations: true,
-        PassageOldNameTranslations: true,
+        AreaTranslations: true,
+        AreaNewNameTranslations: true,
+        AreaOldNameTranslations: true,
       },
     });
   }
 
-  async remove(data: DeleteDto): Promise<PassageInterfaces.Response> {
+  async remove(data: DeleteDto): Promise<AreaInterfaces.Response> {
     if (data.delete) {
-      return await this.prisma.passage.delete({
+      return await this.prisma.area.delete({
         where: { id: data.id },
         include: {
-          PassageTranslations: {
+          AreaTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          PassageNewNameTranslations: {
+          AreaNewNameTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          PassageOldNameTranslations: {
+          AreaOldNameTranslations: {
             select: {
               languageCode: true,
               name: true,
@@ -463,23 +463,23 @@ export class PassageService {
       });
     }
 
-    return await this.prisma.passage.update({
+    return await this.prisma.area.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
-        PassageTranslations: {
+        AreaTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        PassageNewNameTranslations: {
+        AreaNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        PassageOldNameTranslations: {
+        AreaOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
@@ -489,27 +489,27 @@ export class PassageService {
     });
   }
 
-  async restore(data: GetOneDto): Promise<PassageInterfaces.Response> {
-    return this.prisma.passage.update({
+  async restore(data: GetOneDto): Promise<AreaInterfaces.Response> {
+    return this.prisma.area.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-        PassageTranslations: {
+        AreaTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        PassageNewNameTranslations: {
+        AreaNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        PassageOldNameTranslations: {
+        AreaOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
