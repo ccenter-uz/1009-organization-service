@@ -23,6 +23,8 @@ import { MainOrganizationModule } from './modules/main-organization/main-organiz
 import { PassageModule } from './modules/passage/passage.module';
 import { AreaModule } from './modules/area/area.module';
 import { AvenueModule } from './modules/avenue/avenue.module';
+import { ResidentialAreaModule } from './modules/residential-area/residential-area.module';
+import { ImpasseModule } from './modules/impasse/impasse.module';
 
 @Module({
   imports: [
@@ -46,6 +48,8 @@ import { AvenueModule } from './modules/avenue/avenue.module';
     PassageModule,
     AreaModule,
     AvenueModule,
+    ResidentialAreaModule,
+    ImpasseModule
   ],
   controllers: [],
   providers: [
