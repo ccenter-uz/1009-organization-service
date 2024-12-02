@@ -23,7 +23,7 @@ export class DistrictService {
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
     private readonly cityService: CityService
-  ) {}
+  ) { }
 
   async create(data: DistrictCreateDto): Promise<DistrictInterfaces.Response> {
     const region = await this.regionService.findOne({
@@ -38,7 +38,7 @@ export class DistrictService {
         regionId: region.id,
         cityId: city.id,
         index: data.index,
-        staffId: data.staffId,
+        staffNumber: data.staffNumber,
         DistrictTranslations: {
           create: [
             {
@@ -107,8 +107,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -118,8 +118,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -129,8 +129,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -199,8 +199,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             name: true,
             languageCode: true,
@@ -210,8 +210,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             name: true,
             languageCode: true,
@@ -221,8 +221,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             name: true,
             languageCode: true,
@@ -274,8 +274,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -285,8 +285,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -296,8 +296,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -402,7 +402,7 @@ export class DistrictService {
       data: {
         regionId: data.regionId || district.regionId,
         cityId: data.cityId || district.cityId,
-        staffId: data.staffId || district.staffId,
+        staffNumber: data.staffNumber || district.staffNumber,
         DistrictTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

@@ -41,7 +41,7 @@ export class AreaService {
         cityId: city.id,
         districtId: district.id,
         index: data.index,
-        staffId: data.staffId,
+        staffNumber: data.staffNumber,
         AreaTranslations: {
           create: [
             {
@@ -410,7 +410,7 @@ export class AreaService {
         regionId: data.regionId || area.regionId,
         cityId: data.cityId || area.cityId,
         districtId: data.districtId || area.districtId,
-        staffId: data.staffId || area.staffId,
+        staffNumber: data.staffNumber || area.staffNumber,
         AreaTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

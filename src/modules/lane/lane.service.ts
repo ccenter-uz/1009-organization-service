@@ -41,7 +41,7 @@ export class LaneService {
         cityId: city.id,
         districtId: district.id,
         index: data.index,
-        staffId: data.staffId,
+        staffNumber: data.staffNumber,
         LaneTranslations: {
           create: [
             {
@@ -145,7 +145,7 @@ export class LaneService {
     const formattedLane = [];
 
     for (let i = 0; i < lanes.length; i++) {
-      
+
       const laneData = lanes[i];
       const translations = laneData.LaneTranslations;
       const name = formatLanguageResponse(translations);
@@ -412,7 +412,7 @@ export class LaneService {
         regionId: data.regionId || lane.regionId,
         cityId: data.cityId || lane.cityId,
         districtId: data.districtId || lane.districtId,
-        staffId: data.staffId || lane.staffId,
+        staffNumber: data.staffNumber || lane.staffNumber,
         LaneTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
