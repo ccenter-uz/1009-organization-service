@@ -42,7 +42,7 @@ export class VillageService {
         cityId: city.id,
         districtId: district.id,
         index: data.index,
-        staffId: data.staffId,
+        staffNumber: data.staffNumber,
         VillageTranslations: {
           create: [
             {
@@ -413,7 +413,7 @@ export class VillageService {
         regionId: data.regionId || village.regionId,
         cityId: data.cityId || village.cityId,
         districtId: data.districtId || village.districtId,
-        staffId: data.staffId || village.staffId,
+        staffNumber: data.staffNumber || village.staffNumber,
         VillageTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

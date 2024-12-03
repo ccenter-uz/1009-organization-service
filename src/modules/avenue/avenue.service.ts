@@ -41,7 +41,7 @@ export class AvenueService {
         cityId: city.id,
         districtId: district.id,
         index: data.index,
-        staffId: data.staffId,
+        staffNumber: data.staffNumber,
         AvenueTranslations: {
           create: [
             {
@@ -410,7 +410,7 @@ export class AvenueService {
         regionId: data.regionId || avenue.regionId,
         cityId: data.cityId || avenue.cityId,
         districtId: data.districtId || avenue.districtId,
-        staffId: data.staffId || avenue.staffId,
+        staffNumber: data.staffNumber || avenue.staffNumber,
         AvenueTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
