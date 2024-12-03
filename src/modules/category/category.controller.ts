@@ -16,7 +16,7 @@ import {
 
 @Controller('category')
 export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) { }
+  constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })

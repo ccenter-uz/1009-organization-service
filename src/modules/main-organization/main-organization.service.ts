@@ -7,7 +7,6 @@ import {
   DeleteDto,
   GetOneDto,
   LanguageRequestDto,
-
   ListQueryDto,
 } from 'types/global';
 import {
@@ -30,6 +29,7 @@ export class MainOrganizationService {
         name: data.name,
       },
     });
+    console.log(mainOrganization, 'Main ORG');
     return mainOrganization;
   }
 
@@ -49,14 +49,14 @@ export class MainOrganizationService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<MainOrganizationInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE }
-       if (data.search) {
-         where.name = {
-               contains: data.search,
-         };
-       }
+    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.search) {
+      where.name = {
+        contains: data.search,
+      };
+    }
     const count = await this.prisma.mainOrganization.count({
-      where
+      where,
     });
 
     const pagination = createPagination({
