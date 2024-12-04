@@ -25,7 +25,7 @@ export class StreetService {
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
     private readonly districtService: DistrictService
-  ) {}
+  ) { }
 
   async create(data: StreetCreateDto): Promise<StreetInterfaces.Response> {
     const region = await this.regionService.findOne({
@@ -43,7 +43,7 @@ export class StreetService {
         cityId: city.id,
         districtId: district.id,
         index: data.index,
-        staffId: data.staffId,
+        staffNumber: data.staffNumber,
         StreetTranslations: {
           create: [
             {
@@ -112,8 +112,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -123,8 +123,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -134,8 +134,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -204,8 +204,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             name: true,
             languageCode: true,
@@ -215,8 +215,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             name: true,
             languageCode: true,
@@ -226,8 +226,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             name: true,
             languageCode: true,
@@ -279,8 +279,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -290,8 +290,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -301,8 +301,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -408,7 +408,7 @@ export class StreetService {
         regionId: data.regionId || street.regionId,
         cityId: data.cityId || street.cityId,
         districtId: data.districtId || street.districtId,
-        staffId: data.staffId || street.staffId,
+        staffNumber: data.staffNumber || street.staffNumber,
         StreetTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
