@@ -41,7 +41,7 @@ export class PassageService {
         cityId: city.id,
         districtId: district.id,
         index: data.index,
-        staffId: data.staffId,
+        staffNumber: data.staffNumber,
         PassageTranslations: {
           create: [
             {
@@ -309,7 +309,7 @@ export class PassageService {
       },
     });
     if (!passage) {
-      throw new NotFoundException('District is not found');
+      throw new NotFoundException('Passage is not found');
     }
     const name = formatLanguageResponse(passage.PassageTranslations);
     const nameNew = formatLanguageResponse(
@@ -410,7 +410,7 @@ export class PassageService {
         regionId: data.regionId || passage.regionId,
         cityId: data.cityId || passage.cityId,
         districtId: data.districtId || passage.districtId,
-        staffId: data.staffId || passage.staffId,
+        staffNumber: data.staffNumber || passage.staffNumber,
         PassageTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

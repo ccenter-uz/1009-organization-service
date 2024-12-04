@@ -21,6 +21,13 @@ import { NearbyCategoryModule } from './modules/nearby-category/nearby-category.
 import { NearbyModule } from './modules/nearby/nearby.module';
 import { MainOrganizationModule } from './modules/main-organization/main-organization.module';
 import { PassageModule } from './modules/passage/passage.module';
+import { AreaModule } from './modules/area/area.module';
+import { AvenueModule } from './modules/avenue/avenue.module';
+import { ResidentialAreaModule } from './modules/residential-area/residential-area.module';
+import { ImpasseModule } from './modules/impasse/impasse.module';
+import { VillageModule } from './modules/village/village.module';
+import { LaneModule } from './modules/lane/lane.module';
+import { StreetModule } from './modules/street/street.module';
 
 @Module({
   imports: [
@@ -42,6 +49,13 @@ import { PassageModule } from './modules/passage/passage.module';
     NearbyCategoryModule,
     NearbyModule,
     PassageModule,
+    AreaModule,
+    AvenueModule,
+    ResidentialAreaModule,
+    ImpasseModule,
+    VillageModule,
+    LaneModule,
+    StreetModule
   ],
   controllers: [],
   providers: [

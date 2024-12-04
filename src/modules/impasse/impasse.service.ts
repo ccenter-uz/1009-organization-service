@@ -1,11 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-  DistrictCreateDto,
-  DistrictUpdateDto,
-  DistrictInterfaces,
-} from 'types/organization/district';
-import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
@@ -17,29 +12,37 @@ import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
+import { DistrictService } from '../district/district.service';
+import { ImpasseCreateDto, ImpasseInterfaces, ImpasseUpdateDto } from 'types/organization/impasse';
 @Injectable()
-export class DistrictService {
+export class ImpasseService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
-    private readonly cityService: CityService
+    private readonly cityService: CityService,
+    private readonly districtService: DistrictService,
   ) { }
 
-  async create(data: DistrictCreateDto): Promise<DistrictInterfaces.Response> {
+  async create(
+    data: ImpasseCreateDto
+  ): Promise<ImpasseInterfaces.Response> {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
-
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
-    const district = await this.prisma.district.create({
+    const district = await this.districtService.findOne({
+      id: data.districtId,
+    });
+    const impasse = await this.prisma.impasse.create({
       data: {
         regionId: region.id,
         cityId: city.id,
+        districtId: district.id,
         index: data.index,
         staffNumber: data.staffNumber,
-        DistrictTranslations: {
+        ImpasseTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -55,7 +58,7 @@ export class DistrictService {
             },
           ],
         },
-        DistrictNewNameTranslations: {
+        ImpasseNewNameTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -71,7 +74,7 @@ export class DistrictService {
             },
           ],
         },
-        DistrictOldNameTranslations: {
+        ImpasseOldNameTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -86,24 +89,24 @@ export class DistrictService {
               name: data.old_name[LanguageRequestEnum.CY],
             },
           ],
-        },
+        }
       },
       include: {
-        DistrictTranslations: true,
-        DistrictNewNameTranslations: true,
-        DistrictOldNameTranslations: true,
+        ImpasseTranslations: true,
+        ImpasseNewNameTranslations: true,
+        ImpasseOldNameTranslations: true,
       },
     });
-    return district;
+    return impasse;
   }
 
   async findAll(
     data: LanguageRequestDto
-  ): Promise<DistrictInterfaces.ResponseWithoutPagination> {
-    const district = await this.prisma.district.findMany({
+  ): Promise<ImpasseInterfaces.ResponseWithoutPagination> {
+    const impasses = await this.prisma.impasse.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        DistrictTranslations: {
+        ImpasseTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -114,7 +117,7 @@ export class DistrictService {
             name: true,
           },
         },
-        DistrictNewNameTranslations: {
+        ImpasseOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -125,7 +128,7 @@ export class DistrictService {
             name: true,
           },
         },
-        DistrictOldNameTranslations: {
+        ImpasseNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -139,22 +142,22 @@ export class DistrictService {
       },
     });
 
-    const formattedDistrict = [];
+    const formattedImpasse = [];
 
-    for (let i = 0; i < district.length; i++) {
-      const districtData = district[i];
-      const translations = districtData.DistrictTranslations;
+    for (let i = 0; i < impasses.length; i++) {
+      const impasseData = impasses[i];
+      const translations = impasseData.ImpasseTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = districtData.DistrictNewNameTranslations;
+      const translationsNew = impasseData.ImpasseNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = districtData.DistrictOldNameTranslations;
+      const translationsOld = impasseData.ImpasseOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
-      delete districtData.DistrictTranslations;
-      delete districtData.DistrictNewNameTranslations;
-      delete districtData.DistrictOldNameTranslations;
+      delete impasseData.ImpasseTranslations;
+      delete impasseData.ImpasseNewNameTranslations;
+      delete impasseData.ImpasseOldNameTranslations;
 
-      formattedDistrict.push({
-        ...districtData,
+      formattedImpasse.push({
+        ...impasseData,
         name,
         new_name: nameNew,
         old_name: nameOld,
@@ -162,17 +165,17 @@ export class DistrictService {
     }
 
     return {
-      data: formattedDistrict,
-      totalDocs: district.length,
+      data: formattedImpasse,
+      totalDocs: impasses.length,
     };
   }
 
   async findAllByPagination(
     data: ListQueryDto
-  ): Promise<DistrictInterfaces.ResponseWithPagination> {
+  ): Promise<ImpasseInterfaces.ResponseWithPagination> {
     const where: any = { status: DefaultStatus.ACTIVE };
     if (data.search) {
-      where.DistrictTranslations = {
+      where.ImpasseTranslations = {
         some: {
           languageCode: data.lang_code,
           name: {
@@ -181,7 +184,7 @@ export class DistrictService {
         },
       };
     }
-    const count = await this.prisma.district.count({
+    const count = await this.prisma.impasse.count({
       where,
     });
 
@@ -191,11 +194,11 @@ export class DistrictService {
       perPage: data.limit,
     });
 
-    const district = await this.prisma.district.findMany({
+    const impasses = await this.prisma.impasse.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: {
-        DistrictTranslations: {
+        ImpasseTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -206,7 +209,7 @@ export class DistrictService {
             languageCode: true,
           },
         },
-        DistrictNewNameTranslations: {
+        ImpasseNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -217,7 +220,7 @@ export class DistrictService {
             languageCode: true,
           },
         },
-        DistrictOldNameTranslations: {
+        ImpasseOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -233,23 +236,23 @@ export class DistrictService {
       skip: pagination.skip,
     });
 
-    const formattedDistrict = [];
+    const formattedImpasse = [];
 
-    for (let i = 0; i < district.length; i++) {
-      const districtData = district[i];
-      const translations = districtData.DistrictTranslations;
+    for (let i = 0; i < impasses.length; i++) {
+      const impasseData = impasses[i];
+      const translations = impasseData.ImpasseTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = districtData.DistrictNewNameTranslations;
+      const translationsNew = impasseData.ImpasseNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = districtData.DistrictOldNameTranslations;
+      const translationsOld = impasseData.ImpasseOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
 
-      delete districtData.DistrictTranslations;
-      delete districtData.DistrictNewNameTranslations;
-      delete districtData.DistrictOldNameTranslations;
+      delete impasseData.ImpasseTranslations;
+      delete impasseData.ImpasseNewNameTranslations;
+      delete impasseData.ImpasseOldNameTranslations;
 
-      formattedDistrict.push({
-        ...districtData,
+      formattedImpasse.push({
+        ...impasseData,
         name,
         new_name: nameNew,
         old_name: nameOld,
@@ -257,20 +260,20 @@ export class DistrictService {
     }
 
     return {
-      data: formattedDistrict,
+      data: formattedImpasse,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
   }
 
-  async findOne(data: GetOneDto): Promise<DistrictInterfaces.Response> {
-    const district = await this.prisma.district.findFirst({
+  async findOne(data: GetOneDto): Promise<ImpasseInterfaces.Response> {
+    const impasse = await this.prisma.impasse.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
       include: {
-        DistrictTranslations: {
+        ImpasseTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -281,7 +284,7 @@ export class DistrictService {
             name: true,
           },
         },
-        DistrictNewNameTranslations: {
+        ImpasseNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -292,7 +295,7 @@ export class DistrictService {
             name: true,
           },
         },
-        DistrictOldNameTranslations: {
+        ImpasseOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -305,21 +308,21 @@ export class DistrictService {
         },
       },
     });
-    if (!district) {
-      throw new NotFoundException('District is not found');
+    if (!impasse) {
+      throw new NotFoundException('Impasse is not found');
     }
-    const name = formatLanguageResponse(district.DistrictTranslations);
+    const name = formatLanguageResponse(impasse.ImpasseTranslations);
     const nameNew = formatLanguageResponse(
-      district.DistrictNewNameTranslations
+      impasse.ImpasseNewNameTranslations
     );
     const nameOld = formatLanguageResponse(
-      district.DistrictOldNameTranslations
+      impasse.ImpasseOldNameTranslations
     );
-    return { ...district, name, new_name: nameNew, old_name: nameOld };
+    return { ...impasse, name, new_name: nameNew, old_name: nameOld };
   }
 
-  async update(data: DistrictUpdateDto): Promise<DistrictInterfaces.Response> {
-    const district = await this.findOne({ id: data.id });
+  async update(data: ImpasseUpdateDto): Promise<ImpasseInterfaces.Response> {
+    const impasse = await this.findOne({ id: data.id });
 
     if (data.regionId) {
       await this.regionService.findOne({ id: data.regionId });
@@ -327,6 +330,10 @@ export class DistrictService {
 
     if (data.cityId) {
       await this.cityService.findOne({ id: data.cityId });
+    }
+
+    if (data.districtId) {
+      await this.districtService.findOne({ id: data.districtId });
     }
 
     const translationUpdates = [];
@@ -395,25 +402,26 @@ export class DistrictService {
       });
     }
 
-    return await this.prisma.district.update({
+    return await this.prisma.impasse.update({
       where: {
-        id: district.id,
+        id: impasse.id,
       },
       data: {
-        regionId: data.regionId || district.regionId,
-        cityId: data.cityId || district.cityId,
-        staffNumber: data.staffNumber || district.staffNumber,
-        DistrictTranslations: {
+        regionId: data.regionId || impasse.regionId,
+        cityId: data.cityId || impasse.cityId,
+        districtId: data.districtId || impasse.districtId,
+        staffNumber: data.staffNumber || impasse.staffNumber,
+        ImpasseTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
         },
-        DistrictNewNameTranslations: {
+        ImpasseNewNameTranslations: {
           updateMany:
             translationNewNameUpdates.length > 0
               ? translationNewNameUpdates
               : undefined,
         },
-        DistrictOldNameTranslations: {
+        ImpasseOldNameTranslations: {
           updateMany:
             translationOldNameUpdates.length > 0
               ? translationOldNameUpdates
@@ -421,31 +429,31 @@ export class DistrictService {
         },
       },
       include: {
-        DistrictTranslations: true,
-        DistrictNewNameTranslations: true,
-        DistrictOldNameTranslations: true,
+        ImpasseTranslations: true,
+        ImpasseNewNameTranslations: true,
+        ImpasseOldNameTranslations: true,
       },
     });
   }
 
-  async remove(data: DeleteDto): Promise<DistrictInterfaces.Response> {
+  async remove(data: DeleteDto): Promise<ImpasseInterfaces.Response> {
     if (data.delete) {
-      return await this.prisma.district.delete({
+      return await this.prisma.impasse.delete({
         where: { id: data.id },
         include: {
-          DistrictTranslations: {
+          ImpasseTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          DistrictNewNameTranslations: {
+          ImpasseNewNameTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          DistrictOldNameTranslations: {
+          ImpasseOldNameTranslations: {
             select: {
               languageCode: true,
               name: true,
@@ -455,23 +463,23 @@ export class DistrictService {
       });
     }
 
-    return await this.prisma.district.update({
+    return await this.prisma.impasse.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
-        DistrictTranslations: {
+        ImpasseTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        DistrictNewNameTranslations: {
+        ImpasseNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        DistrictOldNameTranslations: {
+        ImpasseOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
@@ -481,27 +489,27 @@ export class DistrictService {
     });
   }
 
-  async restore(data: GetOneDto): Promise<DistrictInterfaces.Response> {
-    return this.prisma.district.update({
+  async restore(data: GetOneDto): Promise<ImpasseInterfaces.Response> {
+    return this.prisma.impasse.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-        DistrictTranslations: {
+        ImpasseTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        DistrictNewNameTranslations: {
+        ImpasseNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        DistrictOldNameTranslations: {
+        ImpasseOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,

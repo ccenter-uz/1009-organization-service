@@ -1,11 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-  DistrictCreateDto,
-  DistrictUpdateDto,
-  DistrictInterfaces,
-} from 'types/organization/district';
-import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
@@ -17,29 +12,38 @@ import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
+import { DistrictService } from '../district/district.service';
+import { VillageCreateDto, VillageInterfaces, VillageUpdateDto } from 'types/organization/village';
+
 @Injectable()
-export class DistrictService {
+export class VillageService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
-    private readonly cityService: CityService
+    private readonly cityService: CityService,
+    private readonly districtService: DistrictService,
   ) { }
 
-  async create(data: DistrictCreateDto): Promise<DistrictInterfaces.Response> {
+  async create(
+    data: VillageCreateDto
+  ): Promise<VillageInterfaces.Response> {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
-
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
-    const district = await this.prisma.district.create({
+    const district = await this.districtService.findOne({
+      id: data.districtId,
+    });
+    const village = await this.prisma.village.create({
       data: {
         regionId: region.id,
         cityId: city.id,
+        districtId: district.id,
         index: data.index,
         staffNumber: data.staffNumber,
-        DistrictTranslations: {
+        VillageTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -55,7 +59,7 @@ export class DistrictService {
             },
           ],
         },
-        DistrictNewNameTranslations: {
+        VillageNewNameTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -71,7 +75,7 @@ export class DistrictService {
             },
           ],
         },
-        DistrictOldNameTranslations: {
+        VillageOldNameTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -86,24 +90,24 @@ export class DistrictService {
               name: data.old_name[LanguageRequestEnum.CY],
             },
           ],
-        },
+        }
       },
       include: {
-        DistrictTranslations: true,
-        DistrictNewNameTranslations: true,
-        DistrictOldNameTranslations: true,
+        VillageTranslations: true,
+        VillageNewNameTranslations: true,
+        VillageOldNameTranslations: true,
       },
     });
-    return district;
+    return village;
   }
 
   async findAll(
     data: LanguageRequestDto
-  ): Promise<DistrictInterfaces.ResponseWithoutPagination> {
-    const district = await this.prisma.district.findMany({
+  ): Promise<VillageInterfaces.ResponseWithoutPagination> {
+    const villages = await this.prisma.village.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        DistrictTranslations: {
+        VillageTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -114,7 +118,7 @@ export class DistrictService {
             name: true,
           },
         },
-        DistrictNewNameTranslations: {
+        VillageOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -125,7 +129,7 @@ export class DistrictService {
             name: true,
           },
         },
-        DistrictOldNameTranslations: {
+        VillageNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -139,40 +143,39 @@ export class DistrictService {
       },
     });
 
-    const formattedDistrict = [];
+    const formattedVillage = [];
 
-    for (let i = 0; i < district.length; i++) {
-      const districtData = district[i];
-      const translations = districtData.DistrictTranslations;
+    for (let i = 0; i < villages.length; i++) {
+      const villageData = villages[i];
+      const translations = villageData.VillageTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = districtData.DistrictNewNameTranslations;
+      const translationsNew = villageData.VillageNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = districtData.DistrictOldNameTranslations;
+      const translationsOld = villageData.VillageOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
-      delete districtData.DistrictTranslations;
-      delete districtData.DistrictNewNameTranslations;
-      delete districtData.DistrictOldNameTranslations;
+      delete villageData.VillageTranslations;
+      delete villageData.VillageNewNameTranslations;
+      delete villageData.VillageOldNameTranslations;
 
-      formattedDistrict.push({
-        ...districtData,
+      formattedVillage.push({
+        ...villageData,
         name,
         new_name: nameNew,
         old_name: nameOld,
       });
     }
-
     return {
-      data: formattedDistrict,
-      totalDocs: district.length,
+      data: formattedVillage,
+      totalDocs: villages.length,
     };
   }
 
   async findAllByPagination(
     data: ListQueryDto
-  ): Promise<DistrictInterfaces.ResponseWithPagination> {
+  ): Promise<VillageInterfaces.ResponseWithPagination> {
     const where: any = { status: DefaultStatus.ACTIVE };
     if (data.search) {
-      where.DistrictTranslations = {
+      where.VillageTranslations = {
         some: {
           languageCode: data.lang_code,
           name: {
@@ -181,7 +184,8 @@ export class DistrictService {
         },
       };
     }
-    const count = await this.prisma.district.count({
+
+    const count = await this.prisma.village.count({
       where,
     });
 
@@ -191,11 +195,11 @@ export class DistrictService {
       perPage: data.limit,
     });
 
-    const district = await this.prisma.district.findMany({
+    const villages = await this.prisma.village.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: {
-        DistrictTranslations: {
+        VillageTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -206,7 +210,7 @@ export class DistrictService {
             languageCode: true,
           },
         },
-        DistrictNewNameTranslations: {
+        VillageNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -217,7 +221,7 @@ export class DistrictService {
             languageCode: true,
           },
         },
-        DistrictOldNameTranslations: {
+        VillageOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -233,23 +237,23 @@ export class DistrictService {
       skip: pagination.skip,
     });
 
-    const formattedDistrict = [];
+    const formattedVillage = [];
 
-    for (let i = 0; i < district.length; i++) {
-      const districtData = district[i];
-      const translations = districtData.DistrictTranslations;
+    for (let i = 0; i < villages.length; i++) {
+      const villageData = villages[i];
+      const translations = villageData.VillageTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = districtData.DistrictNewNameTranslations;
+      const translationsNew = villageData.VillageNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = districtData.DistrictOldNameTranslations;
+      const translationsOld = villageData.VillageOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
 
-      delete districtData.DistrictTranslations;
-      delete districtData.DistrictNewNameTranslations;
-      delete districtData.DistrictOldNameTranslations;
+      delete villageData.VillageTranslations;
+      delete villageData.VillageNewNameTranslations;
+      delete villageData.VillageOldNameTranslations;
 
-      formattedDistrict.push({
-        ...districtData,
+      formattedVillage.push({
+        ...villageData,
         name,
         new_name: nameNew,
         old_name: nameOld,
@@ -257,20 +261,20 @@ export class DistrictService {
     }
 
     return {
-      data: formattedDistrict,
+      data: formattedVillage,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
   }
 
-  async findOne(data: GetOneDto): Promise<DistrictInterfaces.Response> {
-    const district = await this.prisma.district.findFirst({
+  async findOne(data: GetOneDto): Promise<VillageInterfaces.Response> {
+    const village = await this.prisma.village.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
       include: {
-        DistrictTranslations: {
+        VillageTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -281,7 +285,7 @@ export class DistrictService {
             name: true,
           },
         },
-        DistrictNewNameTranslations: {
+        VillageNewNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -292,7 +296,7 @@ export class DistrictService {
             name: true,
           },
         },
-        DistrictOldNameTranslations: {
+        VillageOldNameTranslations: {
           where: data.all_lang
             ? {}
             : {
@@ -305,21 +309,22 @@ export class DistrictService {
         },
       },
     });
-    if (!district) {
-      throw new NotFoundException('District is not found');
+
+    if (!village) {
+      throw new NotFoundException('Village is not found');
     }
-    const name = formatLanguageResponse(district.DistrictTranslations);
+    const name = formatLanguageResponse(village.VillageTranslations);
     const nameNew = formatLanguageResponse(
-      district.DistrictNewNameTranslations
+      village.VillageNewNameTranslations
     );
     const nameOld = formatLanguageResponse(
-      district.DistrictOldNameTranslations
+      village.VillageOldNameTranslations
     );
-    return { ...district, name, new_name: nameNew, old_name: nameOld };
+    return { ...village, name, new_name: nameNew, old_name: nameOld };
   }
 
-  async update(data: DistrictUpdateDto): Promise<DistrictInterfaces.Response> {
-    const district = await this.findOne({ id: data.id });
+  async update(data: VillageUpdateDto): Promise<VillageInterfaces.Response> {
+    const village = await this.findOne({ id: data.id });
 
     if (data.regionId) {
       await this.regionService.findOne({ id: data.regionId });
@@ -327,6 +332,10 @@ export class DistrictService {
 
     if (data.cityId) {
       await this.cityService.findOne({ id: data.cityId });
+    }
+
+    if (data.districtId) {
+      await this.districtService.findOne({ id: data.districtId });
     }
 
     const translationUpdates = [];
@@ -353,6 +362,7 @@ export class DistrictService {
         data: { name: data.name[LanguageRequestEnum.CY] },
       });
     }
+
     if (data.new_name?.[LanguageRequestEnum.RU]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.RU },
@@ -395,25 +405,26 @@ export class DistrictService {
       });
     }
 
-    return await this.prisma.district.update({
+    return await this.prisma.village.update({
       where: {
-        id: district.id,
+        id: village.id,
       },
       data: {
-        regionId: data.regionId || district.regionId,
-        cityId: data.cityId || district.cityId,
-        staffNumber: data.staffNumber || district.staffNumber,
-        DistrictTranslations: {
+        regionId: data.regionId || village.regionId,
+        cityId: data.cityId || village.cityId,
+        districtId: data.districtId || village.districtId,
+        staffNumber: data.staffNumber || village.staffNumber,
+        VillageTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
         },
-        DistrictNewNameTranslations: {
+        VillageNewNameTranslations: {
           updateMany:
             translationNewNameUpdates.length > 0
               ? translationNewNameUpdates
               : undefined,
         },
-        DistrictOldNameTranslations: {
+        VillageOldNameTranslations: {
           updateMany:
             translationOldNameUpdates.length > 0
               ? translationOldNameUpdates
@@ -421,31 +432,31 @@ export class DistrictService {
         },
       },
       include: {
-        DistrictTranslations: true,
-        DistrictNewNameTranslations: true,
-        DistrictOldNameTranslations: true,
+        VillageTranslations: true,
+        VillageNewNameTranslations: true,
+        VillageOldNameTranslations: true,
       },
     });
   }
 
-  async remove(data: DeleteDto): Promise<DistrictInterfaces.Response> {
+  async remove(data: DeleteDto): Promise<VillageInterfaces.Response> {
     if (data.delete) {
-      return await this.prisma.district.delete({
+      return await this.prisma.village.delete({
         where: { id: data.id },
         include: {
-          DistrictTranslations: {
+          VillageTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          DistrictNewNameTranslations: {
+          VillageNewNameTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          DistrictOldNameTranslations: {
+          VillageOldNameTranslations: {
             select: {
               languageCode: true,
               name: true,
@@ -455,23 +466,23 @@ export class DistrictService {
       });
     }
 
-    return await this.prisma.district.update({
+    return await this.prisma.village.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
-        DistrictTranslations: {
+        VillageTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        DistrictNewNameTranslations: {
+        VillageNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        DistrictOldNameTranslations: {
+        VillageOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
@@ -481,27 +492,27 @@ export class DistrictService {
     });
   }
 
-  async restore(data: GetOneDto): Promise<DistrictInterfaces.Response> {
-    return this.prisma.district.update({
+  async restore(data: GetOneDto): Promise<VillageInterfaces.Response> {
+    return this.prisma.village.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-        DistrictTranslations: {
+        VillageTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        DistrictNewNameTranslations: {
+        VillageNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        DistrictOldNameTranslations: {
+        VillageOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
