@@ -62,13 +62,14 @@ export class SubCategoryService {
   ): Promise<SubCategoryInterfaces.ResponseWithoutPagination> {
     const subCategories = await this.prisma.subCategory.findMany({
       orderBy: { createdAt: 'desc' },
+      where: { categoryId: data.category_id },
       include: {
         SubCategoryTranslations: {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
@@ -98,7 +99,7 @@ export class SubCategoryService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<SubCategoryInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    const where: any = { status: DefaultStatus.ACTIVE, categoryId: data.category_id };
     if (data.search) {
       where.SubCategoryTranslations = {
         some: {
@@ -122,6 +123,7 @@ export class SubCategoryService {
     const subCategories = await this.prisma.subCategory.findMany({
       where: {
         status: DefaultStatus.ACTIVE,
+        categoryId: data.category_id
       },
       orderBy: { createdAt: 'desc' },
       include: {
@@ -129,8 +131,8 @@ export class SubCategoryService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             name: true,
             languageCode: true,
@@ -171,8 +173,8 @@ export class SubCategoryService {
           where: data.all_lang
             ? {}
             : {
-                languageCode: data.lang_code,
-              },
+              languageCode: data.lang_code,
+            },
           select: {
             languageCode: true,
             name: true,
