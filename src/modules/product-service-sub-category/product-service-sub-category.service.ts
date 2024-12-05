@@ -64,13 +64,14 @@ export class ProductServiceSubCategoryService {
     const productServiceSubCategories =
       await this.prisma.productServiceSubCategory.findMany({
         orderBy: { createdAt: 'desc' },
+        where: { productServiceCategoryId: data.category_id },
         include: {
           productServiceSubCategoryTranslations: {
             where: data.all_lang
               ? {}
               : {
-                  languageCode: data.lang_code,
-                },
+                languageCode: data.lang_code,
+              },
             select: {
               languageCode: true,
               name: true,
@@ -100,7 +101,7 @@ export class ProductServiceSubCategoryService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    const where: any = { status: DefaultStatus.ACTIVE, productServiceCategoryId: data.category_id };
     if (data.search) {
       where.productServiceSubCategoryTranslations = {
         some: {
@@ -130,8 +131,8 @@ export class ProductServiceSubCategoryService {
             where: data.all_lang
               ? {}
               : {
-                  languageCode: data.lang_code,
-                },
+                languageCode: data.lang_code,
+              },
             select: {
               name: true,
               languageCode: true,
@@ -175,8 +176,8 @@ export class ProductServiceSubCategoryService {
             where: data.all_lang
               ? {}
               : {
-                  languageCode: data.lang_code,
-                },
+                languageCode: data.lang_code,
+              },
             select: {
               languageCode: true,
               name: true,
