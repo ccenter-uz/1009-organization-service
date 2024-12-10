@@ -53,6 +53,7 @@ export class ProductServiceSubCategoryService {
         },
       },
       include: {
+        productServiceCategory: true,
         productServiceSubCategoryTranslations: true,
       },
     });
@@ -67,6 +68,7 @@ export class ProductServiceSubCategoryService {
         orderBy: { createdAt: 'desc' },
         where: { productServiceCategoryId: data.category_id },
         include: {
+          productServiceCategory: true,
           productServiceSubCategoryTranslations: {
             where: data.all_lang
               ? {}
@@ -131,6 +133,7 @@ export class ProductServiceSubCategoryService {
         where,
         orderBy: { createdAt: 'desc' },
         include: {
+          productServiceCategory: true,
           productServiceSubCategoryTranslations: {
             where: data.all_lang
               ? {}
@@ -176,6 +179,7 @@ export class ProductServiceSubCategoryService {
           status: DefaultStatus.ACTIVE,
         },
         include: {
+          productServiceCategory: true,
           productServiceSubCategoryTranslations: {
             where: data.all_lang
               ? {}
@@ -248,6 +252,7 @@ export class ProductServiceSubCategoryService {
         },
       },
       include: {
+        productServiceCategory: true,
         productServiceSubCategoryTranslations: true,
       },
     });
@@ -260,6 +265,7 @@ export class ProductServiceSubCategoryService {
       return await this.prisma.productServiceSubCategory.delete({
         where: { id: data.id },
         include: {
+          productServiceCategory: true,
           productServiceSubCategoryTranslations: {
             select: {
               languageCode: true,
@@ -274,6 +280,7 @@ export class ProductServiceSubCategoryService {
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
+        productServiceCategory: true,
         productServiceSubCategoryTranslations: {
           select: {
             languageCode: true,
@@ -294,6 +301,7 @@ export class ProductServiceSubCategoryService {
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
+        productServiceCategory: true,
         productServiceSubCategoryTranslations: {
           select: {
             languageCode: true,

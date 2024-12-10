@@ -52,6 +52,7 @@ export class SubCategoryService {
         },
       },
       include: {
+        category:true,
         SubCategoryTranslations: true,
       },
     });
@@ -65,6 +66,7 @@ export class SubCategoryService {
       orderBy: { createdAt: 'desc' },
       where: { categoryId: data.category_id },
       include: {
+        category: true,
         SubCategoryTranslations: {
           where: data.all_lang
             ? {}
@@ -131,6 +133,7 @@ export class SubCategoryService {
       },
       orderBy: { createdAt: 'desc' },
       include: {
+        category:true,
         SubCategoryTranslations: {
           where: data.all_lang
             ? {}
@@ -173,6 +176,7 @@ export class SubCategoryService {
         status: DefaultStatus.ACTIVE,
       },
       include: {
+        category:true,
         SubCategoryTranslations: {
           where: data.all_lang
             ? {}
@@ -238,6 +242,7 @@ export class SubCategoryService {
         },
       },
       include: {
+        category:true,
         SubCategoryTranslations: true,
       },
     });
@@ -248,6 +253,7 @@ export class SubCategoryService {
       return await this.prisma.subCategory.delete({
         where: { id: data.id },
         include: {
+          category:true,
           SubCategoryTranslations: {
             select: {
               languageCode: true,
@@ -262,6 +268,7 @@ export class SubCategoryService {
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
+        category:true,
         SubCategoryTranslations: {
           select: {
             languageCode: true,
@@ -280,6 +287,7 @@ export class SubCategoryService {
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
+        category:true,
         SubCategoryTranslations: {
           select: {
             languageCode: true,

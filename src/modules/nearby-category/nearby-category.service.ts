@@ -63,7 +63,6 @@ export class NearbyCategoryService {
       page: data.page,
       perPage: data.limit,
     });
-console.log(where);
 
     const nearby = await this.prisma.nearbyCategory.findMany({
       where: { status: DefaultStatus.ACTIVE },
