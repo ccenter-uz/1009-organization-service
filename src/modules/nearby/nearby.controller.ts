@@ -5,7 +5,7 @@ import {
   NearbyServiceCommands as Commands,
   NearbyCreateDto,
   NearbyUpdateDto,
-  NearbyInterfaces
+  NearbyInterfaces,
 } from 'types/organization/nearby';
 import {
   DeleteDto,
@@ -20,26 +20,16 @@ export class NearbyController {
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
-  create(
-    @Payload() data: NearbyCreateDto
-  ): Promise<NearbyInterfaces.Response> {
+  create(@Payload() data: NearbyCreateDto): Promise<NearbyInterfaces.Response> {
     return this.subCategoryService.create(data);
   }
 
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<NearbyInterfaces.ResponseWithoutPagination> {
     return this.subCategoryService.findAll(data);
-  }
-
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<NearbyInterfaces.ResponseWithPagination> {
-    return this.subCategoryService.findAllByPagination(data);
   }
 
   @Get('by-id')
@@ -50,9 +40,7 @@ export class NearbyController {
 
   @Put()
   @MessagePattern({ cmd: Commands.UPDATE })
-  update(
-    @Payload() data: NearbyUpdateDto
-  ): Promise<NearbyInterfaces.Response> {
+  update(@Payload() data: NearbyUpdateDto): Promise<NearbyInterfaces.Response> {
     return this.subCategoryService.update(data);
   }
 

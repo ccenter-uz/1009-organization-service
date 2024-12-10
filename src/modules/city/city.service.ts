@@ -55,47 +55,64 @@ export class CityService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<CityInterfaces.ResponseWithoutPagination> {
-    const cities = await this.prisma.city.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        CityTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-                languageCode: data.lang_code,
-              },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedSubCategories = [];
-
-    for (let i = 0; i < cities.length; i++) {
-      const city = cities[i];
-      const translations = city.CityTranslations;
-      const name = formatLanguageResponse(translations);
-
-      delete city.CityTranslations;
-
-      formattedSubCategories.push({ ...city, name });
-    }
-
-    return {
-      data: formattedSubCategories,
-      totalDocs: cities.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<CityInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const cities = await this.prisma.city.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          CityTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedSubCategories = [];
+
+      for (let i = 0; i < cities.length; i++) {
+        const city = cities[i];
+        const translations = city.CityTranslations;
+        const name = formatLanguageResponse(translations);
+
+        delete city.CityTranslations;
+
+        formattedSubCategories.push({ ...city, name });
+      }
+
+      return {
+        data: formattedSubCategories,
+        totalDocs: cities.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.all_lang
+        ? {}
+        : {
+            languageCode: data.lang_code,
+          }),
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.CityTranslations = {
         some: {
@@ -268,7 +285,7 @@ export class CityService {
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-      CityTranslations: {
+        CityTranslations: {
           select: {
             languageCode: true,
             name: true,

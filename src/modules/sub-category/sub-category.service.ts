@@ -52,7 +52,7 @@ export class SubCategoryService {
         },
       },
       include: {
-        category:true,
+        category: true,
         SubCategoryTranslations: true,
       },
     });
@@ -61,51 +61,67 @@ export class SubCategoryService {
 
   async findAll(
     data: SubCategoryFilterDto
-  ): Promise<SubCategoryInterfaces.ResponseWithoutPagination> {
-    const subCategories = await this.prisma.subCategory.findMany({
-      orderBy: { createdAt: 'desc' },
-      where: { categoryId: data.category_id },
-      include: {
-        category: true,
-        SubCategoryTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-                languageCode: data.lang_code,
-              },
-          select: {
-            languageCode: true,
-            name: true,
+  ): Promise<SubCategoryInterfaces.ResponseWithPagination> {
+    if (data.all) {
+      const subCategories = await this.prisma.subCategory.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          categoryId: data.category_id,
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+
+        include: {
+          category: true,
+          SubCategoryTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    const formattedSubCategories = [];
+      const formattedSubCategories = [];
 
-    for (let i = 0; i < subCategories.length; i++) {
-      const subCategory = subCategories[i];
-      const translations = subCategory.SubCategoryTranslations;
-      const name = formatLanguageResponse(translations);
+      for (let i = 0; i < subCategories.length; i++) {
+        const subCategory = subCategories[i];
+        const translations = subCategory.SubCategoryTranslations;
+        const name = formatLanguageResponse(translations);
 
-      delete subCategory.SubCategoryTranslations;
+        delete subCategory.SubCategoryTranslations;
 
-      formattedSubCategories.push({ ...subCategory, name });
+        formattedSubCategories.push({ ...subCategory, name });
+      }
+
+      return {
+        data: formattedSubCategories,
+        totalDocs: subCategories.length,
+        totalPage: 1,
+      };
     }
-
-    return {
-      data: formattedSubCategories,
-      totalDocs: subCategories.length,
-    };
-  }
-
-  async findAllByPagination(
-    data: SubCategoryFilterDto
-  ): Promise<SubCategoryInterfaces.ResponseWithPagination> {
     const where: any = {
-      status: DefaultStatus.ACTIVE,
+      ...(data.all_lang
+        ? {}
+        : {
+            languageCode: data.lang_code,
+          }),
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
       categoryId: data.category_id,
     };
+
     if (data.search) {
       where.SubCategoryTranslations = {
         some: {
@@ -133,7 +149,7 @@ export class SubCategoryService {
       },
       orderBy: { createdAt: 'desc' },
       include: {
-        category:true,
+        category: true,
         SubCategoryTranslations: {
           where: data.all_lang
             ? {}
@@ -176,7 +192,7 @@ export class SubCategoryService {
         status: DefaultStatus.ACTIVE,
       },
       include: {
-        category:true,
+        category: true,
         SubCategoryTranslations: {
           where: data.all_lang
             ? {}
@@ -242,7 +258,7 @@ export class SubCategoryService {
         },
       },
       include: {
-        category:true,
+        category: true,
         SubCategoryTranslations: true,
       },
     });
@@ -253,7 +269,7 @@ export class SubCategoryService {
       return await this.prisma.subCategory.delete({
         where: { id: data.id },
         include: {
-          category:true,
+          category: true,
           SubCategoryTranslations: {
             select: {
               languageCode: true,
@@ -268,7 +284,7 @@ export class SubCategoryService {
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
-        category:true,
+        category: true,
         SubCategoryTranslations: {
           select: {
             languageCode: true,
@@ -287,7 +303,7 @@ export class SubCategoryService {
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-        category:true,
+        category: true,
         SubCategoryTranslations: {
           select: {
             languageCode: true,

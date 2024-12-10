@@ -29,17 +29,9 @@ export class NearbyCategoryController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<NearbyCategoryInterfaces.ResponseWithoutPagination> {
     return this.nearbyCategoryService.findAll(data);
-  }
-
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<NearbyCategoryInterfaces.ResponseWithPagination> {
-    return this.nearbyCategoryService.findAllByPagination(data);
   }
 
   @Get('by-id')

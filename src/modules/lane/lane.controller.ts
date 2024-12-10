@@ -16,31 +16,22 @@ import {
 
 @Controller('lane')
 export class LaneController {
-  constructor(private readonly laneService: LaneService) { }
+  constructor(private readonly laneService: LaneService) {}
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
-  create(
-    @Payload() data: LaneCreateDto
-  ): Promise<LaneInterfaces.Response> {
+  create(@Payload() data: LaneCreateDto): Promise<LaneInterfaces.Response> {
     return this.laneService.create(data);
   }
 
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<LaneInterfaces.ResponseWithoutPagination> {
     return this.laneService.findAll(data);
   }
 
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<LaneInterfaces.ResponseWithPagination> {
-    return this.laneService.findAllByPagination(data);
-  }
 
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })
@@ -50,9 +41,7 @@ export class LaneController {
 
   @Put()
   @MessagePattern({ cmd: Commands.UPDATE })
-  update(
-    @Payload() data: LaneUpdateDto
-  ): Promise<LaneInterfaces.Response> {
+  update(@Payload() data: LaneUpdateDto): Promise<LaneInterfaces.Response> {
     return this.laneService.update(data);
   }
 

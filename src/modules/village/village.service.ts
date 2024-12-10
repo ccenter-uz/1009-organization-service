@@ -13,7 +13,11 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
-import { VillageCreateDto, VillageInterfaces, VillageUpdateDto } from 'types/organization/village';
+import {
+  VillageCreateDto,
+  VillageInterfaces,
+  VillageUpdateDto,
+} from 'types/organization/village';
 
 @Injectable()
 export class VillageService {
@@ -21,12 +25,10 @@ export class VillageService {
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
-    private readonly districtService: DistrictService,
-  ) { }
+    private readonly districtService: DistrictService
+  ) {}
 
-  async create(
-    data: VillageCreateDto
-  ): Promise<VillageInterfaces.Response> {
+  async create(data: VillageCreateDto): Promise<VillageInterfaces.Response> {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -90,7 +92,7 @@ export class VillageService {
               name: data.old_name[LanguageRequestEnum.CY],
             },
           ],
-        }
+        },
       },
       include: {
         VillageTranslations: true,
@@ -102,78 +104,95 @@ export class VillageService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<VillageInterfaces.ResponseWithoutPagination> {
-    const villages = await this.prisma.village.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        VillageTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        VillageOldNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        VillageNewNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedVillage = [];
-
-    for (let i = 0; i < villages.length; i++) {
-      const villageData = villages[i];
-      const translations = villageData.VillageTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = villageData.VillageNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = villageData.VillageOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-      delete villageData.VillageTranslations;
-      delete villageData.VillageNewNameTranslations;
-      delete villageData.VillageOldNameTranslations;
-
-      formattedVillage.push({
-        ...villageData,
-        name,
-        new_name: nameNew,
-        old_name: nameOld,
-      });
-    }
-    return {
-      data: formattedVillage,
-      totalDocs: villages.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<VillageInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const villages = await this.prisma.village.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          VillageTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          VillageOldNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          VillageNewNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedVillage = [];
+
+      for (let i = 0; i < villages.length; i++) {
+        const villageData = villages[i];
+        const translations = villageData.VillageTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = villageData.VillageNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = villageData.VillageOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete villageData.VillageTranslations;
+        delete villageData.VillageNewNameTranslations;
+        delete villageData.VillageOldNameTranslations;
+
+        formattedVillage.push({
+          ...villageData,
+          name,
+          new_name: nameNew,
+          old_name: nameOld,
+        });
+      }
+      return {
+        data: formattedVillage,
+        totalDocs: villages.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.all_lang
+        ? {}
+        : {
+            languageCode: data.lang_code,
+          }),
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.VillageTranslations = {
         some: {
@@ -203,8 +222,8 @@ export class VillageService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -214,8 +233,8 @@ export class VillageService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -225,8 +244,8 @@ export class VillageService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -278,8 +297,8 @@ export class VillageService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -289,8 +308,8 @@ export class VillageService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -300,8 +319,8 @@ export class VillageService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -314,12 +333,8 @@ export class VillageService {
       throw new NotFoundException('Village is not found');
     }
     const name = formatLanguageResponse(village.VillageTranslations);
-    const nameNew = formatLanguageResponse(
-      village.VillageNewNameTranslations
-    );
-    const nameOld = formatLanguageResponse(
-      village.VillageOldNameTranslations
-    );
+    const nameNew = formatLanguageResponse(village.VillageNewNameTranslations);
+    const nameOld = formatLanguageResponse(village.VillageOldNameTranslations);
     return { ...village, name, new_name: nameNew, old_name: nameOld };
   }
 

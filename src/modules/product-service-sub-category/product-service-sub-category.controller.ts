@@ -37,13 +37,6 @@ export class ProductServiceSubCategoryController {
     return this.subCategoryService.findAll(data);
   }
 
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
-    return this.subCategoryService.findAllByPagination(data);
-  }
 
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })

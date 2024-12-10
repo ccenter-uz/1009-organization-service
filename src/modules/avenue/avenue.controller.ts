@@ -16,30 +16,20 @@ import {
 
 @Controller('avenue')
 export class AvenueController {
-  constructor(private readonly avenueService: AvenueService) { }
+  constructor(private readonly avenueService: AvenueService) {}
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
-  create(
-    @Payload() data: AvenueCreateDto
-  ): Promise<AvenueInterfaces.Response> {
+  create(@Payload() data: AvenueCreateDto): Promise<AvenueInterfaces.Response> {
     return this.avenueService.create(data);
   }
 
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<AvenueInterfaces.ResponseWithoutPagination> {
     return this.avenueService.findAll(data);
-  }
-
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<AvenueInterfaces.ResponseWithPagination> {
-    return this.avenueService.findAllByPagination(data);
   }
 
   @Get('by-id')
@@ -50,9 +40,7 @@ export class AvenueController {
 
   @Put()
   @MessagePattern({ cmd: Commands.UPDATE })
-  update(
-    @Payload() data: AvenueUpdateDto
-  ): Promise<AvenueInterfaces.Response> {
+  update(@Payload() data: AvenueUpdateDto): Promise<AvenueInterfaces.Response> {
     return this.avenueService.update(data);
   }
 

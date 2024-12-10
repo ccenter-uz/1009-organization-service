@@ -62,50 +62,65 @@ export class ProductServiceSubCategoryService {
 
   async findAll(
     data: ProductServiceSubCategoryFilterDto
-  ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithoutPagination> {
-    const productServiceSubCategories =
-      await this.prisma.productServiceSubCategory.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: { productServiceCategoryId: data.category_id },
-        include: {
-          productServiceCategory: true,
-          productServiceSubCategoryTranslations: {
-            where: data.all_lang
-              ? {}
-              : {
-                  languageCode: data.lang_code,
-                },
-            select: {
-              languageCode: true,
-              name: true,
+  ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
+    if (data.all) {
+      const productServiceSubCategories =
+        await this.prisma.productServiceSubCategory.findMany({
+          orderBy: { createdAt: 'desc' },
+          where: {
+            ...(data.status !== 2
+              ? {
+                  status: data.status,
+                }
+              : {}),
+          },
+
+          include: {
+            productServiceCategory: true,
+            productServiceSubCategoryTranslations: {
+              where: data.all_lang
+                ? {}
+                : {
+                    languageCode: data.lang_code,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
             },
           },
-        },
-      });
+        });
 
-    const formattedSubCategories = [];
+      const formattedSubCategories = [];
 
-    for (let i = 0; i < productServiceSubCategories.length; i++) {
-      const subCategory = productServiceSubCategories[i];
-      const translations = subCategory.productServiceSubCategoryTranslations;
-      const name = formatLanguageResponse(translations);
+      for (let i = 0; i < productServiceSubCategories.length; i++) {
+        const subCategory = productServiceSubCategories[i];
+        const translations = subCategory.productServiceSubCategoryTranslations;
+        const name = formatLanguageResponse(translations);
 
-      delete subCategory.productServiceSubCategoryTranslations;
+        delete subCategory.productServiceSubCategoryTranslations;
 
-      formattedSubCategories.push({ ...subCategory, name });
+        formattedSubCategories.push({ ...subCategory, name });
+      }
+
+      return {
+        data: formattedSubCategories,
+        totalDocs: productServiceSubCategories.length,
+        totalPage: 1,
+      };
     }
 
-    return {
-      data: formattedSubCategories,
-      totalDocs: productServiceSubCategories.length,
-    };
-  }
-
-  async findAllByPagination(
-    data: ProductServiceSubCategoryFilterDto
-  ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
     const where: any = {
-      status: DefaultStatus.ACTIVE,
+      ...(data.all_lang
+        ? {}
+        : {
+            languageCode: data.lang_code,
+          }),
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
       productServiceCategoryId: data.category_id,
     };
     if (data.search) {
