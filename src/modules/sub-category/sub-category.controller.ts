@@ -3,7 +3,7 @@ import { SubCategoryService } from "./sub-category.service";
 import { MessagePattern, Payload } from "@nestjs/microservices";
 import { SubCategoryInterfaces } from "types/organization/sub-category/interface/sub-category-group.interface";
 import { SubCategoryServiceCommands as Commands } from "types/organization/sub-category/commands";
-import { SubCategoryCreateDto, SubCategoryUpdateDto } from "types/organization/sub-category";
+import { SubCategoryCreateDto, SubCategoryFilterDto, SubCategoryUpdateDto } from "types/organization/sub-category";
 import { DeleteDto, GetOneDto, LanguageRequestDto, ListQueryDto } from "types/global";
 
 @Controller('sub-category')
@@ -21,7 +21,7 @@ export class SubCategoryController {
     @Get('all')
     @MessagePattern({cmd : Commands.GET_ALL_LIST})
     findAll(
-        @Payload() data: LanguageRequestDto
+        @Payload() data: SubCategoryFilterDto
     ): Promise<SubCategoryInterfaces.ResponseWithoutPagination> {
         return this.subCategoryService.findAll(data)
     }

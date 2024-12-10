@@ -1,3 +1,4 @@
+import { ProductServiceSubCategoryFilterDto } from './../../../types/organization/product-service-sub-category/dto/filter-product-service-sub-category.dto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -59,7 +60,7 @@ export class ProductServiceSubCategoryService {
   }
 
   async findAll(
-    data: LanguageRequestDto
+    data: ProductServiceSubCategoryFilterDto
   ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithoutPagination> {
     const productServiceSubCategories =
       await this.prisma.productServiceSubCategory.findMany({
@@ -70,8 +71,8 @@ export class ProductServiceSubCategoryService {
             where: data.all_lang
               ? {}
               : {
-                languageCode: data.lang_code,
-              },
+                  languageCode: data.lang_code,
+                },
             select: {
               languageCode: true,
               name: true,
@@ -99,9 +100,12 @@ export class ProductServiceSubCategoryService {
   }
 
   async findAllByPagination(
-    data: ListQueryDto
+    data: ProductServiceSubCategoryFilterDto
   ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE, productServiceCategoryId: data.category_id };
+    const where: any = {
+      status: DefaultStatus.ACTIVE,
+      productServiceCategoryId: data.category_id,
+    };
     if (data.search) {
       where.productServiceSubCategoryTranslations = {
         some: {
@@ -131,8 +135,8 @@ export class ProductServiceSubCategoryService {
             where: data.all_lang
               ? {}
               : {
-                languageCode: data.lang_code,
-              },
+                  languageCode: data.lang_code,
+                },
             select: {
               name: true,
               languageCode: true,
@@ -176,8 +180,8 @@ export class ProductServiceSubCategoryService {
             where: data.all_lang
               ? {}
               : {
-                languageCode: data.lang_code,
-              },
+                  languageCode: data.lang_code,
+                },
             select: {
               languageCode: true,
               name: true,

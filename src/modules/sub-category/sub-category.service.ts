@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   SubCategoryCreateDto,
+  SubCategoryFilterDto,
   SubCategoryInterfaces,
   SubCategoryUpdateDto,
 } from 'types/organization/sub-category';
@@ -58,7 +59,7 @@ export class SubCategoryService {
   }
 
   async findAll(
-    data: LanguageRequestDto
+    data: SubCategoryFilterDto
   ): Promise<SubCategoryInterfaces.ResponseWithoutPagination> {
     const subCategories = await this.prisma.subCategory.findMany({
       orderBy: { createdAt: 'desc' },
@@ -68,8 +69,8 @@ export class SubCategoryService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -97,9 +98,12 @@ export class SubCategoryService {
   }
 
   async findAllByPagination(
-    data: ListQueryDto
+    data: SubCategoryFilterDto
   ): Promise<SubCategoryInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE, categoryId: data.category_id };
+    const where: any = {
+      status: DefaultStatus.ACTIVE,
+      categoryId: data.category_id,
+    };
     if (data.search) {
       where.SubCategoryTranslations = {
         some: {
@@ -123,7 +127,7 @@ export class SubCategoryService {
     const subCategories = await this.prisma.subCategory.findMany({
       where: {
         status: DefaultStatus.ACTIVE,
-        categoryId: data.category_id
+        categoryId: data.category_id,
       },
       orderBy: { createdAt: 'desc' },
       include: {
@@ -131,8 +135,8 @@ export class SubCategoryService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -173,8 +177,8 @@ export class SubCategoryService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
