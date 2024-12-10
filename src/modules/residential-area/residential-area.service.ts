@@ -13,15 +13,19 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
-import { ResidentialAreaCreateDto, ResidentialAreaInterfaces, ResidentialAreaUpdateDto } from 'types/organization/residential-area';
+import {
+  ResidentialAreaCreateDto,
+  ResidentialAreaInterfaces,
+  ResidentialAreaUpdateDto,
+} from 'types/organization/residential-area';
 @Injectable()
 export class ResidentialAreaService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
-    private readonly districtService: DistrictService,
-  ) { }
+    private readonly districtService: DistrictService
+  ) {}
 
   async create(
     data: ResidentialAreaCreateDto
@@ -89,7 +93,7 @@ export class ResidentialAreaService {
               name: data.old_name[LanguageRequestEnum.CY],
             },
           ],
-        }
+        },
       },
       include: {
         ResidentialAreaTranslations: true,
@@ -101,79 +105,97 @@ export class ResidentialAreaService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<ResidentialAreaInterfaces.ResponseWithoutPagination> {
-    const residentialAreas = await this.prisma.residentialArea.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        ResidentialAreaTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        ResidentialAreaOldNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        ResidentialAreaNewNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedResidentialArea = [];
-
-    for (let i = 0; i < residentialAreas.length; i++) {
-      const residentialAreaData = residentialAreas[i];
-      const translations = residentialAreaData.ResidentialAreaTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = residentialAreaData.ResidentialAreaNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = residentialAreaData.ResidentialAreaOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-      delete residentialAreaData.ResidentialAreaTranslations;
-      delete residentialAreaData.ResidentialAreaNewNameTranslations;
-      delete residentialAreaData.ResidentialAreaOldNameTranslations;
-
-      formattedResidentialArea.push({
-        ...residentialAreaData,
-        name,
-        new_name: nameNew,
-        old_name: nameOld,
-      });
-    }
-
-    return {
-      data: formattedResidentialArea,
-      totalDocs: residentialAreas.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<ResidentialAreaInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const residentialAreas = await this.prisma.residentialArea.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          ResidentialAreaTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          ResidentialAreaOldNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          ResidentialAreaNewNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedResidentialArea = [];
+
+      for (let i = 0; i < residentialAreas.length; i++) {
+        const residentialAreaData = residentialAreas[i];
+        const translations = residentialAreaData.ResidentialAreaTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew =
+          residentialAreaData.ResidentialAreaNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld =
+          residentialAreaData.ResidentialAreaOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete residentialAreaData.ResidentialAreaTranslations;
+        delete residentialAreaData.ResidentialAreaNewNameTranslations;
+        delete residentialAreaData.ResidentialAreaOldNameTranslations;
+
+        formattedResidentialArea.push({
+          ...residentialAreaData,
+          name,
+          new_name: nameNew,
+          old_name: nameOld,
+        });
+      }
+
+      return {
+        data: formattedResidentialArea,
+        totalDocs: residentialAreas.length,
+        totalPage: 1,
+      };
+    }
+    const where: any = {
+      ...(data.all_lang
+        ? {}
+        : {
+            languageCode: data.lang_code,
+          }),
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.ResidentialAreaTranslations = {
         some: {
@@ -202,8 +224,8 @@ export class ResidentialAreaService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -213,8 +235,8 @@ export class ResidentialAreaService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -224,8 +246,8 @@ export class ResidentialAreaService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -242,9 +264,11 @@ export class ResidentialAreaService {
       const residentialAreaData = residentialAreas[i];
       const translations = residentialAreaData.ResidentialAreaTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = residentialAreaData.ResidentialAreaNewNameTranslations;
+      const translationsNew =
+        residentialAreaData.ResidentialAreaNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = residentialAreaData.ResidentialAreaOldNameTranslations;
+      const translationsOld =
+        residentialAreaData.ResidentialAreaOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
 
       delete residentialAreaData.ResidentialAreaTranslations;
@@ -277,8 +301,8 @@ export class ResidentialAreaService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -288,8 +312,8 @@ export class ResidentialAreaService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -299,8 +323,8 @@ export class ResidentialAreaService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -311,7 +335,9 @@ export class ResidentialAreaService {
     if (!residentialArea) {
       throw new NotFoundException('ResidentialArea is not found');
     }
-    const name = formatLanguageResponse(residentialArea.ResidentialAreaTranslations);
+    const name = formatLanguageResponse(
+      residentialArea.ResidentialAreaTranslations
+    );
     const nameNew = formatLanguageResponse(
       residentialArea.ResidentialAreaNewNameTranslations
     );
@@ -321,7 +347,9 @@ export class ResidentialAreaService {
     return { ...residentialArea, name, new_name: nameNew, old_name: nameOld };
   }
 
-  async update(data: ResidentialAreaUpdateDto): Promise<ResidentialAreaInterfaces.Response> {
+  async update(
+    data: ResidentialAreaUpdateDto
+  ): Promise<ResidentialAreaInterfaces.Response> {
     const residentialArea = await this.findOne({ id: data.id });
 
     if (data.regionId) {

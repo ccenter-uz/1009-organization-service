@@ -34,22 +34,40 @@ export class MainOrganizationService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<MainOrganizationInterfaces.ResponseWithoutPagination> {
-    const mainOrganization = await this.prisma.mainOrganization.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return {
-      data: mainOrganization,
-      totalDocs: mainOrganization.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<MainOrganizationInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const mainOrganization = await this.prisma.mainOrganization.findMany({
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return {
+        data: mainOrganization,
+        totalDocs: mainOrganization.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.all_lang
+        ? {}
+        : {
+            languageCode: data.lang_code,
+          }),
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
+    
     if (data.search) {
       where.name = {
         contains: data.search,

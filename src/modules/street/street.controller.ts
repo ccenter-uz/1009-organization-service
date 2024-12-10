@@ -20,27 +20,18 @@ export class StreetController {
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
-  create(
-    @Payload() data: StreetCreateDto
-  ): Promise<StreetInterfaces.Response> {
+  create(@Payload() data: StreetCreateDto): Promise<StreetInterfaces.Response> {
     return this.streetService.create(data);
   }
 
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<StreetInterfaces.ResponseWithoutPagination> {
     return this.streetService.findAll(data);
   }
 
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<StreetInterfaces.ResponseWithPagination> {
-    return this.streetService.findAllByPagination(data);
-  }
 
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })
@@ -50,9 +41,7 @@ export class StreetController {
 
   @Put()
   @MessagePattern({ cmd: Commands.UPDATE })
-  update(
-    @Payload() data: StreetUpdateDto
-  ): Promise<StreetInterfaces.Response> {
+  update(@Payload() data: StreetUpdateDto): Promise<StreetInterfaces.Response> {
     return this.streetService.update(data);
   }
 

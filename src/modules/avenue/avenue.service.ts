@@ -13,19 +13,21 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
-import { AvenueCreateDto, AvenueInterfaces, AvenueUpdateDto } from 'types/organization/avenue';
+import {
+  AvenueCreateDto,
+  AvenueInterfaces,
+  AvenueUpdateDto,
+} from 'types/organization/avenue';
 @Injectable()
 export class AvenueService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
-    private readonly districtService: DistrictService,
-  ) { }
+    private readonly districtService: DistrictService
+  ) {}
 
-  async create(
-    data: AvenueCreateDto
-  ): Promise<AvenueInterfaces.Response> {
+  async create(data: AvenueCreateDto): Promise<AvenueInterfaces.Response> {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -89,7 +91,7 @@ export class AvenueService {
               name: data.old_name[LanguageRequestEnum.CY],
             },
           ],
-        }
+        },
       },
       include: {
         AvenueTranslations: true,
@@ -101,79 +103,98 @@ export class AvenueService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<AvenueInterfaces.ResponseWithoutPagination> {
-    const avenues = await this.prisma.avenue.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        AvenueTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        AvenueOldNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        AvenueNewNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedAvenue = [];
-
-    for (let i = 0; i < avenues.length; i++) {
-      const avenueData = avenues[i];
-      const translations = avenueData.AvenueTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = avenueData.AvenueNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = avenueData.AvenueOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-      delete avenueData.AvenueTranslations;
-      delete avenueData.AvenueNewNameTranslations;
-      delete avenueData.AvenueOldNameTranslations;
-
-      formattedAvenue.push({
-        ...avenueData,
-        name,
-        new_name: nameNew,
-        old_name: nameOld,
-      });
-    }
-
-    return {
-      data: formattedAvenue,
-      totalDocs: avenues.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<AvenueInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const avenues = await this.prisma.avenue.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          AvenueTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          AvenueOldNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          AvenueNewNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedAvenue = [];
+
+      for (let i = 0; i < avenues.length; i++) {
+        const avenueData = avenues[i];
+        const translations = avenueData.AvenueTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = avenueData.AvenueNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = avenueData.AvenueOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete avenueData.AvenueTranslations;
+        delete avenueData.AvenueNewNameTranslations;
+        delete avenueData.AvenueOldNameTranslations;
+
+        formattedAvenue.push({
+          ...avenueData,
+          name,
+          new_name: nameNew,
+          old_name: nameOld,
+        });
+      }
+
+      return {
+        data: formattedAvenue,
+        totalDocs: avenues.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.all_lang
+        ? {}
+        : {
+            languageCode: data.lang_code,
+          }),
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
+
     if (data.search) {
       where.AvenueTranslations = {
         some: {
@@ -202,8 +223,8 @@ export class AvenueService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -213,8 +234,8 @@ export class AvenueService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -224,8 +245,8 @@ export class AvenueService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -277,8 +298,8 @@ export class AvenueService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -288,8 +309,8 @@ export class AvenueService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -299,8 +320,8 @@ export class AvenueService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -312,12 +333,8 @@ export class AvenueService {
       throw new NotFoundException('Avenue is not found');
     }
     const name = formatLanguageResponse(avenue.AvenueTranslations);
-    const nameNew = formatLanguageResponse(
-      avenue.AvenueNewNameTranslations
-    );
-    const nameOld = formatLanguageResponse(
-      avenue.AvenueOldNameTranslations
-    );
+    const nameNew = formatLanguageResponse(avenue.AvenueNewNameTranslations);
+    const nameOld = formatLanguageResponse(avenue.AvenueOldNameTranslations);
     return { ...avenue, name, new_name: nameNew, old_name: nameOld };
   }
 

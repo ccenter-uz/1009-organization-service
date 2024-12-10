@@ -29,17 +29,9 @@ export class ImpasseController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<ImpasseInterfaces.ResponseWithoutPagination> {
     return this.impasseService.findAll(data);
-  }
-
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<ImpasseInterfaces.ResponseWithPagination> {
-    return this.impasseService.findAllByPagination(data);
   }
 
   @Get('by-id')

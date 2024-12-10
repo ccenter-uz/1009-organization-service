@@ -29,18 +29,11 @@ export class SectionController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<SectionInterfaces.ResponseWithoutPagination> {
     return this.categoryService.findAll(data);
   }
 
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<SectionInterfaces.ResponseWithPagination> {
-    return this.categoryService.findAllByPagination(data);
-  }
 
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })

@@ -29,17 +29,9 @@ export class DistrictController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<DistrictInterfaces.ResponseWithoutPagination> {
     return this.subCategoryService.findAll(data);
-  }
-
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<DistrictInterfaces.ResponseWithPagination> {
-    return this.subCategoryService.findAllByPagination(data);
   }
 
   @Get('by-id')

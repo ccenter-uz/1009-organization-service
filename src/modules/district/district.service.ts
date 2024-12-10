@@ -23,7 +23,7 @@ export class DistrictService {
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
     private readonly cityService: CityService
-  ) { }
+  ) {}
 
   async create(data: DistrictCreateDto): Promise<DistrictInterfaces.Response> {
     const region = await this.regionService.findOne({
@@ -98,79 +98,96 @@ export class DistrictService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<DistrictInterfaces.ResponseWithoutPagination> {
-    const district = await this.prisma.district.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        DistrictTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        DistrictNewNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        DistrictOldNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedDistrict = [];
-
-    for (let i = 0; i < district.length; i++) {
-      const districtData = district[i];
-      const translations = districtData.DistrictTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = districtData.DistrictNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = districtData.DistrictOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-      delete districtData.DistrictTranslations;
-      delete districtData.DistrictNewNameTranslations;
-      delete districtData.DistrictOldNameTranslations;
-
-      formattedDistrict.push({
-        ...districtData,
-        name,
-        new_name: nameNew,
-        old_name: nameOld,
-      });
-    }
-
-    return {
-      data: formattedDistrict,
-      totalDocs: district.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<DistrictInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const district = await this.prisma.district.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          DistrictTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          DistrictNewNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          DistrictOldNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedDistrict = [];
+
+      for (let i = 0; i < district.length; i++) {
+        const districtData = district[i];
+        const translations = districtData.DistrictTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = districtData.DistrictNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = districtData.DistrictOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete districtData.DistrictTranslations;
+        delete districtData.DistrictNewNameTranslations;
+        delete districtData.DistrictOldNameTranslations;
+
+        formattedDistrict.push({
+          ...districtData,
+          name,
+          new_name: nameNew,
+          old_name: nameOld,
+        });
+      }
+
+      return {
+        data: formattedDistrict,
+        totalDocs: district.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.all_lang
+        ? {}
+        : {
+            languageCode: data.lang_code,
+          }),
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.DistrictTranslations = {
         some: {
@@ -199,8 +216,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -210,8 +227,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -221,8 +238,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -274,8 +291,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -285,8 +302,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -296,8 +313,8 @@ export class DistrictService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,

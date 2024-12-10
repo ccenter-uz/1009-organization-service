@@ -16,7 +16,7 @@ import {
 
 @Controller('passage')
 export class PassageController {
-  constructor(private readonly passageService: PassageService) { }
+  constructor(private readonly passageService: PassageService) {}
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
@@ -29,17 +29,9 @@ export class PassageController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<PassageInterfaces.ResponseWithoutPagination> {
     return this.passageService.findAll(data);
-  }
-
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<PassageInterfaces.ResponseWithPagination> {
-    return this.passageService.findAllByPagination(data);
   }
 
   @Get('by-id')

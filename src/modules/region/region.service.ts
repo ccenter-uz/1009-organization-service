@@ -4,7 +4,7 @@ import { PrismaService } from '@/modules/prisma/prisma.service';
 import {
   RegionCreateDto,
   RegionInterfaces,
-  RegionUpdateDto
+  RegionUpdateDto,
 } from 'types/organization/region';
 import {
   DefaultStatus,
@@ -48,47 +48,64 @@ export class RegionService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<RegionInterfaces.ResponseWithoutPagination> {
-    const regions = await this.prisma.region.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        RegionTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-                languageCode: data.lang_code,
-              },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedCategories = [];
-
-    for (let i = 0; i < regions.length; i++) {
-      const region = regions[i];
-      const translations = region.RegionTranslations;
-      const name = formatLanguageResponse(translations);
-
-      delete region.RegionTranslations;
-
-      formattedCategories.push({ ...region, name });
-    }
-
-    return {
-      data: formattedCategories,
-      totalDocs: regions.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<RegionInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const regions = await this.prisma.region.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          RegionTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedCategories = [];
+
+      for (let i = 0; i < regions.length; i++) {
+        const region = regions[i];
+        const translations = region.RegionTranslations;
+        const name = formatLanguageResponse(translations);
+
+        delete region.RegionTranslations;
+
+        formattedCategories.push({ ...region, name });
+      }
+
+      return {
+        data: formattedCategories,
+        totalDocs: regions.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.all_lang
+        ? {}
+        : {
+            languageCode: data.lang_code,
+          }),
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
 
     if (data.search) {
       where.RegionTranslations = {

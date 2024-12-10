@@ -16,30 +16,20 @@ import {
 
 @Controller('area')
 export class AreaController {
-  constructor(private readonly areaService: AreaService) { }
+  constructor(private readonly areaService: AreaService) {}
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
-  create(
-    @Payload() data: AreaCreateDto
-  ): Promise<AreaInterfaces.Response> {
+  create(@Payload() data: AreaCreateDto): Promise<AreaInterfaces.Response> {
     return this.areaService.create(data);
   }
 
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<AreaInterfaces.ResponseWithoutPagination> {
     return this.areaService.findAll(data);
-  }
-
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<AreaInterfaces.ResponseWithPagination> {
-    return this.areaService.findAllByPagination(data);
   }
 
   @Get('by-id')
@@ -50,9 +40,7 @@ export class AreaController {
 
   @Put()
   @MessagePattern({ cmd: Commands.UPDATE })
-  update(
-    @Payload() data: AreaUpdateDto
-  ): Promise<AreaInterfaces.Response> {
+  update(@Payload() data: AreaUpdateDto): Promise<AreaInterfaces.Response> {
     return this.areaService.update(data);
   }
 
