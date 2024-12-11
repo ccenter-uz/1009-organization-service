@@ -16,6 +16,7 @@ import {
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
+import { CityFilterDto } from 'types/organization/city/dto/filter-city.dto';
 @Injectable()
 export class CityService {
   constructor(
@@ -55,7 +56,7 @@ export class CityService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: CityFilterDto
   ): Promise<CityInterfaces.ResponseWithPagination> {
     if (data.all) {
       const cities = await this.prisma.city.findMany({
@@ -66,6 +67,7 @@ export class CityService {
                 status: data.status,
               }
             : {}),
+          regionId: data.region_id,
         },
         include: {
           CityTranslations: {
@@ -107,6 +109,7 @@ export class CityService {
         : {
             status: data.status,
           }),
+      regionId: data.region_id,
     };
     if (data.search) {
       where.CityTranslations = {

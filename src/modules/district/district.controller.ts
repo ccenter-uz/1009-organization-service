@@ -13,6 +13,7 @@ import {
   LanguageRequestDto,
   ListQueryDto,
 } from 'types/global';
+import { DistrictFilterDto } from 'types/organization/district/dto/filter-district.dto';
 
 @Controller('district')
 export class DistrictController {
@@ -29,7 +30,7 @@ export class DistrictController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: DistrictFilterDto
   ): Promise<DistrictInterfaces.ResponseWithoutPagination> {
     return this.subCategoryService.findAll(data);
   }
