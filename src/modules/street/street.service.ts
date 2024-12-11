@@ -181,11 +181,6 @@ export class StreetService {
       };
     }
     const where: any = {
-      ...(data.all_lang
-        ? {}
-        : {
-            languageCode: data.lang_code,
-          }),
       ...(data.status == 2
         ? {}
         : {

@@ -68,11 +68,12 @@ export class ProductServiceSubCategoryService {
         await this.prisma.productServiceSubCategory.findMany({
           orderBy: { createdAt: 'desc' },
           where: {
-            ...(data.status !== 2
-              ? {
+            ...(data.status == 2
+              ? {}
+              : {
                   status: data.status,
-                }
-              : {}),
+                }),
+            productServiceCategoryId: data.category_id,
           },
 
           include: {
@@ -111,11 +112,6 @@ export class ProductServiceSubCategoryService {
     }
 
     const where: any = {
-      ...(data.all_lang
-        ? {}
-        : {
-            languageCode: data.lang_code,
-          }),
       ...(data.status == 2
         ? {}
         : {

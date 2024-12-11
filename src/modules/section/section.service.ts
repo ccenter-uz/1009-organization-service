@@ -52,11 +52,6 @@ export class SectionService {
       };
     }
     const where: any = {
-      ...(data.all_lang
-        ? {}
-        : {
-            languageCode: data.lang_code,
-          }),
       ...(data.status == 2
         ? {}
         : {
@@ -80,7 +75,7 @@ export class SectionService {
     });
 
     const section = await this.prisma.section.findMany({
-      where: where,
+      where,
       orderBy: { createdAt: 'desc' },
       take: pagination.take,
       skip: pagination.skip,

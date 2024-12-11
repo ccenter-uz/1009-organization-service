@@ -56,18 +56,13 @@ export class MainOrganizationService {
     }
 
     const where: any = {
-      ...(data.all_lang
-        ? {}
-        : {
-            languageCode: data.lang_code,
-          }),
       ...(data.status == 2
         ? {}
         : {
             status: data.status,
           }),
     };
-    
+
     if (data.search) {
       where.name = {
         contains: data.search,
@@ -84,9 +79,7 @@ export class MainOrganizationService {
     });
 
     const mainOrganization = await this.prisma.mainOrganization.findMany({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       take: pagination.take,
       skip: pagination.skip,

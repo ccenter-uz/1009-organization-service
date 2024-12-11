@@ -63,6 +63,8 @@ export class SubCategoryService {
     data: SubCategoryFilterDto
   ): Promise<SubCategoryInterfaces.ResponseWithPagination> {
     if (data.all) {
+      console.log(data.status);
+
       const subCategories = await this.prisma.subCategory.findMany({
         orderBy: { createdAt: 'desc' },
         where: {
@@ -73,7 +75,6 @@ export class SubCategoryService {
               }
             : {}),
         },
-
         include: {
           category: true,
           SubCategoryTranslations: {
@@ -109,11 +110,6 @@ export class SubCategoryService {
       };
     }
     const where: any = {
-      ...(data.all_lang
-        ? {}
-        : {
-            languageCode: data.lang_code,
-          }),
       ...(data.status == 2
         ? {}
         : {
@@ -143,10 +139,7 @@ export class SubCategoryService {
     });
 
     const subCategories = await this.prisma.subCategory.findMany({
-      where: {
-        status: DefaultStatus.ACTIVE,
-        categoryId: data.category_id,
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         category: true,

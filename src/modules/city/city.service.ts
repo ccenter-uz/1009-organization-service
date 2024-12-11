@@ -102,11 +102,6 @@ export class CityService {
     }
 
     const where: any = {
-      ...(data.all_lang
-        ? {}
-        : {
-            languageCode: data.lang_code,
-          }),
       ...(data.status == 2
         ? {}
         : {
@@ -134,9 +129,7 @@ export class CityService {
     });
 
     const city = await this.prisma.city.findMany({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         CityTranslations: {

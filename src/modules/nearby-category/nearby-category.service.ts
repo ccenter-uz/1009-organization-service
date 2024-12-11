@@ -56,11 +56,6 @@ export class NearbyCategoryService {
     }
 
     const where: any = {
-      ...(data.all_lang
-        ? {}
-        : {
-            languageCode: data.lang_code,
-          }),
       ...(data.status == 2
         ? {}
         : {
@@ -84,7 +79,7 @@ export class NearbyCategoryService {
     });
 
     const nearby = await this.prisma.nearbyCategory.findMany({
-      where: { status: DefaultStatus.ACTIVE },
+      where,
       orderBy: { createdAt: 'desc' },
       take: pagination.take,
       skip: pagination.skip,
