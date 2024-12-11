@@ -13,19 +13,21 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
-import { LaneCreateDto, LaneInterfaces, LaneUpdateDto } from 'types/organization/lane';
+import {
+  LaneCreateDto,
+  LaneInterfaces,
+  LaneUpdateDto,
+} from 'types/organization/lane';
 @Injectable()
 export class LaneService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
-    private readonly districtService: DistrictService,
-  ) { }
+    private readonly districtService: DistrictService
+  ) {}
 
-  async create(
-    data: LaneCreateDto
-  ): Promise<LaneInterfaces.Response> {
+  async create(data: LaneCreateDto): Promise<LaneInterfaces.Response> {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -89,7 +91,7 @@ export class LaneService {
               name: data.old_name[LanguageRequestEnum.CY],
             },
           ],
-        }
+        },
       },
       include: {
         LaneTranslations: true,
@@ -101,80 +103,91 @@ export class LaneService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<LaneInterfaces.ResponseWithoutPagination> {
-    const lanes = await this.prisma.lane.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        LaneTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        LaneOldNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        LaneNewNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedLane = [];
-
-    for (let i = 0; i < lanes.length; i++) {
-
-      const laneData = lanes[i];
-      const translations = laneData.LaneTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = laneData.LaneNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = laneData.LaneOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-      delete laneData.LaneTranslations;
-      delete laneData.LaneNewNameTranslations;
-      delete laneData.LaneOldNameTranslations;
-
-      formattedLane.push({
-        ...laneData,
-        name,
-        new_name: nameNew,
-        old_name: nameOld,
-      });
-    }
-
-    return {
-      data: formattedLane,
-      totalDocs: lanes.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<LaneInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const lanes = await this.prisma.lane.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          LaneTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          LaneOldNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          LaneNewNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedLane = [];
+
+      for (let i = 0; i < lanes.length; i++) {
+        const laneData = lanes[i];
+        const translations = laneData.LaneTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = laneData.LaneNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = laneData.LaneOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete laneData.LaneTranslations;
+        delete laneData.LaneNewNameTranslations;
+        delete laneData.LaneOldNameTranslations;
+
+        formattedLane.push({
+          ...laneData,
+          name,
+          new_name: nameNew,
+          old_name: nameOld,
+        });
+      }
+
+      return {
+        data: formattedLane,
+        totalDocs: lanes.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.LaneTranslations = {
         some: {
@@ -203,8 +216,8 @@ export class LaneService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -214,8 +227,8 @@ export class LaneService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -225,8 +238,8 @@ export class LaneService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -278,8 +291,8 @@ export class LaneService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -289,8 +302,8 @@ export class LaneService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -300,8 +313,8 @@ export class LaneService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -313,12 +326,8 @@ export class LaneService {
       throw new NotFoundException('Lane is not found');
     }
     const name = formatLanguageResponse(lane.LaneTranslations);
-    const nameNew = formatLanguageResponse(
-      lane.LaneNewNameTranslations
-    );
-    const nameOld = formatLanguageResponse(
-      lane.LaneOldNameTranslations
-    );
+    const nameNew = formatLanguageResponse(lane.LaneNewNameTranslations);
+    const nameOld = formatLanguageResponse(lane.LaneOldNameTranslations);
     return { ...lane, name, new_name: nameNew, old_name: nameOld };
   }
 

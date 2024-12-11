@@ -13,19 +13,21 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
-import { ImpasseCreateDto, ImpasseInterfaces, ImpasseUpdateDto } from 'types/organization/impasse';
+import {
+  ImpasseCreateDto,
+  ImpasseInterfaces,
+  ImpasseUpdateDto,
+} from 'types/organization/impasse';
 @Injectable()
 export class ImpasseService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
-    private readonly districtService: DistrictService,
-  ) { }
+    private readonly districtService: DistrictService
+  ) {}
 
-  async create(
-    data: ImpasseCreateDto
-  ): Promise<ImpasseInterfaces.Response> {
+  async create(data: ImpasseCreateDto): Promise<ImpasseInterfaces.Response> {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -89,7 +91,7 @@ export class ImpasseService {
               name: data.old_name[LanguageRequestEnum.CY],
             },
           ],
-        }
+        },
       },
       include: {
         ImpasseTranslations: true,
@@ -101,79 +103,91 @@ export class ImpasseService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<ImpasseInterfaces.ResponseWithoutPagination> {
-    const impasses = await this.prisma.impasse.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        ImpasseTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        ImpasseOldNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        ImpasseNewNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedImpasse = [];
-
-    for (let i = 0; i < impasses.length; i++) {
-      const impasseData = impasses[i];
-      const translations = impasseData.ImpasseTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = impasseData.ImpasseNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = impasseData.ImpasseOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-      delete impasseData.ImpasseTranslations;
-      delete impasseData.ImpasseNewNameTranslations;
-      delete impasseData.ImpasseOldNameTranslations;
-
-      formattedImpasse.push({
-        ...impasseData,
-        name,
-        new_name: nameNew,
-        old_name: nameOld,
-      });
-    }
-
-    return {
-      data: formattedImpasse,
-      totalDocs: impasses.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<ImpasseInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const impasses = await this.prisma.impasse.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          ImpasseTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          ImpasseOldNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          ImpasseNewNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedImpasse = [];
+
+      for (let i = 0; i < impasses.length; i++) {
+        const impasseData = impasses[i];
+        const translations = impasseData.ImpasseTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = impasseData.ImpasseNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = impasseData.ImpasseOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete impasseData.ImpasseTranslations;
+        delete impasseData.ImpasseNewNameTranslations;
+        delete impasseData.ImpasseOldNameTranslations;
+
+        formattedImpasse.push({
+          ...impasseData,
+          name,
+          new_name: nameNew,
+          old_name: nameOld,
+        });
+      }
+
+      return {
+        data: formattedImpasse,
+        totalDocs: impasses.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.ImpasseTranslations = {
         some: {
@@ -202,8 +216,8 @@ export class ImpasseService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -213,8 +227,8 @@ export class ImpasseService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -224,8 +238,8 @@ export class ImpasseService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -277,8 +291,8 @@ export class ImpasseService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -288,8 +302,8 @@ export class ImpasseService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -299,8 +313,8 @@ export class ImpasseService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -312,12 +326,8 @@ export class ImpasseService {
       throw new NotFoundException('Impasse is not found');
     }
     const name = formatLanguageResponse(impasse.ImpasseTranslations);
-    const nameNew = formatLanguageResponse(
-      impasse.ImpasseNewNameTranslations
-    );
-    const nameOld = formatLanguageResponse(
-      impasse.ImpasseOldNameTranslations
-    );
+    const nameNew = formatLanguageResponse(impasse.ImpasseNewNameTranslations);
+    const nameOld = formatLanguageResponse(impasse.ImpasseOldNameTranslations);
     return { ...impasse, name, new_name: nameNew, old_name: nameOld };
   }
 

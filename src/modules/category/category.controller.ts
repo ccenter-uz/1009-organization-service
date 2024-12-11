@@ -29,17 +29,9 @@ export class CategoryController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
     return this.categoryService.findAll(data);
-  }
-
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<CategoryInterfaces.ResponseWithPagination> {
-    return this.categoryService.findAllByPagination(data);
   }
 
   @Get('by-id')

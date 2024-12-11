@@ -53,61 +53,73 @@ export class ProductServiceCategoryService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<ProductServiseCategoryInterfaces.ResponseWithoutPagination> {
-    const productServiceCategories =
-      await this.prisma.productServiceCategory.findMany({
-        orderBy: { createdAt: 'desc' },
-        include: {
-          ProductServiceCategoryTranslations: {
-            where: data.all_lang
-              ? {}
-              : {
-                  languageCode: data.lang_code, // lang_code from request
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
-
-    const formattedCategories = productServiceCategories.map(
-      (productServiceCategory) => {
-        const translations =
-          productServiceCategory.ProductServiceCategoryTranslations;
-
-        const name = formatLanguageResponse(translations);
-        delete productServiceCategory.ProductServiceCategoryTranslations;
-
-        return { ...productServiceCategory, name };
-      }
-    );
-
-    return {
-      data: formattedCategories,
-      totalDocs: productServiceCategories.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<ProductServiseCategoryInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
-        if (data.search) {
-          where.ProductServiceCategoryTranslations = {
-            some: {
-              languageCode: data.lang_code,
-              name: {
-                contains: data.search,
+    if (data.all) {
+      const productServiceCategories =
+        await this.prisma.productServiceCategory.findMany({
+          orderBy: { createdAt: 'desc' },
+          where: {
+            ...(data.status !== 2
+              ? {
+                  status: data.status,
+                }
+              : {}),
+          },
+          include: {
+            ProductServiceCategoryTranslations: {
+              where: data.all_lang
+                ? {}
+                : {
+                    languageCode: data.lang_code, // lang_code from request
+                  },
+              select: {
+                languageCode: true,
+                name: true,
               },
             },
-          };
+          },
+        });
+
+      const formattedCategories = productServiceCategories.map(
+        (productServiceCategory) => {
+          const translations =
+            productServiceCategory.ProductServiceCategoryTranslations;
+
+          const name = formatLanguageResponse(translations);
+          delete productServiceCategory.ProductServiceCategoryTranslations;
+
+          return { ...productServiceCategory, name };
         }
+      );
+
+      return {
+        data: formattedCategories,
+        totalDocs: productServiceCategories.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
+    if (data.search) {
+      where.ProductServiceCategoryTranslations = {
+        some: {
+          languageCode: data.lang_code,
+          name: {
+            contains: data.search,
+          },
+        },
+      };
+    }
 
     const count = await this.prisma.productServiceCategory.count({
-      where
+      where,
     });
 
     const pagination = createPagination({
@@ -115,7 +127,6 @@ export class ProductServiceCategoryService {
       page: data.page,
       perPage: data.limit,
     });
-
 
     const productServiceCategories =
       await this.prisma.productServiceCategory.findMany({

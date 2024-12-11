@@ -70,49 +70,61 @@ export class NearbyService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<NearbyInterfaces.ResponseWithoutPagination> {
-    const district = await this.prisma.nearby.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        NearbyTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-                languageCode: data.lang_code,
-              },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedDistrict = [];
-
-    for (let i = 0; i < district.length; i++) {
-      const nearbyData = district[i];
-      const translations = nearbyData.NearbyTranslations;
-      const name = formatLanguageResponse(translations);
-      delete nearbyData.NearbyTranslations;
-
-      formattedDistrict.push({
-        ...nearbyData,
-        name,
-      });
-    }
-
-    return {
-      data: formattedDistrict,
-      totalDocs: district.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<NearbyInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const district = await this.prisma.nearby.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          NearbyTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedDistrict = [];
+
+      for (let i = 0; i < district.length; i++) {
+        const nearbyData = district[i];
+        const translations = nearbyData.NearbyTranslations;
+        const name = formatLanguageResponse(translations);
+        delete nearbyData.NearbyTranslations;
+
+        formattedDistrict.push({
+          ...nearbyData,
+          name,
+        });
+      }
+
+      return {
+        data: formattedDistrict,
+        totalDocs: district.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.NearbyTranslations = {
         some: {

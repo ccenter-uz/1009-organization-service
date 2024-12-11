@@ -58,60 +58,68 @@ export class CategoryService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
+    data: ListQueryDto
+  ): Promise<CategoryInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-    const categories = await this.prisma.category.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        CategoryTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-                languageCode: data.lang_code,
-              },
-          select: {
-            languageCode: true,
-            name: true,
+    if (data.all) {
+      const categories = await this.prisma.category.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          CategoryTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    const formattedCategories = [];
+      const formattedCategories = [];
 
-    for (let i = 0; i < categories.length; i++) {
-      const category = categories[i];
-      const translations = category.CategoryTranslations;
-      const name = formatLanguageResponse(translations);
+      for (let i = 0; i < categories.length; i++) {
+        const category = categories[i];
+        const translations = category.CategoryTranslations;
+        const name = formatLanguageResponse(translations);
 
-      delete category.CategoryTranslations;
+        delete category.CategoryTranslations;
 
-      formattedCategories.push({ ...category, name });
+        formattedCategories.push({ ...category, name });
+      }
+
+      this.logger.debug(
+        `Method: ${methodName} -  Response: `,
+        formattedCategories
+      );
+
+      return {
+        data: formattedCategories,
+        totalDocs: categories.length,
+        totalPage: 1,
+      };
     }
 
-    this.logger.debug(
-      `Method: ${methodName} -  Response: `,
-      formattedCategories
-    );
-
-    return {
-      data: formattedCategories,
-      totalDocs: categories.length,
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
     };
-  }
-
-  async findAllByPagination(
-    data: ListQueryDto
-  ): Promise<CategoryInterfaces.ResponseWithPagination> {
-    const methodName: string = this.findAllByPagination.name;
-
-    this.logger.debug(`Method: ${methodName} - Request: `, data);
-
-    const where: any = { status: DefaultStatus.ACTIVE };
 
     if (data.search) {
       where.CategoryTranslations = {

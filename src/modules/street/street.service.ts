@@ -25,7 +25,7 @@ export class StreetService {
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
     private readonly districtService: DistrictService
-  ) { }
+  ) {}
 
   async create(data: StreetCreateDto): Promise<StreetInterfaces.Response> {
     const region = await this.regionService.findOne({
@@ -103,79 +103,90 @@ export class StreetService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<StreetInterfaces.ResponseWithoutPagination> {
-    const streets = await this.prisma.street.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        StreetTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        StreetOldNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        StreetNewNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedStreet = [];
-
-    for (let i = 0; i < streets.length; i++) {
-      const streetData = streets[i];
-      const translations = streetData.StreetTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = streetData.StreetNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = streetData.StreetOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-      delete streetData.StreetTranslations;
-      delete streetData.StreetNewNameTranslations;
-      delete streetData.StreetOldNameTranslations;
-
-      formattedStreet.push({
-        ...streetData,
-        name,
-        new_name: nameNew,
-        old_name: nameOld,
-      });
-    }
-
-    return {
-      data: formattedStreet,
-      totalDocs: streets.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<StreetInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const streets = await this.prisma.street.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          StreetTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          StreetOldNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          StreetNewNameTranslations: {
+            where: data.all_lang
+              ? {}
+              : {
+                  languageCode: data.lang_code,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedStreet = [];
+
+      for (let i = 0; i < streets.length; i++) {
+        const streetData = streets[i];
+        const translations = streetData.StreetTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = streetData.StreetNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = streetData.StreetOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete streetData.StreetTranslations;
+        delete streetData.StreetNewNameTranslations;
+        delete streetData.StreetOldNameTranslations;
+
+        formattedStreet.push({
+          ...streetData,
+          name,
+          new_name: nameNew,
+          old_name: nameOld,
+        });
+      }
+
+      return {
+        data: formattedStreet,
+        totalDocs: streets.length,
+        totalPage: 1,
+      };
+    }
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.StreetTranslations = {
         some: {
@@ -204,8 +215,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -215,8 +226,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -226,8 +237,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -279,8 +290,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -290,8 +301,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -301,8 +312,8 @@ export class StreetService {
           where: data.all_lang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.lang_code,
+              },
           select: {
             languageCode: true,
             name: true,
