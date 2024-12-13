@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import {} from 'types/organization/district';
 import {
   NearbyCreateDto,
   NearbyUpdateDto,
@@ -10,7 +9,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -73,7 +71,7 @@ export class NearbyService {
     data: ListQueryDto
   ): Promise<NearbyInterfaces.ResponseWithPagination> {
     if (data.all) {
-      const district = await this.prisma.nearby.findMany({
+      const nearby = await this.prisma.nearby.findMany({
         orderBy: { createdAt: 'desc' },
         where: {
           ...(data.status !== 2
@@ -99,8 +97,8 @@ export class NearbyService {
 
       const formattedDistrict = [];
 
-      for (let i = 0; i < district.length; i++) {
-        const nearbyData = district[i];
+      for (let i = 0; i < nearby.length; i++) {
+        const nearbyData = nearby[i];
         const translations = nearbyData.NearbyTranslations;
         const name = formatLanguageResponse(translations);
         delete nearbyData.NearbyTranslations;
@@ -113,7 +111,7 @@ export class NearbyService {
 
       return {
         data: formattedDistrict,
-        totalDocs: district.length,
+        totalDocs: nearby.length,
         totalPage: 1,
       };
     }
@@ -188,7 +186,7 @@ export class NearbyService {
   }
 
   async findOne(data: GetOneDto): Promise<NearbyInterfaces.Response> {
-    const district = await this.prisma.nearby.findFirst({
+    const nearby = await this.prisma.nearby.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
@@ -207,12 +205,12 @@ export class NearbyService {
         },
       },
     });
-    if (!district) {
+    if (!nearby) {
       throw new NotFoundException('Nearby is not found');
     }
-    const name = formatLanguageResponse(district.NearbyTranslations);
-
-    return { ...district, name };
+    const name = formatLanguageResponse(nearby.NearbyTranslations);
+    delete nearby.NearbyTranslations;
+    return { ...nearby, name };
   }
 
   async update(data: NearbyUpdateDto): Promise<NearbyInterfaces.Response> {

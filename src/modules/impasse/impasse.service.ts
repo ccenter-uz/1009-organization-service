@@ -4,7 +4,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -328,6 +327,9 @@ export class ImpasseService {
     const name = formatLanguageResponse(impasse.ImpasseTranslations);
     const nameNew = formatLanguageResponse(impasse.ImpasseNewNameTranslations);
     const nameOld = formatLanguageResponse(impasse.ImpasseOldNameTranslations);
+    delete impasse.ImpasseNewNameTranslations;
+    delete impasse.ImpasseOldNameTranslations;
+    delete impasse.ImpasseTranslations;
     return { ...impasse, name, newName: nameNew, oldName: nameOld };
   }
 

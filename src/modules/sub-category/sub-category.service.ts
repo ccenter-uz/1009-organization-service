@@ -10,9 +10,7 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
-  ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
@@ -202,7 +200,11 @@ export class SubCategoryService {
     if (!subCategory) {
       throw new NotFoundException('SubCategory is not found');
     }
+    
     const name = formatLanguageResponse(subCategory.SubCategoryTranslations);
+
+    delete subCategory.SubCategoryTranslations;
+
     return { ...subCategory, name };
   }
 
