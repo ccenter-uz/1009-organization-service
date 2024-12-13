@@ -84,10 +84,10 @@ export class NearbyService {
         },
         include: {
           NearbyTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               languageCode: true,
@@ -128,7 +128,7 @@ export class NearbyService {
     if (data.search) {
       where.NearbyTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -150,10 +150,10 @@ export class NearbyService {
       orderBy: { createdAt: 'desc' },
       include: {
         NearbyTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -195,10 +195,10 @@ export class NearbyService {
       },
       include: {
         NearbyTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             languageCode: true,

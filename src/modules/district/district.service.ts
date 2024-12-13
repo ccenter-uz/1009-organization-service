@@ -60,15 +60,15 @@ export class DistrictService {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
-              name: data.new_name[LanguageRequestEnum.RU],
+              name: data.newName[LanguageRequestEnum.RU],
             },
             {
               languageCode: LanguageRequestEnum.UZ,
-              name: data.new_name[LanguageRequestEnum.UZ],
+              name: data.newName[LanguageRequestEnum.UZ],
             },
             {
               languageCode: LanguageRequestEnum.CY,
-              name: data.new_name[LanguageRequestEnum.CY],
+              name: data.newName[LanguageRequestEnum.CY],
             },
           ],
         },
@@ -76,15 +76,15 @@ export class DistrictService {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
-              name: data.old_name[LanguageRequestEnum.RU],
+              name: data.oldName[LanguageRequestEnum.RU],
             },
             {
               languageCode: LanguageRequestEnum.UZ,
-              name: data.old_name[LanguageRequestEnum.UZ],
+              name: data.oldName[LanguageRequestEnum.UZ],
             },
             {
               languageCode: LanguageRequestEnum.CY,
-              name: data.old_name[LanguageRequestEnum.CY],
+              name: data.oldName[LanguageRequestEnum.CY],
             },
           ],
         },
@@ -120,17 +120,17 @@ export class DistrictService {
                 status: data.status,
               }
             : {}),
-          regionId: data.region_id,
-          cityId: data.city_id,
+          regionId: data.regionId,
+          cityId: data.cityId,
         },
         include: {
           Region: {
             include: {
               RegionTranslations: {
-                where: data.all_lang
+                where: data.allLang
                   ? {}
                   : {
-                      languageCode: data.lang_code,
+                      languageCode: data.langCode,
                     },
                 select: {
                   languageCode: true,
@@ -150,10 +150,10 @@ export class DistrictService {
             },
           },
           DistrictTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               languageCode: true,
@@ -161,10 +161,10 @@ export class DistrictService {
             },
           },
           DistrictNewNameTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               languageCode: true,
@@ -172,10 +172,10 @@ export class DistrictService {
             },
           },
           DistrictOldNameTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               languageCode: true,
@@ -202,8 +202,8 @@ export class DistrictService {
         formattedDistrict.push({
           ...districtData,
           name,
-          new_name: nameNew,
-          old_name: nameOld,
+          newName: nameNew,
+          oldName: nameOld,
         });
       }
 
@@ -220,13 +220,13 @@ export class DistrictService {
         : {
             status: data.status,
           }),
-      regionId: data.region_id,
-      cityId: data.city_id,
+      regionId: data.regionId,
+      cityId: data.cityId,
     };
     if (data.search) {
       where.DistrictTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -250,10 +250,10 @@ export class DistrictService {
         Region: {
           include: {
             RegionTranslations: {
-              where: data.all_lang
+              where: data.allLang
                 ? {}
                 : {
-                    languageCode: data.lang_code,
+                    languageCode: data.langCode,
                   },
               select: {
                 languageCode: true,
@@ -265,10 +265,10 @@ export class DistrictService {
         City: {
           include: {
             CityTranslations: {
-              where: data.all_lang
+              where: data.allLang
                 ? {}
                 : {
-                    languageCode: data.lang_code,
+                    languageCode: data.langCode,
                   },
               select: {
                 languageCode: true,
@@ -278,10 +278,10 @@ export class DistrictService {
           },
         },
         DistrictTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -289,10 +289,10 @@ export class DistrictService {
           },
         },
         DistrictNewNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -300,10 +300,10 @@ export class DistrictService {
           },
         },
         DistrictOldNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -345,8 +345,8 @@ export class DistrictService {
       formattedDistrict.push({
         ...districtData,
         name,
-        new_name: nameNew,
-        old_name: nameOld,
+        newName: nameNew,
+        oldName: nameOld,
         region,
         city,
       });
@@ -369,10 +369,10 @@ export class DistrictService {
         Region: {
           include: {
             RegionTranslations: {
-              where: data.all_lang
+              where: data.allLang
                 ? {}
                 : {
-                    languageCode: data.lang_code,
+                    languageCode: data.langCode,
                   },
               select: {
                 languageCode: true,
@@ -384,10 +384,10 @@ export class DistrictService {
         City: {
           include: {
             CityTranslations: {
-              where: data.all_lang
+              where: data.allLang
                 ? {}
                 : {
-                    languageCode: data.lang_code,
+                    languageCode: data.langCode,
                   },
               select: {
                 languageCode: true,
@@ -397,10 +397,10 @@ export class DistrictService {
           },
         },
         DistrictTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             languageCode: true,
@@ -408,10 +408,10 @@ export class DistrictService {
           },
         },
         DistrictNewNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             languageCode: true,
@@ -419,10 +419,10 @@ export class DistrictService {
           },
         },
         DistrictOldNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             languageCode: true,
@@ -462,8 +462,8 @@ export class DistrictService {
     return {
       ...district,
       name,
-      new_name: nameNew,
-      old_name: nameOld,
+      newName: nameNew,
+      oldName: nameOld,
       region,
       city,
     };
@@ -504,45 +504,45 @@ export class DistrictService {
         data: { name: data.name[LanguageRequestEnum.CY] },
       });
     }
-    if (data.new_name?.[LanguageRequestEnum.RU]) {
+    if (data.newName?.[LanguageRequestEnum.RU]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.RU },
-        data: { name: data.new_name[LanguageRequestEnum.RU] },
+        data: { name: data.newName[LanguageRequestEnum.RU] },
       });
     }
 
-    if (data.new_name?.[LanguageRequestEnum.UZ]) {
+    if (data.newName?.[LanguageRequestEnum.UZ]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.UZ },
-        data: { name: data.new_name[LanguageRequestEnum.UZ] },
+        data: { name: data.newName[LanguageRequestEnum.UZ] },
       });
     }
 
-    if (data.new_name?.[LanguageRequestEnum.CY]) {
+    if (data.newName?.[LanguageRequestEnum.CY]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.CY },
-        data: { name: data.new_name[LanguageRequestEnum.CY] },
+        data: { name: data.newName[LanguageRequestEnum.CY] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.RU]) {
+    if (data.oldName?.[LanguageRequestEnum.RU]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.RU },
-        data: { name: data.old_name[LanguageRequestEnum.RU] },
+        data: { name: data.oldName[LanguageRequestEnum.RU] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.UZ]) {
+    if (data.oldName?.[LanguageRequestEnum.UZ]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.UZ },
-        data: { name: data.old_name[LanguageRequestEnum.UZ] },
+        data: { name: data.oldName[LanguageRequestEnum.UZ] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.CY]) {
+    if (data.oldName?.[LanguageRequestEnum.CY]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.CY },
-        data: { name: data.old_name[LanguageRequestEnum.CY] },
+        data: { name: data.oldName[LanguageRequestEnum.CY] },
       });
     }
 

@@ -101,10 +101,10 @@ export class CategoryService {
           city: {
             include: {
               CityTranslations: {
-                where: data.all_lang
+                where: data.allLang
                   ? {}
                   : {
-                      languageCode: data.lang_code,
+                      languageCode: data.langCode,
                     },
                 select: {
                   languageCode: true,
@@ -114,10 +114,10 @@ export class CategoryService {
               Region: {
                 include: {
                   RegionTranslations: {
-                    where: data.all_lang
+                    where: data.allLang
                       ? {}
                       : {
-                          languageCode: data.lang_code,
+                          languageCode: data.langCode,
                         },
                     select: {
                       languageCode: true,
@@ -129,10 +129,10 @@ export class CategoryService {
             },
           },
           CategoryTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               languageCode: true,
@@ -199,7 +199,7 @@ export class CategoryService {
     if (data.search) {
       where.CategoryTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -221,10 +221,10 @@ export class CategoryService {
         city: {
           include: {
             CityTranslations: {
-              where: data.all_lang
+              where: data.allLang
                 ? {}
                 : {
-                    languageCode: data.lang_code,
+                    languageCode: data.langCode,
                   },
               select: {
                 languageCode: true,
@@ -234,10 +234,10 @@ export class CategoryService {
             Region: {
               include: {
                 RegionTranslations: {
-                  where: data.all_lang
+                  where: data.allLang
                     ? {}
                     : {
-                        languageCode: data.lang_code,
+                        languageCode: data.langCode,
                       },
                   select: {
                     languageCode: true,
@@ -249,10 +249,10 @@ export class CategoryService {
           },
         },
         CategoryTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -321,10 +321,10 @@ export class CategoryService {
         city: {
           include: {
             CityTranslations: {
-              where: data.all_lang
+              where: data.allLang
                 ? {}
                 : {
-                    languageCode: data.lang_code,
+                    languageCode: data.langCode,
                   },
               select: {
                 languageCode: true,
@@ -334,10 +334,10 @@ export class CategoryService {
             Region: {
               include: {
                 RegionTranslations: {
-                  where: data.all_lang
+                  where: data.allLang
                     ? {}
                     : {
-                        languageCode: data.lang_code,
+                        languageCode: data.langCode,
                       },
                   select: {
                     languageCode: true,
@@ -349,10 +349,10 @@ export class CategoryService {
           },
         },
         CategoryTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             languageCode: true,

@@ -62,10 +62,10 @@ export class SegmentService {
         },
         include: {
           SegmentTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code, // lang_code from request
+                  languageCode: data.langCode, // langCode from request
                 },
             select: {
               languageCode: true,
@@ -101,7 +101,7 @@ export class SegmentService {
     if (data.search) {
       where.SegmentTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -124,10 +124,10 @@ export class SegmentService {
       orderBy: { createdAt: 'desc' },
       include: {
         SegmentTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code, // lang_code from request
+                languageCode: data.langCode, // langCode from request
               },
           select: {
             languageCode: true,
@@ -163,10 +163,10 @@ export class SegmentService {
       },
       include: {
         SegmentTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code, // lang_code from request
+                languageCode: data.langCode, // langCode from request
               },
           select: {
             languageCode: true,

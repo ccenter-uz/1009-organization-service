@@ -68,16 +68,16 @@ export class CityService {
                 status: data.status,
               }
             : {}),
-          regionId: data.region_id,
+          regionId: data.regionId,
         },
         include: {
           Region: {
             select: {
               RegionTranslations: {
-                where: data.all_lang
+                where: data.allLang
                   ? {}
                   : {
-                      languageCode: data.lang_code,
+                      languageCode: data.langCode,
                     },
                 select: {
                   languageCode: true,
@@ -87,10 +87,10 @@ export class CityService {
             },
           },
           CityTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               languageCode: true,
@@ -125,12 +125,12 @@ export class CityService {
         : {
             status: data.status,
           }),
-      regionId: data.region_id,
+      regionId: data.regionId,
     };
     if (data.search) {
       where.CityTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -154,10 +154,10 @@ export class CityService {
         Region: {
           include: {
             RegionTranslations: {
-              where: data.all_lang
+              where: data.allLang
                 ? {}
                 : {
-                    languageCode: data.lang_code,
+                    languageCode: data.langCode,
                   },
               select: {
                 languageCode: true,
@@ -167,10 +167,10 @@ export class CityService {
           },
         },
         CityTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -219,10 +219,10 @@ export class CityService {
       include: {
         Region: true,
         CityTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             languageCode: true,
