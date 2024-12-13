@@ -49,6 +49,7 @@ export class CityService {
         },
       },
       include: {
+        Region: true,
         CityTranslations: true,
       },
     });
@@ -70,6 +71,21 @@ export class CityService {
           regionId: data.region_id,
         },
         include: {
+          Region: {
+            select: {
+              RegionTranslations: {
+                where: data.all_lang
+                  ? {}
+                  : {
+                      languageCode: data.lang_code,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
           CityTranslations: {
             where: data.all_lang
               ? {}
@@ -135,6 +151,21 @@ export class CityService {
       where,
       orderBy: { createdAt: 'desc' },
       include: {
+        Region: {
+          include: {
+            RegionTranslations: {
+              where: data.all_lang
+                ? {}
+                : {
+                    languageCode: data.lang_code,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
         CityTranslations: {
           where: data.all_lang
             ? {}
@@ -154,13 +185,22 @@ export class CityService {
     const formattedSubCategories = [];
 
     for (let i = 0; i < city.length; i++) {
-      const subCategory = city[i];
-      const translations = subCategory.CityTranslations;
+      const formatedCity = city[i];
+      const translations = formatedCity.CityTranslations;
       const name = formatLanguageResponse(translations);
 
-      delete subCategory.CityTranslations;
+      delete formatedCity.CityTranslations;
 
-      formattedSubCategories.push({ ...subCategory, name });
+      const regionTranslations = formatedCity.Region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+
+      delete formatedCity.Region.RegionTranslations;
+
+      const region = { ...formatedCity.Region, name: regionName };
+
+      delete formatedCity.Region;
+
+      formattedSubCategories.push({ ...formatedCity, name, region });
     }
 
     return {
@@ -177,6 +217,7 @@ export class CityService {
         status: DefaultStatus.ACTIVE,
       },
       include: {
+        Region: true,
         CityTranslations: {
           where: data.all_lang
             ? {}
@@ -239,6 +280,7 @@ export class CityService {
         },
       },
       include: {
+        Region: true,
         CityTranslations: true,
       },
     });
@@ -249,6 +291,7 @@ export class CityService {
       return await this.prisma.city.delete({
         where: { id: data.id },
         include: {
+          Region: true,
           CityTranslations: {
             select: {
               languageCode: true,
@@ -263,6 +306,7 @@ export class CityService {
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
+        Region: true,
         CityTranslations: {
           select: {
             languageCode: true,
@@ -281,6 +325,7 @@ export class CityService {
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
+        Region: true,
         CityTranslations: {
           select: {
             languageCode: true,

@@ -93,6 +93,16 @@ export class DistrictService {
         DistrictTranslations: true,
         DistrictNewNameTranslations: true,
         DistrictOldNameTranslations: true,
+        Region: {
+          select: {
+            RegionTranslations: true,
+          },
+        },
+        City: {
+          select: {
+            CityTranslations: true,
+          },
+        },
       },
     });
     return district;
@@ -114,6 +124,31 @@ export class DistrictService {
           cityId: data.city_id,
         },
         include: {
+          Region: {
+            include: {
+              RegionTranslations: {
+                where: data.all_lang
+                  ? {}
+                  : {
+                      languageCode: data.lang_code,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          City: {
+            include: {
+              CityTranslations: {
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
           DistrictTranslations: {
             where: data.all_lang
               ? {}
@@ -212,6 +247,36 @@ export class DistrictService {
       where,
       orderBy: { createdAt: 'desc' },
       include: {
+        Region: {
+          include: {
+            RegionTranslations: {
+              where: data.all_lang
+                ? {}
+                : {
+                    languageCode: data.lang_code,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        City: {
+          include: {
+            CityTranslations: {
+              where: data.all_lang
+                ? {}
+                : {
+                    languageCode: data.lang_code,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
         DistrictTranslations: {
           where: data.all_lang
             ? {}
@@ -265,11 +330,25 @@ export class DistrictService {
       delete districtData.DistrictNewNameTranslations;
       delete districtData.DistrictOldNameTranslations;
 
+      const regionTranslations = districtData.Region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+      delete districtData.Region.RegionTranslations;
+      const region = { ...districtData.Region, name: regionName };
+      delete districtData.Region;
+
+      const cityTranslations = districtData.City.CityTranslations;
+      const cityName = formatLanguageResponse(cityTranslations);
+      delete districtData.City.CityTranslations;
+      const city = { ...districtData.City, name: cityName };
+      delete districtData.City;
+
       formattedDistrict.push({
         ...districtData,
         name,
         new_name: nameNew,
         old_name: nameOld,
+        region,
+        city,
       });
     }
 
@@ -287,6 +366,36 @@ export class DistrictService {
         status: DefaultStatus.ACTIVE,
       },
       include: {
+        Region: {
+          include: {
+            RegionTranslations: {
+              where: data.all_lang
+                ? {}
+                : {
+                    languageCode: data.lang_code,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        City: {
+          include: {
+            CityTranslations: {
+              where: data.all_lang
+                ? {}
+                : {
+                    languageCode: data.lang_code,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
         DistrictTranslations: {
           where: data.all_lang
             ? {}
@@ -325,6 +434,7 @@ export class DistrictService {
     if (!district) {
       throw new NotFoundException('District is not found');
     }
+
     const name = formatLanguageResponse(district.DistrictTranslations);
     const nameNew = formatLanguageResponse(
       district.DistrictNewNameTranslations
@@ -332,7 +442,31 @@ export class DistrictService {
     const nameOld = formatLanguageResponse(
       district.DistrictOldNameTranslations
     );
-    return { ...district, name, new_name: nameNew, old_name: nameOld };
+
+    const regionTranslations = district.Region.RegionTranslations;
+    const regionName = formatLanguageResponse(regionTranslations);
+    delete district.Region.RegionTranslations;
+    const region = { ...district.Region, name: regionName };
+    delete district.Region;
+
+    const cityTranslations = district.City.CityTranslations;
+    const cityName = formatLanguageResponse(cityTranslations);
+    delete district.City.CityTranslations;
+    const city = { ...district.City, name: cityName };
+    delete district.City;
+
+    delete district.DistrictTranslations;
+    delete district.DistrictNewNameTranslations;
+    delete district.DistrictOldNameTranslations;
+
+    return {
+      ...district,
+      name,
+      new_name: nameNew,
+      old_name: nameOld,
+      region,
+      city,
+    };
   }
 
   async update(data: DistrictUpdateDto): Promise<DistrictInterfaces.Response> {
@@ -441,6 +575,16 @@ export class DistrictService {
         DistrictTranslations: true,
         DistrictNewNameTranslations: true,
         DistrictOldNameTranslations: true,
+        Region: {
+          select: {
+            RegionTranslations: true,
+          },
+        },
+        City: {
+          select: {
+            CityTranslations: true,
+          },
+        },
       },
     });
   }
@@ -468,6 +612,16 @@ export class DistrictService {
               name: true,
             },
           },
+          Region: {
+            select: {
+              RegionTranslations: true,
+            },
+          },
+          City: {
+            select: {
+              CityTranslations: true,
+            },
+          },
         },
       });
     }
@@ -492,6 +646,16 @@ export class DistrictService {
           select: {
             languageCode: true,
             name: true,
+          },
+        },
+        Region: {
+          select: {
+            RegionTranslations: true,
+          },
+        },
+        City: {
+          select: {
+            CityTranslations: true,
           },
         },
       },
@@ -522,6 +686,16 @@ export class DistrictService {
           select: {
             languageCode: true,
             name: true,
+          },
+        },
+        Region: {
+          select: {
+            RegionTranslations: true,
+          },
+        },
+        City: {
+          select: {
+            CityTranslations: true,
           },
         },
       },
