@@ -31,7 +31,7 @@ export class CategoryService {
     const category = await this.prisma.category.create({
       data: {
         staffNumber: data.staffNumber,
-        cityId: data.city_id,
+        cityId: data.cityId,
         CategoryTranslations: {
           create: [
             {
@@ -95,7 +95,7 @@ export class CategoryService {
                 status: data.status,
               }
             : {}),
-          cityId: data.city_id,
+          cityId: data.cityId,
         },
         include: {
           city: {
@@ -193,7 +193,7 @@ export class CategoryService {
         : {
             status: data.status,
           }),
-      cityId: data.city_id,
+      cityId: data.cityId,
     };
 
     if (data.search) {
@@ -430,7 +430,7 @@ export class CategoryService {
       },
       data: {
         staffNumber: data.staffNumber || category.staffNumber,
-        cityId: data.city_id,
+        cityId: data.cityId,
         CategoryTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
