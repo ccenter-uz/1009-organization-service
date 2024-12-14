@@ -4,7 +4,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -330,6 +329,9 @@ export class VillageService {
     const name = formatLanguageResponse(village.VillageTranslations);
     const nameNew = formatLanguageResponse(village.VillageNewNameTranslations);
     const nameOld = formatLanguageResponse(village.VillageOldNameTranslations);
+    delete village.VillageNewNameTranslations;
+    delete village.VillageOldNameTranslations;
+    delete village.VillageTranslations;
     return { ...village, name, newName: nameNew, oldName: nameOld };
   }
 

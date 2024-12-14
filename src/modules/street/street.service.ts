@@ -4,7 +4,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -327,6 +326,9 @@ export class StreetService {
     const name = formatLanguageResponse(street.StreetTranslations);
     const nameNew = formatLanguageResponse(street.StreetNewNameTranslations);
     const nameOld = formatLanguageResponse(street.StreetOldNameTranslations);
+    delete street.StreetNewNameTranslations;
+    delete street.StreetOldNameTranslations;
+    delete street.StreetTranslations;
     return { ...street, name, newName: nameNew, oldName: nameOld };
   }
 

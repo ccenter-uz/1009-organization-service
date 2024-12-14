@@ -4,7 +4,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -328,6 +327,9 @@ export class PassageService {
     const name = formatLanguageResponse(passage.PassageTranslations);
     const nameNew = formatLanguageResponse(passage.PassageNewNameTranslations);
     const nameOld = formatLanguageResponse(passage.PassageOldNameTranslations);
+    delete passage.PassageNewNameTranslations;
+    delete passage.PassageOldNameTranslations;
+    delete passage.PassageTranslations;
     return { ...passage, name, newName: nameNew, oldName: nameOld };
   }
 

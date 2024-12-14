@@ -4,7 +4,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -339,6 +338,9 @@ export class ResidentialAreaService {
     const nameOld = formatLanguageResponse(
       residentialArea.ResidentialAreaOldNameTranslations
     );
+    delete residentialArea.ResidentialAreaNewNameTranslations;
+    delete residentialArea.ResidentialAreaOldNameTranslations;
+    delete residentialArea.ResidentialAreaTranslations;
     return { ...residentialArea, name, newName: nameNew, oldName: nameOld };
   }
 

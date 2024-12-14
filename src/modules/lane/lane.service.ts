@@ -4,7 +4,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -328,6 +327,9 @@ export class LaneService {
     const name = formatLanguageResponse(lane.LaneTranslations);
     const nameNew = formatLanguageResponse(lane.LaneNewNameTranslations);
     const nameOld = formatLanguageResponse(lane.LaneOldNameTranslations);
+    delete lane.LaneNewNameTranslations;
+    delete lane.LaneOldNameTranslations;
+    delete lane.LaneTranslations;
     return { ...lane, name, newName: nameNew, oldName: nameOld };
   }
 
