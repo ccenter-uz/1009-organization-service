@@ -361,14 +361,14 @@ model Passage {
   index       Int
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
-  districtId  Int       @map("district_id")
+  districtId  Int?       @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
   region                     Region                       @relation(fields: [regionId], references: [id])
   city                       City                         @relation(fields: [cityId], references: [id])
-  district                   District                     @relation(fields: [districtId], references: [id])
+  district                   District?                     @relation(fields: [districtId], references: [id])
   PassageTranslations        PassageTranslations[]
   PassageOldNameTranslations PassageOldNameTranslations[]
   PassageNewNameTranslations PassageNewNameTranslations[]
@@ -422,14 +422,14 @@ model Area {
   index       Int
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
-  districtId  Int       @map("district_id")
+  districtId  Int?       @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
   region                  Region                    @relation(fields: [regionId], references: [id])
   city                    City                      @relation(fields: [cityId], references: [id])
-  district                District                  @relation(fields: [districtId], references: [id])
+  district                District?                  @relation(fields: [districtId], references: [id])
   AreaTranslations        AreaTranslations[]
   AreaOldNameTranslations AreaOldNameTranslations[]
   AreaNewNameTranslations AreaNewNameTranslations[]
@@ -483,14 +483,14 @@ model Avenue {
   index       Int
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
-  districtId  Int       @map("district_id")
+  districtId  Int?       @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
   region                    Region                      @relation(fields: [regionId], references: [id])
   city                      City                        @relation(fields: [cityId], references: [id])
-  district                  District                    @relation(fields: [districtId], references: [id])
+  district                  District?                    @relation(fields: [districtId], references: [id])
   AvenueTranslations        AvenueTranslations[]
   AvenueOldNameTranslations AvenueOldNameTranslations[]
   AvenueNewNameTranslations AvenueNewNameTranslations[]
@@ -544,14 +544,14 @@ model ResidentialArea {
   index       Int
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
-  districtId  Int       @map("district_id")
+  districtId  Int?       @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
   region                             Region                               @relation(fields: [regionId], references: [id])
   city                               City                                 @relation(fields: [cityId], references: [id])
-  district                           District                             @relation(fields: [districtId], references: [id])
+  district                           District?                             @relation(fields: [districtId], references: [id])
   ResidentialAreaTranslations        ResidentialAreaTranslations[]
   ResidentialAreaOldNameTranslations ResidentialAreaOldNameTranslations[]
   ResidentialAreaNewNameTranslations ResidentialAreaNewNameTranslations[]
@@ -605,14 +605,14 @@ model Impasse {
   index       Int
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
-  districtId  Int       @map("district_id")
+  districtId  Int?       @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
   region                     Region                       @relation(fields: [regionId], references: [id])
   city                       City                         @relation(fields: [cityId], references: [id])
-  district                   District                     @relation(fields: [districtId], references: [id])
+  district                   District?                     @relation(fields: [districtId], references: [id])
   ImpasseTranslations        ImpasseTranslations[]
   ImpasseOldNameTranslations ImpasseOldNameTranslations[]
   ImpasseNewNameTranslations ImpasseNewNameTranslations[]
@@ -666,14 +666,14 @@ model Village {
   index       Int
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
-  districtId  Int       @map("district_id")
+  districtId  Int?       @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
   region                     Region                       @relation(fields: [regionId], references: [id])
   city                       City                         @relation(fields: [cityId], references: [id])
-  district                   District                     @relation(fields: [districtId], references: [id])
+  district                   District?                     @relation(fields: [districtId], references: [id])
   VillageTranslations        VillageTranslations[]
   VillageOldNameTranslations VillageOldNameTranslations[]
   VillageNewNameTranslations VillageNewNameTranslations[]
@@ -727,14 +727,14 @@ model Lane {
   index       Int
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
-  districtId  Int       @map("district_id")
+  districtId  Int?       @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
   region                  Region                    @relation(fields: [regionId], references: [id])
   city                    City                      @relation(fields: [cityId], references: [id])
-  district                District                  @relation(fields: [districtId], references: [id])
+  district                District?                  @relation(fields: [districtId], references: [id])
   LaneTranslations        LaneTranslations[]
   LaneOldNameTranslations LaneOldNameTranslations[]
   LaneNewNameTranslations LaneNewNameTranslations[]
@@ -785,7 +785,7 @@ model Street {
   id          Int       @id @default(autoincrement())
   regionId    Int       @map("region_id")
   cityId      Int       @map("city_id")
-  districtId  Int       @map("district_id")
+  districtId  Int?       @map("district_id")
   index       Int
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
@@ -795,7 +795,7 @@ model Street {
 
   region                    Region                      @relation(fields: [regionId], references: [id])
   city                      City                        @relation(fields: [cityId], references: [id])
-  district                  District                    @relation(fields: [districtId], references: [id])
+  district                  District?                    @relation(fields: [districtId], references: [id])
   StreetTranslations        StreetTranslations[]
   StreetOldNameTranslations StreetOldNameTranslations[]
   StreetNewNameTranslations StreetNewNameTranslations[]
