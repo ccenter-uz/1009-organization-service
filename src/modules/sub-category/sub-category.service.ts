@@ -68,7 +68,7 @@ export class SubCategoryService {
       const subCategories = await this.prisma.subCategory.findMany({
         orderBy: { createdAt: 'desc' },
         where: {
-          categoryId: data.category_id,
+          categoryId: data.categoryId,
           ...(data.status !== 2
             ? {
                 status: data.status,
@@ -78,10 +78,10 @@ export class SubCategoryService {
         include: {
           category: true,
           SubCategoryTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               languageCode: true,
@@ -115,13 +115,13 @@ export class SubCategoryService {
         : {
             status: data.status,
           }),
-      categoryId: data.category_id,
+      categoryId: data.categoryId,
     };
 
     if (data.search) {
       where.SubCategoryTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -144,10 +144,10 @@ export class SubCategoryService {
       include: {
         category: true,
         SubCategoryTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -187,10 +187,10 @@ export class SubCategoryService {
       include: {
         category: true,
         SubCategoryTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             languageCode: true,

@@ -73,16 +73,16 @@ export class ProductServiceSubCategoryService {
               : {
                   status: data.status,
                 }),
-            productServiceCategoryId: data.category_id,
+            productServiceCategoryId: data.categoryId,
           },
 
           include: {
             productServiceCategory: true,
             productServiceSubCategoryTranslations: {
-              where: data.all_lang
+              where: data.allLang
                 ? {}
                 : {
-                    languageCode: data.lang_code,
+                    languageCode: data.langCode,
                   },
               select: {
                 languageCode: true,
@@ -117,12 +117,12 @@ export class ProductServiceSubCategoryService {
         : {
             status: data.status,
           }),
-      productServiceCategoryId: data.category_id,
+      productServiceCategoryId: data.categoryId,
     };
     if (data.search) {
       where.productServiceSubCategoryTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -146,10 +146,10 @@ export class ProductServiceSubCategoryService {
         include: {
           productServiceCategory: true,
           productServiceSubCategoryTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               name: true,
@@ -192,10 +192,10 @@ export class ProductServiceSubCategoryService {
         include: {
           productServiceCategory: true,
           productServiceSubCategoryTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               languageCode: true,

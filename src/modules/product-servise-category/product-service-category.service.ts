@@ -68,10 +68,10 @@ export class ProductServiceCategoryService {
           },
           include: {
             ProductServiceCategoryTranslations: {
-              where: data.all_lang
+              where: data.allLang
                 ? {}
                 : {
-                    languageCode: data.lang_code, // lang_code from request
+                    languageCode: data.langCode, // langCode from request
                   },
               select: {
                 languageCode: true,
@@ -110,7 +110,7 @@ export class ProductServiceCategoryService {
     if (data.search) {
       where.ProductServiceCategoryTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -134,10 +134,10 @@ export class ProductServiceCategoryService {
         orderBy: { createdAt: 'desc' },
         include: {
           ProductServiceCategoryTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code, // lang_code from request
+                  languageCode: data.langCode, // langCode from request
                 },
             select: {
               languageCode: true,
@@ -179,10 +179,10 @@ export class ProductServiceCategoryService {
         },
         include: {
           ProductServiceCategoryTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code, // lang_code from request
+                  languageCode: data.langCode, // langCode from request
                 },
             select: {
               languageCode: true,

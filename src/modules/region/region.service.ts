@@ -62,10 +62,10 @@ export class RegionService {
         },
         include: {
           RegionTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               languageCode: true,
@@ -105,7 +105,7 @@ export class RegionService {
     if (data.search) {
       where.RegionTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -125,10 +125,10 @@ export class RegionService {
       orderBy: { createdAt: 'desc' },
       include: {
         RegionTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -167,10 +167,10 @@ export class RegionService {
       },
       include: {
         RegionTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             languageCode: true,
