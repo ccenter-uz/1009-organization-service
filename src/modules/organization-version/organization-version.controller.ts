@@ -37,7 +37,7 @@ export class OrganizationVersionController {
   //   @Payload() data: OrganizationVersionInterfaces.Request,
   //   @UploadedFiles() files: Array<Multer.File>
   // ): Promise<OrganizationVersionInterfaces.Response> {
-  //   // console.log(data.photos, files, 'FILES');
+
   // /*  */
   //   return this.organizationService.create(data);
   // }

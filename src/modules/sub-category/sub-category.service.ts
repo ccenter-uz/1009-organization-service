@@ -61,7 +61,6 @@ export class SubCategoryService {
     data: SubCategoryFilterDto
   ): Promise<SubCategoryInterfaces.ResponseWithPagination> {
     if (data.all) {
-      console.log(data.status);
 
       const subCategories = await this.prisma.subCategory.findMany({
         orderBy: { createdAt: 'desc' },

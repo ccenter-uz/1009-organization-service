@@ -30,10 +30,7 @@ import { ImpasseService } from '../impasse/impasse.service';
 import { NearbyService } from '../nearby/nearby.service';
 import { SegmentService } from '../segment/segment.service';
 import { SectionService } from '../section/section.service';
-import {
- OrganizationVersionInterfaces,
-} from 'types/organization/organization-version';
-
+import { OrganizationVersionInterfaces } from 'types/organization/organization-version';
 
 @Injectable()
 export class OrganizationVersionService {
@@ -58,19 +55,15 @@ export class OrganizationVersionService {
     private readonly SectionService: SectionService
   ) {}
 
-  async create(
-    data: OrganizationVersionInterfaces.Request
-  ): Promise<any> {
-
-
+  async create(data: OrganizationVersionInterfaces.Request): Promise<any> {
     let phones = data.phone;
-  const updatedPhones = [];
+    const updatedPhones = [];
 
-  for (const phone of phones) {
-    updatedPhones.push({
-      ...phone,
-      action: OrganizationVersionActionsEnum.GET , // Qo'shmoqchi bo'lgan action qiymatini bu yerda yozasiz
-    });
+    for (const phone of phones) {
+      updatedPhones.push({
+        ...phone,
+        action: OrganizationVersionActionsEnum.GET, // Qo'shmoqchi bo'lgan action qiymatini bu yerda yozasiz
+      });
     }
     const updatedPictures = [];
     let pictures = data.Picture;
@@ -81,12 +74,8 @@ export class OrganizationVersionService {
         action: OrganizationVersionActionsEnum.GET, // Bu yerda action qiymatini belgilang
       });
     }
-    
 
-    // console.log(data, 'DATA Organization');
-    
-
-   /*  const organization = await this.prisma.organizationVersion.create({
+    /*  const organization = await this.prisma.organizationVersion.create({
       data: {
         regionId: data.regionId,
         cityId: data.cityId,
@@ -210,7 +199,7 @@ export class OrganizationVersionService {
     if (data.search) {
       where.StreetTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -232,10 +221,10 @@ export class OrganizationVersionService {
       orderBy: { createdAt: 'desc' },
       include: {
         StreetTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -243,10 +232,10 @@ export class OrganizationVersionService {
           },
         },
         StreetNewNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -254,10 +243,10 @@ export class OrganizationVersionService {
           },
         },
         StreetOldNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,

@@ -930,7 +930,6 @@ model Organization {
   Nearby                        Nearby                      @relation(fields: [nearbyId], references: [id])
   Segment                       Segment                     @relation(fields: [segmentId], references: [id])
   Section                       Section                     @relation(fields: [sectionId], references: [id])
-  // Section      +                Section                    @relation(fields: [sectionId], references: [id])
   Picture  Picture[]
   Phone Phone[]
   PaymentTypes PaymentTypes[]
@@ -983,7 +982,7 @@ model Phone {
 model OrganizationVersion {
   id                            Int                         @id @default(autoincrement())
   name                          String                      @map("name") @db.VarChar()
-  staffNumber                   String                         @map("staff_number") @db.VarChar()
+  staffNumber                   String                      @map("staff_number") @db.VarChar()
   legalName                     String                      @map("legel_name") @db.VarChar()
   secret                        String                      @map("secret") @db.Text()
   kvartal                       String                      @map("kvartal") @db.VarChar()

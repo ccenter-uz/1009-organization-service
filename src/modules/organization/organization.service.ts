@@ -58,14 +58,11 @@ export class OrganizationService {
     private readonly SegmentService: SegmentService,
     private readonly SectionService: SectionService,
     private readonly organizationVersionService: OrganizationVersionService
-    
   ) {}
 
   async create(
     data: OrganizationCreateDto
   ): Promise<OrganizationInterfaces.Response> {
-    // console.log(data, data.staffNumber, data.role, 'DATA');
-    
     const mainOrganization = await this.mainOrganizationService.findOne({
       id: data.mainOrganizationId,
     });
@@ -132,7 +129,8 @@ export class OrganizationService {
         PhoneTypeId: phones[i].phoneId, // Yoki kerakli qiymatni qo'shish
       });
     }
-    // console.log(phoneCreateArray, 'phoneCreateArray');
+
+    console.log({ b: 'asdasdasdasdasd' });
 
     const organization = await this.prisma.organization.create({
       data: {
@@ -191,7 +189,7 @@ export class OrganizationService {
         Phone: {
           create: [
             { phone: '+998901234567', PhoneTypeId: 1 },
-            { phone: '+998907654321', PhoneTypeId: 1,},
+            { phone: '+998907654321', PhoneTypeId: 1 },
           ],
         },
         Picture: {
@@ -204,9 +202,10 @@ export class OrganizationService {
         Picture: true,
       },
     });
-    
 
-    this.organizationVersionService.create(organization);
+    console.log({ a: 'asdasdasdasdasd' });
+
+    // this.organizationVersionService.create(organization);
 
     return organization;
   }
@@ -250,13 +249,11 @@ export class OrganizationService {
                 updatedAt: true,
                 staffNumber: true,
               },
-            }
+            },
           },
         },
       },
     });
-
-
 
     return {
       data: organizations,
@@ -271,7 +268,7 @@ export class OrganizationService {
     if (data.search) {
       where.StreetTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -293,10 +290,10 @@ export class OrganizationService {
       orderBy: { createdAt: 'desc' },
       include: {
         StreetTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -304,10 +301,10 @@ export class OrganizationService {
           },
         },
         StreetNewNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -315,10 +312,10 @@ export class OrganizationService {
           },
         },
         StreetOldNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -400,7 +397,7 @@ export class OrganizationService {
                 updatedAt: true,
                 staffNumber: true,
               },
-            }
+            },
           },
         },
       },
