@@ -1,12 +1,11 @@
+import { ProductServiceSubCategoryFilterDto } from './../../../types/organization/product-service-sub-category/dto/filter-product-service-sub-category.dto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
-  ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
@@ -52,6 +51,7 @@ export class ProductServiceSubCategoryService {
         },
       },
       include: {
+        productServiceCategory: true,
         productServiceSubCategoryTranslations: true,
       },
     });
@@ -59,52 +59,68 @@ export class ProductServiceSubCategoryService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithoutPagination> {
-    const productServiceSubCategories =
-      await this.prisma.productServiceSubCategory.findMany({
-        orderBy: { createdAt: 'desc' },
-        include: {
-          productServiceSubCategoryTranslations: {
-            where: data.all_lang
+    data: ProductServiceSubCategoryFilterDto
+  ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
+    if (data.all) {
+      const productServiceSubCategories =
+        await this.prisma.productServiceSubCategory.findMany({
+          orderBy: { createdAt: 'desc' },
+          where: {
+            ...(data.status == 2
               ? {}
               : {
-                  languageCode: data.lang_code,
-                },
-            select: {
-              languageCode: true,
-              name: true,
+                  status: data.status,
+                }),
+            productServiceCategoryId: data.categoryId,
+          },
+
+          include: {
+            productServiceCategory: true,
+            productServiceSubCategoryTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
             },
           },
-        },
-      });
+        });
 
-    const formattedSubCategories = [];
+      const formattedSubCategories = [];
 
-    for (let i = 0; i < productServiceSubCategories.length; i++) {
-      const subCategory = productServiceSubCategories[i];
-      const translations = subCategory.productServiceSubCategoryTranslations;
-      const name = formatLanguageResponse(translations);
+      for (let i = 0; i < productServiceSubCategories.length; i++) {
+        const subCategory = productServiceSubCategories[i];
+        const translations = subCategory.productServiceSubCategoryTranslations;
+        const name = formatLanguageResponse(translations);
 
-      delete subCategory.productServiceSubCategoryTranslations;
+        delete subCategory.productServiceSubCategoryTranslations;
 
-      formattedSubCategories.push({ ...subCategory, name });
+        formattedSubCategories.push({ ...subCategory, name });
+      }
+
+      return {
+        data: formattedSubCategories,
+        totalDocs: productServiceSubCategories.length,
+        totalPage: 1,
+      };
     }
 
-    return {
-      data: formattedSubCategories,
-      totalDocs: productServiceSubCategories.length,
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+      productServiceCategoryId: data.categoryId,
     };
-  }
-
-  async findAllByPagination(
-    data: ListQueryDto
-  ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
     if (data.search) {
       where.productServiceSubCategoryTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -126,11 +142,12 @@ export class ProductServiceSubCategoryService {
         where,
         orderBy: { createdAt: 'desc' },
         include: {
+          productServiceCategory: true,
           productServiceSubCategoryTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               name: true,
@@ -171,11 +188,12 @@ export class ProductServiceSubCategoryService {
           status: DefaultStatus.ACTIVE,
         },
         include: {
+          productServiceCategory: true,
           productServiceSubCategoryTranslations: {
-            where: data.all_lang
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               languageCode: true,
@@ -190,6 +208,7 @@ export class ProductServiceSubCategoryService {
     const name = formatLanguageResponse(
       productServiceSubCategory.productServiceSubCategoryTranslations
     );
+    delete productServiceSubCategory.productServiceSubCategoryTranslations;
     return { ...productServiceSubCategory, name };
   }
 
@@ -243,6 +262,7 @@ export class ProductServiceSubCategoryService {
         },
       },
       include: {
+        productServiceCategory: true,
         productServiceSubCategoryTranslations: true,
       },
     });
@@ -255,6 +275,7 @@ export class ProductServiceSubCategoryService {
       return await this.prisma.productServiceSubCategory.delete({
         where: { id: data.id },
         include: {
+          productServiceCategory: true,
           productServiceSubCategoryTranslations: {
             select: {
               languageCode: true,
@@ -269,6 +290,7 @@ export class ProductServiceSubCategoryService {
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
+        productServiceCategory: true,
         productServiceSubCategoryTranslations: {
           select: {
             languageCode: true,
@@ -289,6 +311,7 @@ export class ProductServiceSubCategoryService {
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
+        productServiceCategory: true,
         productServiceSubCategoryTranslations: {
           select: {
             languageCode: true,

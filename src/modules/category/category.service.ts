@@ -10,11 +10,10 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
-  ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
+import { CategoryFilterDto } from 'types/organization/category/dto/filter-category.dto';
 
 @Injectable()
 export class CategoryService {
@@ -30,6 +29,7 @@ export class CategoryService {
     const category = await this.prisma.category.create({
       data: {
         staffNumber: data.staffNumber,
+        cityId: data.cityId,
         CategoryTranslations: {
           create: [
             {
@@ -49,6 +49,26 @@ export class CategoryService {
       },
       include: {
         CategoryTranslations: true,
+        city: {
+          include: {
+            CityTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            Region: {
+              include: {
+                RegionTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -58,65 +78,126 @@ export class CategoryService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
+    data: CategoryFilterDto
+  ): Promise<CategoryInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-    const categories = await this.prisma.category.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        CategoryTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-                languageCode: data.lang_code,
+    if (data.all) {
+      const categories = await this.prisma.category.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+          cityId: data.cityId,
+        },
+        include: {
+          city: {
+            include: {
+              CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
               },
-          select: {
-            languageCode: true,
-            name: true,
+              Region: {
+                include: {
+                  RegionTranslations: {
+                    where: data.allLang
+                      ? {}
+                      : {
+                          languageCode: data.langCode,
+                        },
+                    select: {
+                      languageCode: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          CategoryTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    const formattedCategories = [];
+      const formattedCategories = [];
 
-    for (let i = 0; i < categories.length; i++) {
-      const category = categories[i];
-      const translations = category.CategoryTranslations;
-      const name = formatLanguageResponse(translations);
+      for (let i = 0; i < categories.length; i++) {
+        const category = categories[i];
+        const translations = category.CategoryTranslations;
+        const name = formatLanguageResponse(translations);
 
-      delete category.CategoryTranslations;
+        delete category.CategoryTranslations;
 
-      formattedCategories.push({ ...category, name });
+        if (category.city) {
+          const cityTranslations = category.city.CityTranslations;
+          const cityName = formatLanguageResponse(cityTranslations);
+
+          delete category.city.CityTranslations;
+
+          const regionTranslations = category.city.Region.RegionTranslations;
+          const regionName = formatLanguageResponse(regionTranslations);
+
+          delete category.city.Region.RegionTranslations;
+
+          const region = { ...category.city.Region, name: regionName };
+          delete category.city.Region;
+
+          const city = { ...category.city, name: cityName };
+
+          delete category.city;
+
+          formattedCategories.push({ ...category, name, city, region });
+        } else {
+          formattedCategories.push({ ...category, name });
+        }
+      }
+
+      this.logger.debug(
+        `Method: ${methodName} -  Response: `,
+        formattedCategories
+      );
+
+      return {
+        data: formattedCategories,
+        totalDocs: categories.length,
+        totalPage: 1,
+      };
     }
 
-    this.logger.debug(
-      `Method: ${methodName} -  Response: `,
-      formattedCategories
-    );
-
-    return {
-      data: formattedCategories,
-      totalDocs: categories.length,
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+      cityId: data.cityId,
     };
-  }
-
-  async findAllByPagination(
-    data: ListQueryDto
-  ): Promise<CategoryInterfaces.ResponseWithPagination> {
-    const methodName: string = this.findAllByPagination.name;
-
-    this.logger.debug(`Method: ${methodName} - Request: `, data);
-
-    const where: any = { status: DefaultStatus.ACTIVE };
 
     if (data.search) {
       where.CategoryTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -135,11 +216,41 @@ export class CategoryService {
       where,
       orderBy: { createdAt: 'desc' },
       include: {
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            Region: {
+              include: {
+                RegionTranslations: {
+                  where: data.allLang
+                    ? {}
+                    : {
+                        languageCode: data.langCode,
+                      },
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         CategoryTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -159,10 +270,29 @@ export class CategoryService {
       const name = formatLanguageResponse(translations);
 
       delete category.CategoryTranslations;
+      if (category.city) {
+        const cityTranslations = category.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
 
-      formattedCategories.push({ ...category, name });
+        delete category.city.CityTranslations;
+
+        const regionTranslations = category.city.Region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+
+        delete category.city.Region.RegionTranslations;
+
+        const region = { ...category.city.Region, name: regionName };
+        delete category.city.Region;
+
+        const city = { ...category.city, name: cityName };
+
+        delete category.city;
+
+        formattedCategories.push({ ...category, name, city, region });
+      } else {
+        formattedCategories.push({ ...category, name });
+      }
     }
-
     this.logger.debug(
       `Method: ${methodName} - Response: `,
       formattedCategories
@@ -186,11 +316,41 @@ export class CategoryService {
         status: DefaultStatus.ACTIVE,
       },
       include: {
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            Region: {
+              include: {
+                RegionTranslations: {
+                  where: data.allLang
+                    ? {}
+                    : {
+                        languageCode: data.langCode,
+                      },
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         CategoryTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             languageCode: true,
@@ -207,8 +367,29 @@ export class CategoryService {
     const name = formatLanguageResponse(category.CategoryTranslations);
 
     this.logger.debug(`Method: ${methodName} - Response: `, category);
+    delete category.CategoryTranslations;
+    if (category.city) {
+      const cityTranslations = category.city.CityTranslations;
+      const cityName = formatLanguageResponse(cityTranslations);
 
-    return { ...category, name };
+      delete category.city.CityTranslations;
+
+      const regionTranslations = category.city.Region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+
+      delete category.city.Region.RegionTranslations;
+
+      const region = { ...category.city.Region, name: regionName };
+      delete category.city.Region;
+
+      const city = { ...category.city, name: cityName };
+
+      delete category.city;
+
+      return { ...category, name, city, region };
+    } else {
+      return { ...category, name };
+    }
   }
 
   async update(data: CategoryUpdateDto): Promise<CategoryInterfaces.Response> {
@@ -247,6 +428,7 @@ export class CategoryService {
       },
       data: {
         staffNumber: data.staffNumber || category.staffNumber,
+        cityId: data.cityId,
         CategoryTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
@@ -254,6 +436,26 @@ export class CategoryService {
       },
       include: {
         CategoryTranslations: true,
+        city: {
+          include: {
+            CityTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            Region: {
+              include: {
+                RegionTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -277,6 +479,26 @@ export class CategoryService {
               name: true,
             },
           },
+          city: {
+            include: {
+              CityTranslations: {
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+              Region: {
+                include: {
+                  RegionTranslations: {
+                    select: {
+                      languageCode: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
 
@@ -296,6 +518,26 @@ export class CategoryService {
           select: {
             languageCode: true,
             name: true,
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            Region: {
+              include: {
+                RegionTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -325,6 +567,26 @@ export class CategoryService {
           select: {
             languageCode: true,
             name: true,
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            Region: {
+              include: {
+                RegionTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

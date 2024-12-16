@@ -4,7 +4,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -13,33 +12,38 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
-import { PassageCreateDto, PassageInterfaces, PassageUpdateDto } from 'types/organization/passage';
+import {
+  PassageCreateDto,
+  PassageInterfaces,
+  PassageUpdateDto,
+} from 'types/organization/passage';
 @Injectable()
 export class PassageService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
-    private readonly districtService: DistrictService,
-  ) { }
+    private readonly districtService: DistrictService
+  ) {}
 
-  async create(
-    data: PassageCreateDto
-  ): Promise<PassageInterfaces.Response> {
+  async create(data: PassageCreateDto): Promise<PassageInterfaces.Response> {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
-    const district = await this.districtService.findOne({
-      id: data.districtId,
-    });
+    let district;
+    if (data.districtId) {
+      district = await this.districtService.findOne({
+        id: data.districtId,
+      });
+    }
     const passage = await this.prisma.passage.create({
       data: {
         regionId: region.id,
         cityId: city.id,
-        districtId: district.id,
+        ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
         PassageTranslations: {
@@ -62,15 +66,15 @@ export class PassageService {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
-              name: data.new_name[LanguageRequestEnum.RU],
+              name: data.newName[LanguageRequestEnum.RU],
             },
             {
               languageCode: LanguageRequestEnum.UZ,
-              name: data.new_name[LanguageRequestEnum.UZ],
+              name: data.newName[LanguageRequestEnum.UZ],
             },
             {
               languageCode: LanguageRequestEnum.CY,
-              name: data.new_name[LanguageRequestEnum.CY],
+              name: data.newName[LanguageRequestEnum.CY],
             },
           ],
         },
@@ -78,18 +82,18 @@ export class PassageService {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
-              name: data.old_name[LanguageRequestEnum.RU],
+              name: data.oldName[LanguageRequestEnum.RU],
             },
             {
               languageCode: LanguageRequestEnum.UZ,
-              name: data.old_name[LanguageRequestEnum.UZ],
+              name: data.oldName[LanguageRequestEnum.UZ],
             },
             {
               languageCode: LanguageRequestEnum.CY,
-              name: data.old_name[LanguageRequestEnum.CY],
+              name: data.oldName[LanguageRequestEnum.CY],
             },
           ],
-        }
+        },
       },
       include: {
         PassageTranslations: true,
@@ -101,83 +105,95 @@ export class PassageService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<PassageInterfaces.ResponseWithoutPagination> {
-    const passages = await this.prisma.passage.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        PassageTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        PassageOldNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        PassageNewNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedPassage = [];
-
-    for (let i = 0; i < passages.length; i++) {
-      const passageData = passages[i];
-      const translations = passageData.PassageTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = passageData.PassageNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = passageData.PassageOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-      delete passageData.PassageTranslations;
-      delete passageData.PassageNewNameTranslations;
-      delete passageData.PassageOldNameTranslations;
-
-      formattedPassage.push({
-        ...passageData,
-        name,
-        new_name: nameNew,
-        old_name: nameOld,
-      });
-    }
-
-    return {
-      data: formattedPassage,
-      totalDocs: passages.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<PassageInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const passages = await this.prisma.passage.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          PassageTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          PassageOldNameTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          PassageNewNameTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedPassage = [];
+
+      for (let i = 0; i < passages.length; i++) {
+        const passageData = passages[i];
+        const translations = passageData.PassageTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = passageData.PassageNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = passageData.PassageOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete passageData.PassageTranslations;
+        delete passageData.PassageNewNameTranslations;
+        delete passageData.PassageOldNameTranslations;
+
+        formattedPassage.push({
+          ...passageData,
+          name,
+          newName: nameNew,
+          oldName: nameOld,
+        });
+      }
+
+      return {
+        data: formattedPassage,
+        totalDocs: passages.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.PassageTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -199,33 +215,33 @@ export class PassageService {
       orderBy: { createdAt: 'desc' },
       include: {
         PassageTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             name: true,
             languageCode: true,
           },
         },
         PassageNewNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             name: true,
             languageCode: true,
           },
         },
         PassageOldNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -254,8 +270,8 @@ export class PassageService {
       formattedPassage.push({
         ...passageData,
         name,
-        new_name: nameNew,
-        old_name: nameOld,
+        newName: nameNew,
+        oldName: nameOld,
       });
     }
 
@@ -274,33 +290,33 @@ export class PassageService {
       },
       include: {
         PassageTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             languageCode: true,
             name: true,
           },
         },
         PassageNewNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             languageCode: true,
             name: true,
           },
         },
         PassageOldNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -312,13 +328,12 @@ export class PassageService {
       throw new NotFoundException('Passage is not found');
     }
     const name = formatLanguageResponse(passage.PassageTranslations);
-    const nameNew = formatLanguageResponse(
-      passage.PassageNewNameTranslations
-    );
-    const nameOld = formatLanguageResponse(
-      passage.PassageOldNameTranslations
-    );
-    return { ...passage, name, new_name: nameNew, old_name: nameOld };
+    const nameNew = formatLanguageResponse(passage.PassageNewNameTranslations);
+    const nameOld = formatLanguageResponse(passage.PassageOldNameTranslations);
+    delete passage.PassageNewNameTranslations;
+    delete passage.PassageOldNameTranslations;
+    delete passage.PassageTranslations;
+    return { ...passage, name, newName: nameNew, oldName: nameOld };
   }
 
   async update(data: PassageUpdateDto): Promise<PassageInterfaces.Response> {
@@ -360,45 +375,45 @@ export class PassageService {
         data: { name: data.name[LanguageRequestEnum.CY] },
       });
     }
-    if (data.new_name?.[LanguageRequestEnum.RU]) {
+    if (data.newName?.[LanguageRequestEnum.RU]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.RU },
-        data: { name: data.new_name[LanguageRequestEnum.RU] },
+        data: { name: data.newName[LanguageRequestEnum.RU] },
       });
     }
 
-    if (data.new_name?.[LanguageRequestEnum.UZ]) {
+    if (data.newName?.[LanguageRequestEnum.UZ]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.UZ },
-        data: { name: data.new_name[LanguageRequestEnum.UZ] },
+        data: { name: data.newName[LanguageRequestEnum.UZ] },
       });
     }
 
-    if (data.new_name?.[LanguageRequestEnum.CY]) {
+    if (data.newName?.[LanguageRequestEnum.CY]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.CY },
-        data: { name: data.new_name[LanguageRequestEnum.CY] },
+        data: { name: data.newName[LanguageRequestEnum.CY] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.RU]) {
+    if (data.oldName?.[LanguageRequestEnum.RU]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.RU },
-        data: { name: data.old_name[LanguageRequestEnum.RU] },
+        data: { name: data.oldName[LanguageRequestEnum.RU] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.UZ]) {
+    if (data.oldName?.[LanguageRequestEnum.UZ]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.UZ },
-        data: { name: data.old_name[LanguageRequestEnum.UZ] },
+        data: { name: data.oldName[LanguageRequestEnum.UZ] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.CY]) {
+    if (data.oldName?.[LanguageRequestEnum.CY]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.CY },
-        data: { name: data.old_name[LanguageRequestEnum.CY] },
+        data: { name: data.oldName[LanguageRequestEnum.CY] },
       });
     }
 

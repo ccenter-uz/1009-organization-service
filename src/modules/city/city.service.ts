@@ -9,13 +9,12 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
-  ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
+import { CityFilterDto } from 'types/organization/city/dto/filter-city.dto';
 @Injectable()
 export class CityService {
   constructor(
@@ -48,6 +47,7 @@ export class CityService {
         },
       },
       include: {
+        Region: true,
         CityTranslations: true,
       },
     });
@@ -55,51 +55,80 @@ export class CityService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<CityInterfaces.ResponseWithoutPagination> {
-    const cities = await this.prisma.city.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        CityTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-                languageCode: data.lang_code,
+    data: CityFilterDto
+  ): Promise<CityInterfaces.ResponseWithPagination> {
+    if (data.all) {
+      const cities = await this.prisma.city.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+          regionId: data.regionId,
+        },
+        include: {
+          Region: {
+            select: {
+              RegionTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
               },
-          select: {
-            languageCode: true,
-            name: true,
+            },
+          },
+          CityTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    const formattedSubCategories = [];
+      const formattedSubCategories = [];
 
-    for (let i = 0; i < cities.length; i++) {
-      const city = cities[i];
-      const translations = city.CityTranslations;
-      const name = formatLanguageResponse(translations);
+      for (let i = 0; i < cities.length; i++) {
+        const city = cities[i];
+        const translations = city.CityTranslations;
+        const name = formatLanguageResponse(translations);
 
-      delete city.CityTranslations;
+        delete city.CityTranslations;
 
-      formattedSubCategories.push({ ...city, name });
+        formattedSubCategories.push({ ...city, name });
+      }
+
+      return {
+        data: formattedSubCategories,
+        totalDocs: cities.length,
+        totalPage: 1,
+      };
     }
 
-    return {
-      data: formattedSubCategories,
-      totalDocs: cities.length,
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+      regionId: data.regionId,
     };
-  }
-
-  async findAllByPagination(
-    data: ListQueryDto
-  ): Promise<CityInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
     if (data.search) {
       where.CityTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -117,16 +146,29 @@ export class CityService {
     });
 
     const city = await this.prisma.city.findMany({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
+        Region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
         CityTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
@@ -141,13 +183,22 @@ export class CityService {
     const formattedSubCategories = [];
 
     for (let i = 0; i < city.length; i++) {
-      const subCategory = city[i];
-      const translations = subCategory.CityTranslations;
+      const formatedCity = city[i];
+      const translations = formatedCity.CityTranslations;
       const name = formatLanguageResponse(translations);
 
-      delete subCategory.CityTranslations;
+      delete formatedCity.CityTranslations;
 
-      formattedSubCategories.push({ ...subCategory, name });
+      const regionTranslations = formatedCity.Region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+
+      delete formatedCity.Region.RegionTranslations;
+
+      const region = { ...formatedCity.Region, name: regionName };
+
+      delete formatedCity.Region;
+
+      formattedSubCategories.push({ ...formatedCity, name, region });
     }
 
     return {
@@ -164,11 +215,12 @@ export class CityService {
         status: DefaultStatus.ACTIVE,
       },
       include: {
+        Region: true,
         CityTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             languageCode: true,
@@ -226,6 +278,7 @@ export class CityService {
         },
       },
       include: {
+        Region: true,
         CityTranslations: true,
       },
     });
@@ -236,6 +289,7 @@ export class CityService {
       return await this.prisma.city.delete({
         where: { id: data.id },
         include: {
+          Region: true,
           CityTranslations: {
             select: {
               languageCode: true,
@@ -250,6 +304,7 @@ export class CityService {
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
+        Region: true,
         CityTranslations: {
           select: {
             languageCode: true,
@@ -268,7 +323,8 @@ export class CityService {
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-      CityTranslations: {
+        Region: true,
+        CityTranslations: {
           select: {
             languageCode: true,
             name: true,

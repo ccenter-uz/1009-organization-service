@@ -4,7 +4,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -13,33 +12,38 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
-import { AreaCreateDto, AreaInterfaces, AreaUpdateDto } from 'types/organization/area';
+import {
+  AreaCreateDto,
+  AreaInterfaces,
+  AreaUpdateDto,
+} from 'types/organization/area';
 @Injectable()
 export class AreaService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
-    private readonly districtService: DistrictService,
-  ) { }
+    private readonly districtService: DistrictService
+  ) {}
 
-  async create(
-    data: AreaCreateDto
-  ): Promise<AreaInterfaces.Response> {
+  async create(data: AreaCreateDto): Promise<AreaInterfaces.Response> {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
-    const district = await this.districtService.findOne({
-      id: data.districtId,
-    });
+    let district;
+    if (data.districtId) {
+      district = await this.districtService.findOne({
+        id: data.districtId,
+      });
+    }
     const area = await this.prisma.area.create({
       data: {
         regionId: region.id,
         cityId: city.id,
-        districtId: district.id,
+        ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
         AreaTranslations: {
@@ -62,15 +66,15 @@ export class AreaService {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
-              name: data.new_name[LanguageRequestEnum.RU],
+              name: data.newName[LanguageRequestEnum.RU],
             },
             {
               languageCode: LanguageRequestEnum.UZ,
-              name: data.new_name[LanguageRequestEnum.UZ],
+              name: data.newName[LanguageRequestEnum.UZ],
             },
             {
               languageCode: LanguageRequestEnum.CY,
-              name: data.new_name[LanguageRequestEnum.CY],
+              name: data.newName[LanguageRequestEnum.CY],
             },
           ],
         },
@@ -78,18 +82,18 @@ export class AreaService {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
-              name: data.old_name[LanguageRequestEnum.RU],
+              name: data.oldName[LanguageRequestEnum.RU],
             },
             {
               languageCode: LanguageRequestEnum.UZ,
-              name: data.old_name[LanguageRequestEnum.UZ],
+              name: data.oldName[LanguageRequestEnum.UZ],
             },
             {
               languageCode: LanguageRequestEnum.CY,
-              name: data.old_name[LanguageRequestEnum.CY],
+              name: data.oldName[LanguageRequestEnum.CY],
             },
           ],
-        }
+        },
       },
       include: {
         AreaTranslations: true,
@@ -101,83 +105,95 @@ export class AreaService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<AreaInterfaces.ResponseWithoutPagination> {
-    const areas = await this.prisma.area.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        AreaTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        AreaOldNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        AreaNewNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedArea = [];
-
-    for (let i = 0; i < areas.length; i++) {
-      const areaData = areas[i];
-      const translations = areaData.AreaTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = areaData.AreaNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = areaData.AreaOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-      delete areaData.AreaTranslations;
-      delete areaData.AreaNewNameTranslations;
-      delete areaData.AreaOldNameTranslations;
-
-      formattedArea.push({
-        ...areaData,
-        name,
-        new_name: nameNew,
-        old_name: nameOld,
-      });
-    }
-
-    return {
-      data: formattedArea,
-      totalDocs: areas.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<AreaInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const areas = await this.prisma.area.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          AreaTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          AreaOldNameTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          AreaNewNameTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedArea = [];
+
+      for (let i = 0; i < areas.length; i++) {
+        const areaData = areas[i];
+        const translations = areaData.AreaTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = areaData.AreaNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = areaData.AreaOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete areaData.AreaTranslations;
+        delete areaData.AreaNewNameTranslations;
+        delete areaData.AreaOldNameTranslations;
+
+        formattedArea.push({
+          ...areaData,
+          name,
+          newName: nameNew,
+          oldName: nameOld,
+        });
+      }
+
+      return {
+        data: formattedArea,
+        totalDocs: areas.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.AreaTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -199,33 +215,33 @@ export class AreaService {
       orderBy: { createdAt: 'desc' },
       include: {
         AreaTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             name: true,
             languageCode: true,
           },
         },
         AreaNewNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             name: true,
             languageCode: true,
           },
         },
         AreaOldNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -254,8 +270,8 @@ export class AreaService {
       formattedArea.push({
         ...areaData,
         name,
-        new_name: nameNew,
-        old_name: nameOld,
+        newName: nameNew,
+        oldName: nameOld,
       });
     }
 
@@ -274,33 +290,33 @@ export class AreaService {
       },
       include: {
         AreaTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             languageCode: true,
             name: true,
           },
         },
         AreaNewNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             languageCode: true,
             name: true,
           },
         },
         AreaOldNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -312,13 +328,12 @@ export class AreaService {
       throw new NotFoundException('Area is not found');
     }
     const name = formatLanguageResponse(area.AreaTranslations);
-    const nameNew = formatLanguageResponse(
-      area.AreaNewNameTranslations
-    );
-    const nameOld = formatLanguageResponse(
-      area.AreaOldNameTranslations
-    );
-    return { ...area, name, new_name: nameNew, old_name: nameOld };
+    const nameNew = formatLanguageResponse(area.AreaNewNameTranslations);
+    const nameOld = formatLanguageResponse(area.AreaOldNameTranslations);
+    delete area.AreaNewNameTranslations;
+    delete area.AreaOldNameTranslations;
+    delete area.AreaTranslations;
+    return { ...area, name, newName: nameNew, oldName: nameOld };
   }
 
   async update(data: AreaUpdateDto): Promise<AreaInterfaces.Response> {
@@ -360,45 +375,45 @@ export class AreaService {
         data: { name: data.name[LanguageRequestEnum.CY] },
       });
     }
-    if (data.new_name?.[LanguageRequestEnum.RU]) {
+    if (data.newName?.[LanguageRequestEnum.RU]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.RU },
-        data: { name: data.new_name[LanguageRequestEnum.RU] },
+        data: { name: data.newName[LanguageRequestEnum.RU] },
       });
     }
 
-    if (data.new_name?.[LanguageRequestEnum.UZ]) {
+    if (data.newName?.[LanguageRequestEnum.UZ]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.UZ },
-        data: { name: data.new_name[LanguageRequestEnum.UZ] },
+        data: { name: data.newName[LanguageRequestEnum.UZ] },
       });
     }
 
-    if (data.new_name?.[LanguageRequestEnum.CY]) {
+    if (data.newName?.[LanguageRequestEnum.CY]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.CY },
-        data: { name: data.new_name[LanguageRequestEnum.CY] },
+        data: { name: data.newName[LanguageRequestEnum.CY] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.RU]) {
+    if (data.oldName?.[LanguageRequestEnum.RU]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.RU },
-        data: { name: data.old_name[LanguageRequestEnum.RU] },
+        data: { name: data.oldName[LanguageRequestEnum.RU] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.UZ]) {
+    if (data.oldName?.[LanguageRequestEnum.UZ]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.UZ },
-        data: { name: data.old_name[LanguageRequestEnum.UZ] },
+        data: { name: data.oldName[LanguageRequestEnum.UZ] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.CY]) {
+    if (data.oldName?.[LanguageRequestEnum.CY]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.CY },
-        data: { name: data.old_name[LanguageRequestEnum.CY] },
+        data: { name: data.oldName[LanguageRequestEnum.CY] },
       });
     }
 
