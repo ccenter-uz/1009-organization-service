@@ -83,10 +83,10 @@ export class OrganizationVersionService {
     }
     
 
-    console.log(data, 'DATA Organization');
+    // console.log(data, 'DATA Organization');
     
 
-    const organization = await this.prisma.organizationVersion.create({
+   /*  const organization = await this.prisma.organizationVersion.create({
       data: {
         regionId: data.regionId,
         cityId: data.cityId,
@@ -147,7 +147,7 @@ export class OrganizationVersionService {
         PhoneVersion: true,
         PictureVersion: true,
       },
-    });
+    }); */
 
     // return organization;
   }

@@ -30,17 +30,17 @@ export class OrganizationVersionController {
     private readonly organizationService: OrganizationVersionService
   ) {}
 
-  @Post()
-  @MessagePattern({ cmd: Commands.CREATE })
-  // @UseInterceptors(FilesInterceptor('photos'))
-  create(
-    @Payload() data: OrganizationVersionInterfaces.Request,
-    @UploadedFiles() files: Array<Multer.File>
-  ): Promise<OrganizationVersionInterfaces.Response> {
-    // console.log(data.photos, files, 'FILES');
-
-    return this.organizationService.create(data);
-  }
+  // @Post()
+  // @MessagePattern({ cmd: Commands.CREATE })
+  // // @UseInterceptors(FilesInterceptor('photos'))
+  // create(
+  //   @Payload() data: OrganizationVersionInterfaces.Request,
+  //   @UploadedFiles() files: Array<Multer.File>
+  // ): Promise<OrganizationVersionInterfaces.Response> {
+  //   // console.log(data.photos, files, 'FILES');
+  // /*  */
+  //   return this.organizationService.create(data);
+  // }
 
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })

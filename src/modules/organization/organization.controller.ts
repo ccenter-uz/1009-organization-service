@@ -35,7 +35,6 @@ export class OrganizationController {
     @Payload() data: OrganizationCreateDto,
     @UploadedFiles() files: Array<Multer.File>
   ): Promise<OrganizationInterfaces.Response> {
-    console.log(data.photos, files, 'FILES');
     
     return this.organizationService.create(data);
   }

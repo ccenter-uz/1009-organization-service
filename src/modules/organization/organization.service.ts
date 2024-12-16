@@ -65,7 +65,7 @@ export class OrganizationService {
     data: OrganizationCreateDto
   ): Promise<OrganizationInterfaces.Response> {
     // console.log(data, data.staffNumber, data.role, 'DATA');
-
+    
     const mainOrganization = await this.mainOrganizationService.findOne({
       id: data.mainOrganizationId,
     });
@@ -204,7 +204,6 @@ export class OrganizationService {
         Picture: true,
       },
     });
-    console.log(organization);
     
 
     this.organizationVersionService.create(organization);
