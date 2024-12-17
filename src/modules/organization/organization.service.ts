@@ -2,11 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreatedByEnum,
-  DefaultStatus,
-  DeleteDto,
   GetOneDto,
   LanguageRequestDto,
-  LanguageRequestEnum,
   ListQueryDto,
   OrganizationStatusEnum,
 } from 'types/global';
@@ -17,7 +14,6 @@ import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
 import {
   OrganizationCreateDto,
-  OrganizationUpdateDto,
   OrganizationInterfaces,
 } from 'types/organization/organization';
 import { MainOrganizationService } from '../main-organization/main-organization.service';
@@ -196,11 +192,6 @@ export class OrganizationService {
           create: data.PhotoLink,
         },
       },
-      include: {
-        PaymentTypes: true,
-        Phone: true,
-        Picture: true,
-      },
     });
 
     console.log({ a: 'asdasdasdasdasd' });
@@ -264,7 +255,15 @@ export class OrganizationService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
+    console.log(where);
+
     if (data.search) {
       where.StreetTranslations = {
         some: {
@@ -345,8 +344,8 @@ export class OrganizationService {
       formattedStreet.push({
         ...streetData,
         name,
-        new_name: nameNew,
-        old_name: nameOld,
+        newName: nameNew,
+        oldName: nameOld,
       });
     }
 
