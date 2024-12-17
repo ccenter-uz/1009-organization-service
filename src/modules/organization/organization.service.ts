@@ -126,7 +126,6 @@ export class OrganizationService {
       });
     }
 
-    console.log({ b: 'asdasdasdasdasd' });
 
     const organization = await this.prisma.organization.create({
       data: {
@@ -194,7 +193,6 @@ export class OrganizationService {
       },
     });
 
-    console.log({ a: 'asdasdasdasdasd' });
 
     // this.organizationVersionService.create(organization);
 
@@ -262,7 +260,6 @@ export class OrganizationService {
             status: data.status,
           }),
     };
-    console.log(where);
 
     if (data.search) {
       where.StreetTranslations = {
