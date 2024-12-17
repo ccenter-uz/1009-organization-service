@@ -28,6 +28,9 @@ import { ImpasseModule } from './modules/impasse/impasse.module';
 import { VillageModule } from './modules/village/village.module';
 import { LaneModule } from './modules/lane/lane.module';
 import { StreetModule } from './modules/street/street.module';
+import { OrganizationModule } from './modules/organization/organization.module';
+import { OrganizationVersionModule } from './modules/organization-version/organization-version.module';
+import { PhoneTypeModule } from './modules/phone-type/phone-type.module';
 
 @Module({
   imports: [
@@ -55,7 +58,10 @@ import { StreetModule } from './modules/street/street.module';
     ImpasseModule,
     VillageModule,
     LaneModule,
-    StreetModule
+    StreetModule,
+    OrganizationModule,
+    OrganizationVersionModule,
+    PhoneTypeModule,
   ],
   controllers: [],
   providers: [

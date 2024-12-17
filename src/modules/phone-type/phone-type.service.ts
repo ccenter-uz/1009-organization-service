@@ -6,38 +6,36 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   ListQueryDto,
 } from 'types/global';
 
 import {
-  NearbyCategoryUpdateDto,
-  NearbyCategoryCreateDto,
-  NearbyCategoryInterfaces,
-} from 'types/organization/nearby-category';
+  PhoneTypeUpdateDto,
+  PhoneTypeCreateDto,
+  PhoneTypeInterfaces,
+} from 'types/organization/phone-type';
 
 @Injectable()
-export class NearbyCategoryService {
+export class PhoneTypeService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(
-    data: NearbyCategoryCreateDto
-  ): Promise<NearbyCategoryInterfaces.Response> {
-    // const mainOrganization = await this.prisma.mainOrganization
-    const nearbyCategory = await this.prisma.nearbyCategory.create({
+    data: PhoneTypeCreateDto
+  ): Promise<PhoneTypeInterfaces.Response> {
+    const phoneTypes = await this.prisma.phoneTypes.create({
       data: {
         staffNumber: data.staffNumber,
         name: data.name,
       },
     });
-    return nearbyCategory;
+    return phoneTypes;
   }
 
   async findAll(
     data: ListQueryDto
-  ): Promise<NearbyCategoryInterfaces.ResponseWithPagination> {
+  ): Promise<PhoneTypeInterfaces.ResponseWithPagination> {
     if (data.all) {
-      const nearbyCategry = await this.prisma.nearbyCategory.findMany({
+      const phoneType = await this.prisma.phoneTypes.findMany({
         where: {
           ...(data.status !== 2
             ? {
@@ -49,8 +47,8 @@ export class NearbyCategoryService {
       });
 
       return {
-        data: nearbyCategry,
-        totalDocs: nearbyCategry.length,
+        data: phoneType,
+        totalDocs: phoneType.length,
         totalPage: 1,
       };
     }
@@ -68,7 +66,7 @@ export class NearbyCategoryService {
         contains: data.search,
       };
     }
-    const count = await this.prisma.nearbyCategory.count({
+    const count = await this.prisma.phoneTypes.count({
       where,
     });
 
@@ -79,7 +77,7 @@ export class NearbyCategoryService {
     });
 
 
-    const nearby = await this.prisma.nearbyCategory.findMany({
+    const phoneType = await this.prisma.phoneTypes.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       take: pagination.take,
@@ -87,35 +85,35 @@ export class NearbyCategoryService {
     });
 
     return {
-      data: nearby,
+      data: phoneType,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
   }
 
-  async findOne(data: GetOneDto): Promise<NearbyCategoryInterfaces.Response> {
-    const nearbyCategry = await this.prisma.nearbyCategory.findFirst({
+  async findOne(data: GetOneDto): Promise<PhoneTypeInterfaces.Response> {
+    const phoneType = await this.prisma.phoneTypes.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
     });
 
-    if (!nearbyCategry) {
-      throw new NotFoundException('Nearby Category is not found');
+    if (!phoneType) {
+      throw new NotFoundException('Phone Type is not found');
     }
 
-    return nearbyCategry;
+    return phoneType;
   }
 
   async update(
-    data: NearbyCategoryUpdateDto
-  ): Promise<NearbyCategoryInterfaces.Response> {
-    const nearbyCategry = await this.findOne({ id: data.id });
+    data: PhoneTypeUpdateDto
+  ): Promise<PhoneTypeInterfaces.Response> {
+    const phoneType = await this.findOne({ id: data.id });
 
-    return await this.prisma.nearbyCategory.update({
+    return await this.prisma.phoneTypes.update({
       where: {
-        id: nearbyCategry.id,
+        id: phoneType.id,
       },
       data: {
         staffNumber: data.staffNumber,
@@ -124,21 +122,21 @@ export class NearbyCategoryService {
     });
   }
 
-  async remove(data: DeleteDto): Promise<NearbyCategoryInterfaces.Response> {
+  async remove(data: DeleteDto): Promise<PhoneTypeInterfaces.Response> {
     if (data.delete) {
-      return await this.prisma.nearbyCategory.delete({
+      return await this.prisma.phoneTypes.delete({
         where: { id: data.id },
       });
     }
 
-    return await this.prisma.nearbyCategory.update({
+    return await this.prisma.phoneTypes.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
     });
   }
 
-  async restore(data: GetOneDto): Promise<NearbyCategoryInterfaces.Response> {
-    return this.prisma.nearbyCategory.update({
+  async restore(data: GetOneDto): Promise<PhoneTypeInterfaces.Response> {
+    return this.prisma.phoneTypes.update({
       where: { id: data.id, status: DefaultStatus.INACTIVE },
       data: { status: DefaultStatus.ACTIVE },
     });

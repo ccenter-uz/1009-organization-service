@@ -23,7 +23,7 @@ export class MainOrganizationController {
   create(
     @Payload() data: MainOrganizationCreateDto
   ): Promise<MainOrganizationInterfaces.Response> {
-    console.log(data, 'DATA');
+ 
     return this.categoryService.create(data);
   }
 

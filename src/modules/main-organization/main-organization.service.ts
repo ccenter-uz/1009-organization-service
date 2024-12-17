@@ -29,7 +29,7 @@ export class MainOrganizationService {
         name: data.name,
       },
     });
-    console.log(mainOrganization, 'Main ORG');
+
     return mainOrganization;
   }
 
