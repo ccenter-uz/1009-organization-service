@@ -3,11 +3,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   CreatedByEnum,
   GetOneDto,
-  LanguageRequestDto,
   ListQueryDto,
   OrganizationStatusEnum,
 } from 'types/global';
-import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
@@ -126,7 +124,6 @@ export class OrganizationService {
       });
     }
 
-
     const organization = await this.prisma.organization.create({
       data: {
         regionId: region.id,
@@ -193,16 +190,93 @@ export class OrganizationService {
       },
     });
 
-
     // this.organizationVersionService.create(organization);
 
     return organization;
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<OrganizationInterfaces.ResponseWithoutPagination> {
-    const organizations = await this.prisma.organization.findMany({
+    data: ListQueryDto
+  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
+    if (data.all) {
+      const organizations = await this.prisma.organization.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+          Picture: {
+            select: {
+              id: true,
+              link: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+          PaymentTypes: {
+            select: {
+              id: true,
+              Cash: true,
+              Terminal: true,
+              Transfer: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+          Phone: {
+            select: {
+              id: true,
+              phone: true,
+              PhoneTypeId: true,
+              createdAt: true,
+              updatedAt: true,
+              PhoneTypes: {
+                select: {
+                  id: true,
+                  name: true,
+                  createdAt: true,
+                  updatedAt: true,
+                  staffNumber: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return {
+        data: organizations,
+        totalPage: 1,
+        totalDocs: organizations.length,
+      };
+    }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
+
+    if (data.search) {
+      where.StreetTranslations = {
+        some: {
+          languageCode: data.langCode,
+          name: {
+            contains: data.search,
+          },
+        },
+      };
+    }
+    const count = await this.prisma.street.count({
+      where,
+    });
+
+    const pagination = createPagination({
+      count,
+      page: data.page,
+      perPage: data.limit,
+    });
+
+    const organization = await this.prisma.organization.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
         Picture: {
@@ -245,109 +319,7 @@ export class OrganizationService {
     });
 
     return {
-      data: organizations,
-      totalDocs: organizations.length,
-    };
-  }
-
-  async findAllByPagination(
-    data: ListQueryDto
-  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
-    const where: any = {
-      ...(data.status == 2
-        ? {}
-        : {
-            status: data.status,
-          }),
-    };
-
-    if (data.search) {
-      where.StreetTranslations = {
-        some: {
-          languageCode: data.langCode,
-          name: {
-            contains: data.search,
-          },
-        },
-      };
-    }
-    const count = await this.prisma.street.count({
-      where,
-    });
-
-    const pagination = createPagination({
-      count,
-      page: data.page,
-      perPage: data.limit,
-    });
-
-    const streets = await this.prisma.street.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        StreetTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        StreetNewNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        StreetOldNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-
-    const formattedStreet = [];
-
-    for (let i = 0; i < streets.length; i++) {
-      const streetData = streets[i];
-      const translations = streetData.StreetTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = streetData.StreetNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = streetData.StreetOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-
-      delete streetData.StreetTranslations;
-      delete streetData.StreetNewNameTranslations;
-      delete streetData.StreetOldNameTranslations;
-
-      formattedStreet.push({
-        ...streetData,
-        name,
-        newName: nameNew,
-        oldName: nameOld,
-      });
-    }
-
-    return {
-      data: formattedStreet,
+      data: organization,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
