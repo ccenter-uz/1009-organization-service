@@ -74,7 +74,7 @@ export class OrganizationVersionService {
         action: OrganizationVersionActionsEnum.GET, 
       });
     }
-    console.log();
+    console.log(data, 'data version');
     
 
     const organizationVersion = await this.prisma.organizationVersion.create({

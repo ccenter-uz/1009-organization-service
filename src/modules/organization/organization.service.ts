@@ -59,6 +59,8 @@ export class OrganizationService {
   async create(
     data: OrganizationCreateDto
   ): Promise<OrganizationInterfaces.Response> {
+    console.log(data, 'create');
+    
     const mainOrganization = await this.mainOrganizationService.findOne({
       id: data.mainOrganizationId,
     });
@@ -182,10 +184,7 @@ export class OrganizationService {
           ],
         },
         Phone: {
-          create: [
-            { phone: '+998901234567', PhoneTypeId: 1 },
-            { phone: '+998907654321', PhoneTypeId: 1 },
-          ],
+          create: phoneCreateArray,
         },
         Picture: {
           create: data.PhotoLink,
@@ -194,7 +193,7 @@ export class OrganizationService {
     });
 
 
-    // this.organizationVersionService.create(organization);
+    this.organizationVersionService.create(organization);
 
     return organization;
   }
