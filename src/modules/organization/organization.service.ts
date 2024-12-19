@@ -60,6 +60,9 @@ export class OrganizationService {
     data: OrganizationCreateDto
   ): Promise<OrganizationInterfaces.Response> {
     console.log(data, 'create');
+    try {
+      
+    
     
     const mainOrganization = await this.mainOrganizationService.findOne({
       id: data.mainOrganizationId,
@@ -196,6 +199,10 @@ export class OrganizationService {
     this.organizationVersionService.create(organization);
 
     return organization;
+  } catch (error) {
+    console.log(error);
+    
+  }
   }
 
   async findAll(
