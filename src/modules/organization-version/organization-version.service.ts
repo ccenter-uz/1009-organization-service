@@ -57,26 +57,29 @@ export class OrganizationVersionService {
 
   async create(data: OrganizationVersionInterfaces.Request): Promise<any> {
     let phones = data.phone;
-    const updatedPhones = [];
+    const createdPhonesVersion = [];
 
     for (const phone of phones) {
-      updatedPhones.push({
+      createdPhonesVersion.push({
         ...phone,
-        action: OrganizationVersionActionsEnum.GET, // Qo'shmoqchi bo'lgan action qiymatini bu yerda yozasiz
+        action: OrganizationVersionActionsEnum.GET, 
       });
     }
-    const updatedPictures = [];
+    const createdPicturesVersion = [];
     let pictures = data.Picture;
 
     for (const picture of pictures) {
-      updatedPictures.push({
+      createdPicturesVersion.push({
         ...picture,
-        action: OrganizationVersionActionsEnum.GET, // Bu yerda action qiymatini belgilang
+        action: OrganizationVersionActionsEnum.GET, 
       });
     }
+    console.log();
+    
 
-    /*  const organization = await this.prisma.organizationVersion.create({
+    const organizationVersion = await this.prisma.organizationVersion.create({
       data: {
+        organizationId: data.id,
         regionId: data.regionId,
         cityId: data.cityId,
         districtId: data.districtId,
@@ -116,8 +119,8 @@ export class OrganizationVersionService {
         createdBy: data.createdBy,
         PaymentTypesVersion: {
           create: [
-            {
-              paymentAction: 'create',
+            { id : data.paymentTypes.id,
+              paymentAction: 'get',
               Cash: data.paymentTypes.cash,
               Terminal: data.paymentTypes.terminal,
               Transfer: data.paymentTypes.transfer,
@@ -125,10 +128,10 @@ export class OrganizationVersionService {
           ],
         }, 
         PhoneVersion: {
-          create: updatedPhones,
+          create: createdPhonesVersion,
         },
         PictureVersion: {
-          create: updatedPictures,
+          create: createdPicturesVersion,
         },
       },
       include: {
@@ -136,9 +139,9 @@ export class OrganizationVersionService {
         PhoneVersion: true,
         PictureVersion: true,
       },
-    }); */
+    }); 
 
-    // return organization;
+    return organizationVersion;
   }
 
   async findAll(

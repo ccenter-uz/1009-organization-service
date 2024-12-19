@@ -936,6 +936,7 @@ model Organization {
   Picture                   Picture[]
   Phone                     Phone[]
   PaymentTypes              PaymentTypes[]
+  OrganizationVersion       OrganizationVersion[]
 
   @@map("organization")
 }
@@ -992,7 +993,7 @@ model OrganizationVersion {
   address                     String    @map("address") @db.VarChar()
   home                        Int       @map("home") @db.Integer()
   apartment                   Int       @map("apartment") @db.Integer()
-  paymentTypes                Json      @map("payment_types") @db.Json()
+  // paymentTypes                Json      @map("payment_types") @db.Json()
   inn                         String    @map("inn") @db.VarChar()
   bank_number                 String    @map("bank_number") @db.VarChar()
   account                     String    @map("account") @db.VarChar()
@@ -1021,29 +1022,14 @@ model OrganizationVersion {
   nearbyId                    Int       @map("nearby_id") @db.Integer()
   segmentId                   Int       @map("segment_id") @db.Integer()
   sectionId                   Int       @map("section_id") @db.Integer()
+  organizationId              Int       @map("organization_id") @db.Integer()
   status                      String    @map("status") @db.VarChar()
   createdAt                   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                   DateTime? @updatedAt @map("updated_at")
   deletedAt                   DateTime? @map("deleted_at")
 
-  // MainOrganization              MainOrganization            @relation(fields: [mainOrganizationId], references: [id])
-  // SubCategory                   SubCategory                 @relation(fields: [subCategoryId], references: [id])
-  // ProductServiceCategory        ProductServiceCategory      @relation(fields: [productServiceCategoryId], references: [id])
-  // ProductServiceSubCategory     ProductServiceSubCategory   @relation(fields: [productServiceSubCategoryId], references: [id])
-  // Region                        Region                      @relation(fields: [regionId], references: [id])
-  // City                          City                        @relation(fields: [cityId], references: [id])
-  // District                      District                    @relation(fields: [districtId], references: [id])
-  // Village                       Village                     @relation(fields: [villageId], references: [id])
-  // Avenue                        Avenue                      @relation(fields: [avenueId], references: [id])
-  // ResidentialArea               ResidentialArea             @relation(fields: [residentialId], references: [id])
-  // Area                          Area                        @relation(fields: [areaId], references: [id])
-  // Street                        Street                      @relation(fields: [streetId], references: [id])
-  // Lane                          Lane                        @relation(fields: [laneId], references: [id])
-  // Impasse                       Impasse                     @relation(fields: [impasseId], references: [id])
-  // Nearby                        Nearby                      @relation(fields: [nearbyId], references: [id])
-  // Segment                       Segment                     @relation(fields: [segmentId], references: [id])
-  // Section                       Section                     @relation(fields: [sectionId], references: [id])
-  // Section      +                Section                     @relation(fields: [sectionId], references: [id])
+  Organization              Organization            @relation(fields: [organizationId], references: [id])
+ 
   PictureVersion      PictureVersion[]
   PhoneVersion        PhoneVersion[]
   PaymentTypesVersion PaymentTypesVersion[]
