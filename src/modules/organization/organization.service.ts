@@ -29,6 +29,13 @@ import { NearbyService } from '../nearby/nearby.service';
 import { SegmentService } from '../segment/segment.service';
 import { SectionService } from '../section/section.service';
 import { OrganizationVersionService } from '../organization-version/organization-version.service';
+import { formatLanguageResponse } from '@/common/helper/format-language.helper';
+import formatOrganizationResponse, {
+  modulesConfig,
+} from '@/common/helper/for-Org/format-module-for-org';
+import buildInclude, {
+  includeConfig,
+} from '@/common/helper/for-Org/build-include-for-org';
 
 @Injectable()
 export class OrganizationService {
@@ -336,60 +343,30 @@ export class OrganizationService {
   }
 
   async findOne(data: GetOneDto): Promise<OrganizationInterfaces.Response> {
+    const include = buildInclude(includeConfig, data);
+
     const organization = await this.prisma.organization.findFirst({
       where: {
         id: data.id,
       },
       orderBy: { createdAt: 'desc' },
       include: {
-        Picture: {
-          select: {
-            id: true,
-            link: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-        PaymentTypes: {
-          select: {
-            id: true,
-            Cash: true,
-            Terminal: true,
-            Transfer: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-        Phone: {
-          select: {
-            id: true,
-            phone: true,
-            PhoneTypeId: true,
-            createdAt: true,
-            updatedAt: true,
-            PhoneTypes: {
-              select: {
-                id: true,
-                PhoneTypesTranslations: {
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
-                createdAt: true,
-                updatedAt: true,
-                staffNumber: true,
-              },
-            },
-          },
-        },
+        ...include,
       },
     });
+    for (let [key, prop] of Object.entries(includeConfig)) {
+      let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+      delete organization?.[idNameOfModules];
+    }
     if (!organization) {
       throw new NotFoundException('Street is not found');
     }
 
-    return { ...organization };
+    const formattedOrganization = formatOrganizationResponse(
+      organization,
+      modulesConfig
+    );
+    return formattedOrganization;
   }
 
   // async update(
