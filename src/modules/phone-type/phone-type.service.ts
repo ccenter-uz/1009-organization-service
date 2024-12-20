@@ -6,6 +6,7 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
+  LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
 
@@ -14,6 +15,7 @@ import {
   PhoneTypeCreateDto,
   PhoneTypeInterfaces,
 } from 'types/organization/phone-type';
+import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 
 @Injectable()
 export class PhoneTypeService {
@@ -25,7 +27,25 @@ export class PhoneTypeService {
     const phoneTypes = await this.prisma.phoneTypes.create({
       data: {
         staffNumber: data.staffNumber,
-        name: data.name,
+        PhoneTypesTranslations: {
+          create: [
+            {
+              languageCode: LanguageRequestEnum.RU,
+              name: data.name[LanguageRequestEnum.RU],
+            },
+            {
+              languageCode: LanguageRequestEnum.UZ,
+              name: data.name[LanguageRequestEnum.UZ],
+            },
+            {
+              languageCode: LanguageRequestEnum.CY,
+              name: data.name[LanguageRequestEnum.CY],
+            },
+          ],
+        },
+      },
+      include: {
+        PhoneTypesTranslations: true, // Include translations in the response
       },
     });
     return phoneTypes;
@@ -43,11 +63,33 @@ export class PhoneTypeService {
               }
             : {}),
         },
+        include: {
+          PhoneTypesTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode, // langCode from request
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' },
       });
 
+      const formattedPhoneTypes = phoneType.map((productServiceCategory) => {
+        const translations = productServiceCategory.PhoneTypesTranslations;
+
+        const name = formatLanguageResponse(translations);
+        delete productServiceCategory.PhoneTypesTranslations;
+
+        return { ...productServiceCategory, name };
+      });
+
       return {
-        data: phoneType,
+        data: formattedPhoneTypes,
         totalDocs: phoneType.length,
         totalPage: 1,
       };
@@ -62,8 +104,13 @@ export class PhoneTypeService {
     };
 
     if (data.search) {
-      where.name = {
-        contains: data.search,
+      where.PhoneTypesTranslations = {
+        some: {
+          languageCode: data.langCode,
+          name: {
+            contains: data.search,
+          },
+        },
       };
     }
     const count = await this.prisma.phoneTypes.count({
@@ -76,16 +123,36 @@ export class PhoneTypeService {
       perPage: data.limit,
     });
 
-
     const phoneType = await this.prisma.phoneTypes.findMany({
       where,
       orderBy: { createdAt: 'desc' },
+      include: {
+        PhoneTypesTranslations: {
+          where: data.allLang
+            ? {}
+            : {
+                languageCode: data.langCode, // langCode from request
+              },
+          select: {
+            languageCode: true,
+            name: true,
+          },
+        },
+      },
       take: pagination.take,
       skip: pagination.skip,
     });
 
+    const formattedCategories = phoneType.map((productServiceCategory) => {
+      const translations = productServiceCategory.PhoneTypesTranslations;
+
+      const name = formatLanguageResponse(translations);
+      delete productServiceCategory.PhoneTypesTranslations;
+
+      return { ...productServiceCategory, name };
+    });
     return {
-      data: phoneType,
+      data: formattedCategories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
@@ -95,7 +162,21 @@ export class PhoneTypeService {
     const phoneType = await this.prisma.phoneTypes.findFirst({
       where: {
         id: data.id,
+
         status: DefaultStatus.ACTIVE,
+      },
+      include: {
+        PhoneTypesTranslations: {
+          where: data.allLang
+            ? {}
+            : {
+                languageCode: data.langCode, // langCode from request
+              },
+          select: {
+            languageCode: true,
+            name: true,
+          },
+        },
       },
     });
 
@@ -103,7 +184,9 @@ export class PhoneTypeService {
       throw new NotFoundException('Phone Type is not found');
     }
 
-    return phoneType;
+    const name = formatLanguageResponse(phoneType.PhoneTypesTranslations);
+    delete phoneType.PhoneTypesTranslations;
+    return { ...phoneType, name };
   }
 
   async update(
@@ -117,7 +200,25 @@ export class PhoneTypeService {
       },
       data: {
         staffNumber: data.staffNumber,
-        name: data.name,
+        PhoneTypesTranslations: {
+          updateMany: [
+            {
+              where: { languageCode: LanguageRequestEnum.RU },
+              data: { name: data.name[LanguageRequestEnum.RU] },
+            },
+            {
+              where: { languageCode: LanguageRequestEnum.UZ },
+              data: { name: data.name[LanguageRequestEnum.UZ] },
+            },
+            {
+              where: { languageCode: LanguageRequestEnum.CY },
+              data: { name: data.name[LanguageRequestEnum.CY] },
+            },
+          ],
+        },
+      },
+      include: {
+        PhoneTypesTranslations: true, // Include translations in the response
       },
     });
   }
@@ -126,12 +227,28 @@ export class PhoneTypeService {
     if (data.delete) {
       return await this.prisma.phoneTypes.delete({
         where: { id: data.id },
+        include: {
+          PhoneTypesTranslations: {
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
       });
     }
 
     return await this.prisma.phoneTypes.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
+      include: {
+        PhoneTypesTranslations: {
+          select: {
+            languageCode: true,
+            name: true,
+          },
+        },
+      },
     });
   }
 
@@ -139,6 +256,14 @@ export class PhoneTypeService {
     return this.prisma.phoneTypes.update({
       where: { id: data.id, status: DefaultStatus.INACTIVE },
       data: { status: DefaultStatus.ACTIVE },
+      include: {
+        PhoneTypesTranslations: {
+          select: {
+            languageCode: true,
+            name: true,
+          },
+        },
+      },
     });
   }
 }
