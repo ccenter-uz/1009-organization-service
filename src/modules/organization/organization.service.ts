@@ -61,9 +61,6 @@ export class OrganizationService {
   ): Promise<OrganizationInterfaces.Response> {
     console.log(data, 'create');
     try {
-      
-    
-    
     const mainOrganization = await this.mainOrganizationService.findOne({
       id: data.mainOrganizationId,
     });
