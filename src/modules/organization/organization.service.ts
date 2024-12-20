@@ -230,7 +230,12 @@ export class OrganizationService {
               PhoneTypes: {
                 select: {
                   id: true,
-                  name: true,
+                  PhoneTypesTranslations: {
+                    select: {
+                      languageCode: true,
+                      name: true,
+                    },
+                  },
                   createdAt: true,
                   updatedAt: true,
                   staffNumber: true,
@@ -307,7 +312,12 @@ export class OrganizationService {
             PhoneTypes: {
               select: {
                 id: true,
-                name: true,
+                PhoneTypesTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
                 createdAt: true,
                 updatedAt: true,
                 staffNumber: true,
@@ -360,7 +370,12 @@ export class OrganizationService {
             PhoneTypes: {
               select: {
                 id: true,
-                name: true,
+                PhoneTypesTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
                 createdAt: true,
                 updatedAt: true,
                 staffNumber: true,

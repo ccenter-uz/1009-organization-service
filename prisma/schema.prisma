@@ -861,16 +861,29 @@ model StreetNewNameTranslations {
 }
 
 model PhoneTypes {
-  id          Int       @id @default(autoincrement())
-  name        String    @map("name") @db.VarChar()
-  staffNumber String    @map("staff_number") @db.VarChar(40)
-  status      Int       @default(1) @db.SmallInt()
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt   DateTime? @updatedAt @map("updated_at")
-  deletedAt   DateTime? @map("deleted_at")
-  Phone       Phone[]
+  id                     Int                      @id @default(autoincrement())
+  staffNumber            String                   @map("staff_number") @db.VarChar(40)
+  status                 Int                      @default(1) @db.SmallInt()
+  createdAt              DateTime                 @default(now()) @map("created_at") @db.Timestamp
+  updatedAt              DateTime?                @updatedAt @map("updated_at")
+  deletedAt              DateTime?                @map("deleted_at")
+  Phone                  Phone[]
+  PhoneTypesTranslations PhoneTypesTranslations[]
 
   @@map("phone_types")
+}
+
+model PhoneTypesTranslations {
+  id           Int       @id @default(autoincrement())
+  phoneTypesId Int       @map("phone_types_id")
+  languageCode String    @map("language_code")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  phoneTypes PhoneTypes @relation(fields: [phoneTypesId], references: [id])
+
+  @@map("phone_types_id_translations")
 }
 
 model Organization {
