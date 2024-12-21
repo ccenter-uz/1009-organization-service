@@ -128,7 +128,7 @@ model ProductServiceCategory {
   createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
   updatedAt                          DateTime?                            @updatedAt @map("updated_at")
   deletedAt                          DateTime?                            @updatedAt @map("deleted_at")
-  product_service_sub_categories     ProductServiceSubCategory[]
+  Product_service_sub_categories     ProductServiceSubCategory[]
   ProductServiceCategoryTranslations ProductServiceCategoryTranslations[]
   Organization                       Organization[]
 
@@ -143,7 +143,7 @@ model ProductServiceCategoryTranslations {
   createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                DateTime? @updatedAt @map("updated_at")
 
-  productServiceCategory ProductServiceCategory @relation(fields: [productServiceCategoryId], references: [id])
+  ProductServiceCategory ProductServiceCategory @relation(fields: [productServiceCategoryId], references: [id])
 
   @@map("product_service_category_translations")
 }
@@ -157,8 +157,8 @@ model ProductServiceSubCategory {
   updatedAt                DateTime? @updatedAt @map("updated_at")
   deletedAt                DateTime? @updatedAt @map("deleted_at")
 
-  productServiceCategory                ProductServiceCategory                  @relation(fields: [productServiceCategoryId], references: [id])
-  productServiceSubCategoryTranslations ProductServiceSubCategoryTranslations[]
+  ProductServiceCategory                ProductServiceCategory                  @relation(fields: [productServiceCategoryId], references: [id])
+  ProductServiceSubCategoryTranslations ProductServiceSubCategoryTranslations[]
   Organization                          Organization[]
 
   @@map("product_service_sub_category")
@@ -172,7 +172,7 @@ model ProductServiceSubCategoryTranslations {
   createdAt                  DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                  DateTime? @updatedAt @map("updated_at")
 
-  productServiceSubCategory ProductServiceSubCategory @relation(fields: [productServicSubCategoryId], references: [id])
+  ProductServiceSubCategory ProductServiceSubCategory @relation(fields: [productServicSubCategoryId], references: [id])
 
   @@map("product_service_sub_category_translations")
 }
@@ -885,7 +885,6 @@ model PhoneTypesTranslations {
 
   @@map("phone_types_id_translations")
 }
-
 model Organization {
   id                          Int       @id @default(autoincrement())
   name                        String    @map("name") @db.VarChar()
@@ -929,9 +928,10 @@ model Organization {
   updatedAt                   DateTime? @updatedAt @map("updated_at")
   deletedAt                   DateTime? @map("deleted_at")
 
+
   MainOrganization          MainOrganization          @relation(fields: [mainOrganizationId], references: [id])
   SubCategory               SubCategory               @relation(fields: [subCategoryId], references: [id])
-  productServiceCategory    ProductServiceCategory    @relation(fields: [productServiceCategoryId], references: [id])
+  ProductServiceCategory    ProductServiceCategory    @relation(fields: [productServiceCategoryId], references: [id])
   ProductServiceSubCategory ProductServiceSubCategory @relation(fields: [productServiceSubCategoryId], references: [id])
   Region                    Region                    @relation(fields: [regionId], references: [id])
   City                      City                      @relation(fields: [cityId], references: [id])
