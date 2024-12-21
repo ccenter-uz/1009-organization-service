@@ -1,3 +1,8 @@
+import {
+  PhoneTypes,
+  PhoneTypesTranslations,
+} from './../../../node_modules/.prisma/client/index.d';
+import { Phone } from './../../../types/organization/organization/types/index';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -187,8 +192,8 @@ export class OrganizationService {
         },
         Phone: {
           create: [
-            { phone: '+998901234567', PhoneTypeId: 1 },
-            { phone: '+998907654321', PhoneTypeId: 1 },
+            { phone: '+998901234567', PhoneTypeId: 5 },
+            { phone: '+998907654321', PhoneTypeId: 5 },
           ],
         },
         Picture: {
@@ -205,56 +210,27 @@ export class OrganizationService {
   async findAll(
     data: ListQueryDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
+    const include = buildInclude(includeConfig, data);
     if (data.all) {
       const organizations = await this.prisma.organization.findMany({
         orderBy: { createdAt: 'desc' },
-        include: {
-          Picture: {
-            select: {
-              id: true,
-              link: true,
-              createdAt: true,
-              updatedAt: true,
-            },
-          },
-          PaymentTypes: {
-            select: {
-              id: true,
-              Cash: true,
-              Terminal: true,
-              Transfer: true,
-              createdAt: true,
-              updatedAt: true,
-            },
-          },
-          Phone: {
-            select: {
-              id: true,
-              phone: true,
-              PhoneTypeId: true,
-              createdAt: true,
-              updatedAt: true,
-              PhoneTypes: {
-                select: {
-                  id: true,
-                  PhoneTypesTranslations: {
-                    select: {
-                      languageCode: true,
-                      name: true,
-                    },
-                  },
-                  createdAt: true,
-                  updatedAt: true,
-                  staffNumber: true,
-                },
-              },
-            },
-          },
-        },
+        include,
       });
+      const result = [];
+      for (let [index, org] of Object.entries(organizations)) {
+        for (let [key, prop] of Object.entries(includeConfig)) {
+          let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+          delete org?.[idNameOfModules];
+        }
+        const formattedOrganization = formatOrganizationResponse(
+          org,
+          modulesConfig
+        );
+        result.push(formattedOrganization);
+      }
 
       return {
-        data: organizations,
+        data: result,
         totalPage: 1,
         totalDocs: organizations.length,
       };
@@ -290,53 +266,22 @@ export class OrganizationService {
 
     const organization = await this.prisma.organization.findMany({
       orderBy: { createdAt: 'desc' },
-      include: {
-        Picture: {
-          select: {
-            id: true,
-            link: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-        PaymentTypes: {
-          select: {
-            id: true,
-            Cash: true,
-            Terminal: true,
-            Transfer: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-        Phone: {
-          select: {
-            id: true,
-            phone: true,
-            PhoneTypeId: true,
-            createdAt: true,
-            updatedAt: true,
-            PhoneTypes: {
-              select: {
-                id: true,
-                PhoneTypesTranslations: {
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
-                createdAt: true,
-                updatedAt: true,
-                staffNumber: true,
-              },
-            },
-          },
-        },
-      },
+      include,
     });
-
+    const result = [];
+    for (let [index, org] of Object.entries(organization)) {
+      for (let [key, prop] of Object.entries(includeConfig)) {
+        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+        delete org?.[idNameOfModules];
+      }
+      const formattedOrganization = formatOrganizationResponse(
+        org,
+        modulesConfig
+      );
+      result.push(formattedOrganization);
+    }
     return {
-      data: organization,
+      data: result,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
@@ -362,10 +307,12 @@ export class OrganizationService {
       throw new NotFoundException('Street is not found');
     }
 
-    const formattedOrganization = formatOrganizationResponse(
+    let formattedOrganization = formatOrganizationResponse(
       organization,
       modulesConfig
     );
+
+   
     return formattedOrganization;
   }
 

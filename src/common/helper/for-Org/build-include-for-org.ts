@@ -1,4 +1,4 @@
-import { GetOneDto } from 'types/global';
+
 
 interface IncludeConfig {
   [key: string]: string[];
@@ -6,7 +6,7 @@ interface IncludeConfig {
 
 export default function buildInclude(
   config: IncludeConfig,
-  data: GetOneDto
+  data: any
 ): Record<string, any> {
   const include: Record<string, any> = {};
 

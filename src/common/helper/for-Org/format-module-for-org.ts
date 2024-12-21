@@ -56,6 +56,14 @@ export default function formatOrganizationResponse(
     }
   }
 
+  for (let [index, el] of Object.entries(organization['Phone'])) {
+    const name = formatLanguageResponse(
+      el['PhoneTypes'].PhoneTypesTranslations
+    );
+     
+    formattedOrganization['Phone'][index]['PhoneTypes'].name = name;
+    delete formattedOrganization['Phone'][index]['PhoneTypes'].PhoneTypesTranslations;
+  }
   return formattedOrganization;
 }
 
