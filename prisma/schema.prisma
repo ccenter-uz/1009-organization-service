@@ -54,6 +54,7 @@ model SubCategory {
   category                Category                  @relation(fields: [categoryId], references: [id])
   SubCategoryTranslations SubCategoryTranslations[]
   Organization            Organization[]
+  OrganizationVersion     OrganizationVersion[]
 
   @@map("sub_category")
 }
@@ -72,26 +73,28 @@ model SubCategoryTranslations {
 }
 
 model MainOrganization {
-  id           Int            @id @default(autoincrement())
-  name         String
-  staffNumber  String         @map("staff_number") @db.VarChar(40)
-  status       Int            @default(1) @db.SmallInt()
-  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamp
-  updatedAt    DateTime?      @updatedAt @map("updated_at")
-  deletedAt    DateTime?      @updatedAt @map("deleted_at")
-  Organization Organization[]
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  staffNumber         String                @map("staff_number") @db.VarChar(40)
+  status              Int                   @default(1) @db.SmallInt()
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamp
+  updatedAt           DateTime?             @updatedAt @map("updated_at")
+  deletedAt           DateTime?             @updatedAt @map("deleted_at")
+  Organization        Organization[]
+  OrganizationVersion OrganizationVersion[]
 
   @@map("main_organization")
 }
 
 model Section {
-  id           Int            @id @default(autoincrement())
-  name         String
-  status       Int            @default(1) @db.SmallInt()
-  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamp
-  updatedAt    DateTime?      @updatedAt @map("updated_at")
-  deletedAt    DateTime?      @updatedAt @map("deleted_at")
-  Organization Organization[]
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  status              Int                   @default(1) @db.SmallInt()
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamp
+  updatedAt           DateTime?             @updatedAt @map("updated_at")
+  deletedAt           DateTime?             @updatedAt @map("deleted_at")
+  Organization        Organization[]
+  OrganizationVersion OrganizationVersion[]
 
   @@map("section")
 }
@@ -104,6 +107,7 @@ model Segment {
   deletedAt           DateTime?             @updatedAt @map("deleted_at")
   SegmentTranslations SegmentTranslations[]
   Organization        Organization[]
+  OrganizationVersion OrganizationVersion[]
 
   @@map("segment")
 }
@@ -131,6 +135,7 @@ model ProductServiceCategory {
   product_service_sub_categories     ProductServiceSubCategory[]
   ProductServiceCategoryTranslations ProductServiceCategoryTranslations[]
   Organization                       Organization[]
+  OrganizationVersion                OrganizationVersion[]
 
   @@map("product_service_category")
 }
@@ -160,6 +165,7 @@ model ProductServiceSubCategory {
   productServiceCategory                ProductServiceCategory                  @relation(fields: [productServiceCategoryId], references: [id])
   productServiceSubCategoryTranslations ProductServiceSubCategoryTranslations[]
   Organization                          Organization[]
+  OrganizationVersion                   OrganizationVersion[]
 
   @@map("product_service_sub_category")
 }
@@ -178,24 +184,25 @@ model ProductServiceSubCategoryTranslations {
 }
 
 model Region {
-  id                 Int                  @id @default(autoincrement())
-  status             Int                  @default(1) @db.SmallInt()
-  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamp
-  updatedAt          DateTime?            @updatedAt @map("updated_at")
-  deletedAt          DateTime?            @updatedAt @map("deleted_at")
-  City               City[]
-  District           District[]
-  RegionTranslations RegionTranslations[]
-  Nearby             Nearby[]
-  Passage            Passage[]
-  Area               Area[]
-  Avenue             Avenue[]
-  ResidentialArea    ResidentialArea[]
-  Impasse            Impasse[]
-  Street             Street[]
-  Village            Village[]
-  Lane               Lane[]
-  Organization       Organization[]
+  id                  Int                   @id @default(autoincrement())
+  status              Int                   @default(1) @db.SmallInt()
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamp
+  updatedAt           DateTime?             @updatedAt @map("updated_at")
+  deletedAt           DateTime?             @updatedAt @map("deleted_at")
+  City                City[]
+  District            District[]
+  RegionTranslations  RegionTranslations[]
+  Nearby              Nearby[]
+  Passage             Passage[]
+  Area                Area[]
+  Avenue              Avenue[]
+  ResidentialArea     ResidentialArea[]
+  Impasse             Impasse[]
+  Street              Street[]
+  Village             Village[]
+  Lane                Lane[]
+  Organization        Organization[]
+  OrganizationVersion OrganizationVersion[]
 
   @@map("region")
 }
@@ -214,26 +221,27 @@ model RegionTranslations {
 }
 
 model City {
-  id               Int                @id @default(autoincrement())
-  regionId         Int                @map("region_id")
-  status           Int                @default(1) @db.SmallInt()
-  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamp
-  updatedAt        DateTime?          @updatedAt @map("updated_at")
-  deletedAt        DateTime?          @updatedAt @map("deleted_at")
-  Region           Region             @relation(fields: [regionId], references: [id])
-  District         District[]
-  CityTranslations CityTranslations[]
-  Nearby           Nearby[]
-  Passage          Passage[]
-  Area             Area[]
-  Avenue           Avenue[]
-  ResidentialArea  ResidentialArea[]
-  Impasse          Impasse[]
-  Street           Street[]
-  Village          Village[]
-  Lane             Lane[]
-  Organization     Organization[]
-  category         Category[]
+  id                  Int                   @id @default(autoincrement())
+  regionId            Int                   @map("region_id")
+  status              Int                   @default(1) @db.SmallInt()
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamp
+  updatedAt           DateTime?             @updatedAt @map("updated_at")
+  deletedAt           DateTime?             @updatedAt @map("deleted_at")
+  Region              Region                @relation(fields: [regionId], references: [id])
+  District            District[]
+  CityTranslations    CityTranslations[]
+  Nearby              Nearby[]
+  Passage             Passage[]
+  Area                Area[]
+  Avenue              Avenue[]
+  ResidentialArea     ResidentialArea[]
+  Impasse             Impasse[]
+  Street              Street[]
+  Village             Village[]
+  Lane                Lane[]
+  Organization        Organization[]
+  category            Category[]
+  OrganizationVersion OrganizationVersion[]
 
   @@map("city")
 }
@@ -275,6 +283,7 @@ model District {
   Village                     Village[]
   Lane                        Lane[]
   Organization                Organization[]
+  OrganizationVersion         OrganizationVersion[]
 
   @@map("district")
 }
@@ -342,11 +351,12 @@ model Nearby {
   updatedAt        DateTime? @updatedAt @map("updated_at")
   deletedAt        DateTime? @updatedAt @map("deleted_at")
 
-  NearbyCategory     NearbyCategory       @relation(fields: [nearbyCategoryId], references: [id])
-  Region             Region               @relation(fields: [regionId], references: [id])
-  City               City                 @relation(fields: [cityId], references: [id])
-  NearbyTranslations NearbyTranslations[]
-  Organization       Organization[]
+  NearbyCategory      NearbyCategory        @relation(fields: [nearbyCategoryId], references: [id])
+  Region              Region                @relation(fields: [regionId], references: [id])
+  City                City                  @relation(fields: [cityId], references: [id])
+  NearbyTranslations  NearbyTranslations[]
+  Organization        Organization[]
+  OrganizationVersion OrganizationVersion[]
 
   @@map("nearby")
 }
@@ -445,6 +455,7 @@ model Area {
   AreaOldNameTranslations AreaOldNameTranslations[]
   AreaNewNameTranslations AreaNewNameTranslations[]
   Organization            Organization[]
+  OrganizationVersion     OrganizationVersion[]
 
   @@map("area")
 }
@@ -507,6 +518,7 @@ model Avenue {
   AvenueOldNameTranslations AvenueOldNameTranslations[]
   AvenueNewNameTranslations AvenueNewNameTranslations[]
   Organization              Organization[]
+  OrganizationVersion       OrganizationVersion[]
 
   @@map("avenue")
 }
@@ -569,6 +581,7 @@ model ResidentialArea {
   ResidentialAreaOldNameTranslations ResidentialAreaOldNameTranslations[]
   ResidentialAreaNewNameTranslations ResidentialAreaNewNameTranslations[]
   Organization                       Organization[]
+  OrganizationVersion                OrganizationVersion[]
 
   @@map("residential_area")
 }
@@ -631,6 +644,7 @@ model Impasse {
   ImpasseOldNameTranslations ImpasseOldNameTranslations[]
   ImpasseNewNameTranslations ImpasseNewNameTranslations[]
   Organization               Organization[]
+  OrganizationVersion        OrganizationVersion[]
 
   @@map("impasse")
 }
@@ -693,6 +707,7 @@ model Village {
   VillageOldNameTranslations VillageOldNameTranslations[]
   VillageNewNameTranslations VillageNewNameTranslations[]
   Organization               Organization[]
+  OrganizationVersion        OrganizationVersion[]
 
   @@map("village")
 }
@@ -755,6 +770,7 @@ model Lane {
   LaneOldNameTranslations LaneOldNameTranslations[]
   LaneNewNameTranslations LaneNewNameTranslations[]
   Organization            Organization[]
+  OrganizationVersion     OrganizationVersion[]
 
   @@map("lane")
 }
@@ -817,6 +833,7 @@ model Street {
   StreetOldNameTranslations StreetOldNameTranslations[]
   StreetNewNameTranslations StreetNewNameTranslations[]
   Organization              Organization[]
+  OrganizationVersion       OrganizationVersion[]
 
   @@map("street")
 }
@@ -1039,24 +1056,24 @@ model OrganizationVersion {
   updatedAt                   DateTime? @updatedAt @map("updated_at")
   deletedAt                   DateTime? @map("deleted_at")
 
-  // MainOrganization              MainOrganization            @relation(fields: [mainOrganizationId], references: [id])
-  // SubCategory                   SubCategory                 @relation(fields: [subCategoryId], references: [id])
-  // ProductServiceCategory        ProductServiceCategory      @relation(fields: [productServiceCategoryId], references: [id])
-  // ProductServiceSubCategory     ProductServiceSubCategory   @relation(fields: [productServiceSubCategoryId], references: [id])
-  // Region                        Region                      @relation(fields: [regionId], references: [id])
-  // City                          City                        @relation(fields: [cityId], references: [id])
-  // District                      District                    @relation(fields: [districtId], references: [id])
-  // Village                       Village                     @relation(fields: [villageId], references: [id])
-  // Avenue                        Avenue                      @relation(fields: [avenueId], references: [id])
-  // ResidentialArea               ResidentialArea             @relation(fields: [residentialId], references: [id])
-  // Area                          Area                        @relation(fields: [areaId], references: [id])
-  // Street                        Street                      @relation(fields: [streetId], references: [id])
-  // Lane                          Lane                        @relation(fields: [laneId], references: [id])
-  // Impasse                       Impasse                     @relation(fields: [impasseId], references: [id])
-  // Nearby                        Nearby                      @relation(fields: [nearbyId], references: [id])
-  // Segment                       Segment                     @relation(fields: [segmentId], references: [id])
-  // Section                       Section                     @relation(fields: [sectionId], references: [id])
-  // Section      +                Section                     @relation(fields: [sectionId], references: [id])
+  MainOrganization          MainOrganization          @relation(fields: [mainOrganizationId], references: [id])
+  SubCategory               SubCategory               @relation(fields: [subCategoryId], references: [id])
+  ProductServiceCategory    ProductServiceCategory    @relation(fields: [productServiceCategoryId], references: [id])
+  ProductServiceSubCategory ProductServiceSubCategory @relation(fields: [productServiceSubCategoryId], references: [id])
+  Region                    Region                    @relation(fields: [regionId], references: [id])
+  City                      City                      @relation(fields: [cityId], references: [id])
+  District                  District                  @relation(fields: [districtId], references: [id])
+  Village                   Village                   @relation(fields: [villageId], references: [id])
+  Avenue                    Avenue                    @relation(fields: [avenueId], references: [id])
+  ResidentialArea           ResidentialArea           @relation(fields: [residentialId], references: [id])
+  Area                      Area                      @relation(fields: [areaId], references: [id])
+  Street                    Street                    @relation(fields: [streetId], references: [id])
+  Lane                      Lane                      @relation(fields: [laneId], references: [id])
+  Impasse                   Impasse                   @relation(fields: [impasseId], references: [id])
+  Nearby                    Nearby                    @relation(fields: [nearbyId], references: [id])
+  Segment                   Segment                   @relation(fields: [segmentId], references: [id])
+  Section                   Section                   @relation(fields: [sectionId], references: [id])
+
   PictureVersion      PictureVersion[]
   PhoneVersion        PhoneVersion[]
   PaymentTypesVersion PaymentTypesVersion[]
