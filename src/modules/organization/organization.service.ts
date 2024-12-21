@@ -34,13 +34,13 @@ import { NearbyService } from '../nearby/nearby.service';
 import { SegmentService } from '../segment/segment.service';
 import { SectionService } from '../section/section.service';
 import { OrganizationVersionService } from '../organization-version/organization-version.service';
-import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import formatOrganizationResponse, {
   modulesConfig,
 } from '@/common/helper/for-Org/format-module-for-org';
 import buildInclude, {
   includeConfig,
 } from '@/common/helper/for-Org/build-include-for-org';
+import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 
 @Injectable()
 export class OrganizationService {
@@ -208,11 +208,104 @@ export class OrganizationService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     const include = buildInclude(includeConfig, data);
+    const where: any = {};
+
+    if (data.address) {
+      where.address = { contains: data.address, mode: 'insensitive' }; 
+    }
+
+    // if (data.apartment) {
+    //   where.apartment = { contains: data.apartment, mode: 'insensitive' }; 
+    // }
+
+    if (data.categoryId) {
+      where.subCategoryId = data.categoryId; 
+    }
+
+    if (data.categoryTuId) {
+      where.productServiceCategoryId = data.categoryTuId; 
+    }
+
+    if (data.cityId) {
+      where.cityId = data.cityId;
+    }
+
+    if (data.districtId) {
+      where.districtId = data.districtId; 
+    }
+
+    // if (data.home) {
+    //   where.home = { contains: data.home, mode: 'insensitive' }; 
+    // }
+
+    if (data.kvartal) {
+      where.kvartal = { contains: data.kvartal, mode: 'insensitive' }; 
+    }
+
+    if (data.mainOrg) {
+      where.mainOrganizationId = data.mainOrg; 
+    }
+
+    if (data.name) {
+      where.name = { contains: data.name, mode: 'insensitive' }; 
+    }
+
+    
+    if (data.nearbyId) {
+      where.nearbyId = data.nearbyId; 
+    }
+
+    if (data.phone) {
+      where.Phone = {
+        some: { phone: { contains: data.phone, mode: 'insensitive' } },
+      }; 
+    }
+
+    if (data.phoneType) {
+      where.Phone = { some: { PhoneTypes: { id: data.phoneType } } }; 
+    }
+
+    if (data.regionId) {
+      where.regionId = data.regionId;
+    }
+
+    if (data.subCategoryId) {
+      where.subCategoryId = data.subCategoryId; 
+    }
+
+    if (data.subCategoryTuId) {
+      where.productServiceSubCategoryId = data.subCategoryTuId; 
+    }
+
+    if (data.villageId) {
+      where.villageId = data.villageId; 
+    }
+
+    // if (data.belongAbonent === true) {
+    //   where.segmentId = data.belongAbonent; 
+    // }
+
+    if (data.bounded === true) {
+      where.createdBy = 'billing'; 
+    }
+
+    if (data.mine === true) {
+      where.staffNumber = data.staffNumber; 
+    }
+
+    // Дополнительно проверяем на пустоту объекта перед запросом
+    // if (Object.keys(where).length === 0) {
+    //   throw new Error(
+    //     'Необходимо указать хотя бы одно условие для фильтрации.'
+    //   );
+    // }
+
     if (data.all) {
       const organizations = await this.prisma.organization.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
         include,
       });
@@ -236,16 +329,17 @@ export class OrganizationService {
       };
     }
 
-    const where: any = {
+    const whereWithLang: any = {
       ...(data.status == 2
         ? {}
         : {
             status: data.status,
           }),
+      ...where,
     };
 
     if (data.search) {
-      where.StreetTranslations = {
+      whereWithLang.StreetTranslations = {
         some: {
           languageCode: data.langCode,
           name: {
@@ -254,8 +348,8 @@ export class OrganizationService {
         },
       };
     }
-    const count = await this.prisma.street.count({
-      where,
+    const count = await this.prisma.organization.count({
+      where: whereWithLang,
     });
 
     const pagination = createPagination({
@@ -265,8 +359,11 @@ export class OrganizationService {
     });
 
     const organization = await this.prisma.organization.findMany({
+      where: whereWithLang,
       orderBy: { createdAt: 'desc' },
       include,
+      take: pagination.take,
+      skip: pagination.skip,
     });
     const result = [];
     for (let [index, org] of Object.entries(organization)) {
@@ -312,7 +409,6 @@ export class OrganizationService {
       modulesConfig
     );
 
-   
     return formattedOrganization;
   }
 
