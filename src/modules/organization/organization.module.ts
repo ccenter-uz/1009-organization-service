@@ -19,6 +19,7 @@ import { NearbyModule } from '../nearby/nearby.module';
 import { SegmentModule } from '../segment/segment.module';
 import { SectionModule } from '../section/section.module';
 import { OrganizationVersionModule } from '../organization-version/organization-version.module';
+import { PhoneTypeModule } from '../phone-type/phone-type.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { OrganizationVersionModule } from '../organization-version/organization-
     SegmentModule,
     SectionModule,
     OrganizationVersionModule,
+    PhoneTypeModule  ,
   ],
   controllers: [OrganizationController],
   providers: [OrganizationService],

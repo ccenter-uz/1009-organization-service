@@ -18,6 +18,7 @@ import { ImpasseModule } from '../impasse/impasse.module';
 import { NearbyModule } from '../nearby/nearby.module';
 import { SegmentModule } from '../segment/segment.module';
 import { SectionModule } from '../section/section.module';
+import { PhoneTypeModule } from '../phone-type/phone-type.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { SectionModule } from '../section/section.module';
     NearbyModule,
     SegmentModule,
     SectionModule,
+    PhoneTypeModule,
   ],
   controllers: [OrganizationVersionController],
   providers: [OrganizationVersionService],

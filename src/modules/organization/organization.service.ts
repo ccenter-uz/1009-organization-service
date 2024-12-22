@@ -3,11 +3,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   CreatedByEnum,
   GetOneDto,
-  LanguageRequestDto,
   ListQueryDto,
   OrganizationStatusEnum,
 } from 'types/global';
-import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
@@ -31,6 +29,7 @@ import { NearbyService } from '../nearby/nearby.service';
 import { SegmentService } from '../segment/segment.service';
 import { SectionService } from '../section/section.service';
 import { OrganizationVersionService } from '../organization-version/organization-version.service';
+import { PhoneTypeService } from '../phone-type/phone-type.service';
 
 @Injectable()
 export class OrganizationService {
@@ -53,28 +52,20 @@ export class OrganizationService {
     private readonly NearbyService: NearbyService,
     private readonly SegmentService: SegmentService,
     private readonly SectionService: SectionService,
+    private readonly PhoneTypeService: PhoneTypeService,
     private readonly organizationVersionService: OrganizationVersionService
   ) {}
 
   async create(
     data: OrganizationCreateDto
   ): Promise<OrganizationInterfaces.Response> {
-    console.log(data, 'create');
-    try {
     const mainOrganization = await this.mainOrganizationService.findOne({
       id: data.mainOrganizationId,
     });
     const subCategory = await this.subCategoryService.findOne({
       id: data.subCategoryId,
     });
-    const productServiceCategory =
-      await this.productServiceCategoryService.findOne({
-        id: data.productServiceCategoryId,
-      });
-    const productServiceSubCategory =
-      await this.productServiceSubCategoryService.findOne({
-        id: data.productServiceSubCategoryId,
-      });
+
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -108,9 +99,7 @@ export class OrganizationService {
     const impasse = await this.ImpasseService.findOne({
       id: data.impasseId,
     });
-    const nearby = await this.NearbyService.findOne({
-      id: data.nearbyId,
-    });
+
     const segment = await this.SegmentService.findOne({
       id: data.segmentId,
     });
@@ -122,12 +111,45 @@ export class OrganizationService {
     let phoneCreateArray = [];
     let phones = data.phone['phones'];
     for (let i = 0; i < phones?.length; i++) {
+      const phoneType = await this.PhoneTypeService.findOne({
+        id: phones[i].phoneTypeId,
+      });
       phoneCreateArray.push({
         phone: phones[i].phone,
-        PhoneTypeId: phones[i].phoneId, // Yoki kerakli qiymatni qo'shish
+        PhoneTypeId: phoneType.id,
+        isSecret: phones[i].isSecret,
       });
     }
 
+    let nearbeesCreateArray = [];
+    let nearbees = data?.nearby['nearbees'];
+    for (let i = 0; i < nearbees?.length; i++) {
+      const nearby = await this.NearbyService.findOne({
+        id: nearbees[i].nearbyId,
+      });
+      nearbeesCreateArray.push({
+        description: nearbees[i].description,
+        NearbyId: nearby.id,
+      });
+    }
+
+    let productServiceCreateArray = [];
+    let productServices = data?.productService['productServices'];
+    for (let i = 0; i < productServices?.length; i++) {
+      // const productServiceCategory =
+      //   await this.productServiceCategoryService.findOne({
+      //     id: data.productServiceCategoryId,
+      //   });
+      // const productServiceSubCategory =
+      //   await this.productServiceSubCategoryService.findOne({
+      //     id: data.productServiceSubCategoryId,
+      //   });
+      productServiceCreateArray.push({
+        ProductServiceCategoryId: productServices[i].categoryId,
+        ProductServiceSubCategoryId: productServices[i].subCategoryId,
+        link: 'l', // ochirib yuborish kerka
+      });
+    }
 
     const organization = await this.prisma.organization.create({
       data: {
@@ -141,15 +163,13 @@ export class OrganizationService {
         streetId: street.id,
         laneId: lane.id,
         impasseId: impasse.id,
-        nearbyId: nearby.id,
         segmentId: segment.id,
         sectionId: section.id,
         mainOrganizationId: mainOrganization.id,
         subCategoryId: subCategory.id,
-        productServiceCategoryId: productServiceCategory.id,
-        productServiceSubCategoryId: productServiceSubCategory.id,
+        description: data.description,
         account: data.account,
-        bank_number: data.bank_number,
+        bankNumber: data.bankNumber,
         address: data.address,
         apartment: data.apartment,
         home: data.home,
@@ -160,12 +180,13 @@ export class OrganizationService {
         mail: data.mail,
         name: data.name,
         secret: data.secret,
-        nearbyDescription: data.nearbyDescription,
-        maneger: data.maneger,
+        nearbyDescription: data.nearbyDescription, // ochirib yuborish kerak
+        manager: data.manager,
         index: data.index,
         transport: data.transport,
         workTime: data.workTime,
         staffNumber: data.staffNumber,
+        passageId: data.passageId,
         status:
           data.role == CreatedByEnum.Moderator
             ? OrganizationStatusEnum.Accepted
@@ -189,23 +210,114 @@ export class OrganizationService {
         Picture: {
           create: data.PhotoLink,
         },
+        Nearbees: {
+          create: nearbeesCreateArray,
+        },
+        ProductServices: {
+          create: productServiceCreateArray,
+        },
+      },
+      include: {
+        PaymentTypes: true,
+        Phone: true,
+        Picture: true,
+        Nearbees: true,
+        ProductServices: true,
       },
     });
 
-
-    this.organizationVersionService.create(organization);
+    await this.organizationVersionService.create(organization);
 
     return organization;
-  } catch (error) {
-    console.log(error);
-    
-  }
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<OrganizationInterfaces.ResponseWithoutPagination> {
-    const organizations = await this.prisma.organization.findMany({
+    data: ListQueryDto
+  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
+    if (data.all) {
+      const organizations = await this.prisma.organization.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+          Picture: {
+            select: {
+              id: true,
+              link: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+          PaymentTypes: {
+            select: {
+              id: true,
+              Cash: true,
+              Terminal: true,
+              Transfer: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+          Phone: {
+            select: {
+              id: true,
+              phone: true,
+              PhoneTypeId: true,
+              createdAt: true,
+              updatedAt: true,
+              PhoneTypes: {
+                select: {
+                  id: true,
+                  PhoneTypesTranslations: {
+                    select: {
+                      languageCode: true,
+                      name: true,
+                    },
+                  },
+                  createdAt: true,
+                  updatedAt: true,
+                  staffNumber: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return {
+        data: organizations,
+        totalPage: 1,
+        totalDocs: organizations.length,
+      };
+    }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
+
+    if (data.search) {
+      where.StreetTranslations = {
+        some: {
+          languageCode: data.langCode,
+          name: {
+            contains: data.search,
+          },
+        },
+      };
+    }
+    const count = await this.prisma.street.count({
+      where,
+    });
+
+    const pagination = createPagination({
+      count,
+      page: data.page,
+      perPage: data.limit,
+    });
+
+    const organization = await this.prisma.organization.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
         Picture: {
@@ -236,7 +348,12 @@ export class OrganizationService {
             PhoneTypes: {
               select: {
                 id: true,
-                name: true,
+                PhoneTypesTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
                 createdAt: true,
                 updatedAt: true,
                 staffNumber: true,
@@ -248,109 +365,7 @@ export class OrganizationService {
     });
 
     return {
-      data: organizations,
-      totalDocs: organizations.length,
-    };
-  }
-
-  async findAllByPagination(
-    data: ListQueryDto
-  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
-    const where: any = {
-      ...(data.status == 2
-        ? {}
-        : {
-            status: data.status,
-          }),
-    };
-
-    if (data.search) {
-      where.StreetTranslations = {
-        some: {
-          languageCode: data.langCode,
-          name: {
-            contains: data.search,
-          },
-        },
-      };
-    }
-    const count = await this.prisma.street.count({
-      where,
-    });
-
-    const pagination = createPagination({
-      count,
-      page: data.page,
-      perPage: data.limit,
-    });
-
-    const streets = await this.prisma.street.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        StreetTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        StreetNewNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        StreetOldNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-
-    const formattedStreet = [];
-
-    for (let i = 0; i < streets.length; i++) {
-      const streetData = streets[i];
-      const translations = streetData.StreetTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = streetData.StreetNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = streetData.StreetOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-
-      delete streetData.StreetTranslations;
-      delete streetData.StreetNewNameTranslations;
-      delete streetData.StreetOldNameTranslations;
-
-      formattedStreet.push({
-        ...streetData,
-        name,
-        newName: nameNew,
-        oldName: nameOld,
-      });
-    }
-
-    return {
-      data: formattedStreet,
+      data: organization,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
@@ -391,7 +406,12 @@ export class OrganizationService {
             PhoneTypes: {
               select: {
                 id: true,
-                name: true,
+                PhoneTypesTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
                 createdAt: true,
                 updatedAt: true,
                 staffNumber: true,

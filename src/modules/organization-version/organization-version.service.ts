@@ -55,27 +55,58 @@ export class OrganizationVersionService {
     private readonly SectionService: SectionService
   ) {}
 
-  async create(data: OrganizationVersionInterfaces.Request): Promise<any> {
-    let phones = data.phone;
+  async create(
+    data: OrganizationVersionInterfaces.Request
+  ): Promise<OrganizationVersionInterfaces.Response> {
+    let phones = data['Phone'] || [];
     const createdPhonesVersion = [];
 
-    for (const phone of phones) {
+    for (let i = 0; i < phones?.length; i++) {
       createdPhonesVersion.push({
-        ...phone,
-        action: OrganizationVersionActionsEnum.GET, 
+        phone: phones[i].phone,
+        PhoneTypeId: phones[i].PhoneTypeId,
+        isSecret: phones[i].isSecret,
+        // phoneAction: OrganizationVersionActionsEnum.GET,
       });
     }
     const createdPicturesVersion = [];
     let pictures = data.Picture;
 
-    for (const picture of pictures) {
+    for (let i = 0; i < pictures?.length; i++) {
       createdPicturesVersion.push({
-        ...picture,
-        action: OrganizationVersionActionsEnum.GET, 
+        link: pictures[i].link,
+        //  pictureAction: OrganizationVersionActionsEnum.GET,
       });
     }
-    console.log(data, 'data version');
-    
+
+    let nearbeesCreateVersionArray = [];
+    let nearbees = data['Nearbees'];
+    for (let i = 0; i < nearbees?.length; i++) {
+      //  const nearby = await this.NearbyService.findOne({
+      //    id: nearbees[i].nearbyId,
+      //  });
+      nearbeesCreateVersionArray.push({
+        description: nearbees[i].description,
+        NearbyId: nearbees[i].NearbyId,
+      });
+    }
+
+    let productServiceCreateVersionArray = [];
+    let productServices = data['ProductServices'];
+    for (let i = 0; i < productServices?.length; i++) {
+      productServiceCreateVersionArray.push({
+        ProductServiceCategoryId: productServices[i].ProductServiceCategoryId,
+        ProductServiceSubCategoryId:
+          productServices[i].ProductServiceSubCategoryId,
+      });
+    }
+    let PymentTypesVersion = [
+      {
+        Cash: data['PaymentTypes'][0].Cash,
+        Terminal: data['PaymentTypes'][0].Terminal,
+        Transfer: data['PaymentTypes'][0].Transfer,
+      },
+    ];
 
     const organizationVersion = await this.prisma.organizationVersion.create({
       data: {
@@ -90,15 +121,12 @@ export class OrganizationVersionService {
         streetId: data.streetId,
         laneId: data.laneId,
         impasseId: data.impasseId,
-        nearbyId: data.nearbyId,
         segmentId: data.segmentId,
         sectionId: data.sectionId,
         mainOrganizationId: data.mainOrganizationId,
         subCategoryId: data.subCategoryId,
-        productServiceCategoryId: data.productServiceCategoryId,
-        productServiceSubCategoryId: data.productServiceSubCategoryId,
         account: data.account,
-        bank_number: data.bank_number,
+        bankNumber: data.bankNumber,
         address: data.address,
         apartment: data.apartment,
         home: data.home,
@@ -110,36 +138,39 @@ export class OrganizationVersionService {
         name: data.name,
         secret: data.secret,
         nearbyDescription: data.nearbyDescription,
-        maneger: data.maneger,
+        manager: data.manager,
         index: data.index,
         transport: data.transport,
         workTime: data.workTime,
         staffNumber: data.staffNumber,
+        description: data.description,
+        passageId: data.passageId,
         status: data.status,
         createdBy: data.createdBy,
         PaymentTypesVersion: {
-          create: [
-            { id : data.paymentTypes.id,
-              paymentAction: 'get',
-              Cash: data.paymentTypes.cash,
-              Terminal: data.paymentTypes.terminal,
-              Transfer: data.paymentTypes.transfer,
-            },
-          ],
-        }, 
+          create: PymentTypesVersion,
+        },
         PhoneVersion: {
           create: createdPhonesVersion,
         },
         PictureVersion: {
           create: createdPicturesVersion,
         },
+        ProductServicesVersion: {
+          create: productServiceCreateVersionArray,
+        },
+        NearbeesVersion: {
+          create: nearbeesCreateVersionArray,
+        },
       },
       include: {
         PaymentTypesVersion: true,
         PhoneVersion: true,
         PictureVersion: true,
+        ProductServicesVersion: true,
+        NearbeesVersion: true,
       },
-    }); 
+    });
 
     return organizationVersion;
   }
@@ -178,7 +209,12 @@ export class OrganizationVersionService {
             PhoneTypes: {
               select: {
                 id: true,
-                name: true,
+                PhoneTypesTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
                 createdAt: true,
                 updatedAt: true,
                 staffNumber: true,
@@ -328,7 +364,12 @@ export class OrganizationVersionService {
             PhoneTypes: {
               select: {
                 id: true,
-                name: true,
+                PhoneTypesTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
                 createdAt: true,
                 updatedAt: true,
                 staffNumber: true,

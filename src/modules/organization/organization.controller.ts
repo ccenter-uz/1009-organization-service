@@ -2,31 +2,24 @@ import {
   Controller,
   Post,
   Get,
-  Put,
-  Delete,
-  Patch,
-  UseInterceptors,
   UploadedFiles,
 } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
   OrganizationCreateDto,
-  OrganizationUpdateDto,
   OrganizationInterfaces,
   OrganizationServiceCommands as Commands,
 } from 'types/organization/organization';
 import {
-  DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   ListQueryDto,
 } from 'types/global';
-import { FilesInterceptor } from '@nestjs/platform-express';
 import * as Multer from 'multer';
 @Controller('organization')
 export class OrganizationController {
-  constructor(private readonly organizationService: OrganizationService) {}
+  constructor(private readonly organizationService: OrganizationService) { }
+  
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
@@ -42,24 +35,16 @@ export class OrganizationController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
-  ): Promise<OrganizationInterfaces.ResponseWithoutPagination> {
+    @Payload() data: ListQueryDto
+  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     return this.organizationService.findAll(data);
   }
 
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
-    return this.organizationService.findAllByPagination(data);
+  @Get('by-id')
+  @MessagePattern({ cmd: Commands.GET_BY_ID })
+  findOne(@Payload() data: GetOneDto): Promise<OrganizationInterfaces.Response> {
+    return this.organizationService.findOne(data);
   }
-
-  // @Get('by-id')
-  // @MessagePattern({ cmd: Commands.GET_BY_ID })
-  // findOne(@Payload() data: GetOneDto): Promise<OrganizationInterfaces.Response> {
-  //   return this.organizationService.findOne(data);
-  // }
 
   // @Put()
   // @MessagePattern({ cmd: Commands.UPDATE })

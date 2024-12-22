@@ -13,7 +13,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
   // OrganizationCreateDto,
   // OrganizationUpdateDto,
-OrganizationVersionInterfaces,
+  OrganizationVersionInterfaces,
   OrganizationVersionServiceCommands as Commands,
 } from 'types/organization/organization-version';
 import {
@@ -30,17 +30,15 @@ export class OrganizationVersionController {
     private readonly organizationService: OrganizationVersionService
   ) {}
 
-  // @Post()
-  // @MessagePattern({ cmd: Commands.CREATE })
-  // // @UseInterceptors(FilesInterceptor('photos'))
-  // create(
-  //   @Payload() data: OrganizationVersionInterfaces.Request,
-  //   @UploadedFiles() files: Array<Multer.File>
-  // ): Promise<OrganizationVersionInterfaces.Response> {
-
-  // /*  */
-  //   return this.organizationService.create(data);
-  // }
+  @Post()
+  @MessagePattern({ cmd: Commands.CREATE })
+  // @UseInterceptors(FilesInterceptor('photos'))
+  create(
+    @Payload() data: OrganizationVersionInterfaces.Request,
+    @UploadedFiles() files: Array<Multer.File>
+  ): Promise<OrganizationVersionInterfaces.Response> {
+    return this.organizationService.create(data);
+  }
 
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
