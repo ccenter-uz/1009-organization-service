@@ -145,8 +145,9 @@ export class OrganizationService {
       //     id: data.productServiceSubCategoryId,
       //   });
       productServiceCreateArray.push({
-        ProductServiceCategoryId: productServices[i].categoryId,
-        ProductServiceSubCategoryId: productServices[i].subCategoryId,
+        ProductServiceCategoryId: productServices[i].productServiceCategoryId,
+        ProductServiceSubCategoryId:
+          productServices[i].productServiceSubCategoryId,
         link: 'l', // ochirib yuborish kerka
       });
     }
