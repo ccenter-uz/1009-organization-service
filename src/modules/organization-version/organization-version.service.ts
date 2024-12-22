@@ -137,7 +137,6 @@ export class OrganizationVersionService {
         mail: data.mail,
         name: data.name,
         secret: data.secret,
-        nearbyDescription: data.nearbyDescription,
         manager: data.manager,
         index: data.index,
         transport: data.transport,

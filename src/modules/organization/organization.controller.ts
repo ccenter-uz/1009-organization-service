@@ -16,6 +16,7 @@ import {
   ListQueryDto,
 } from 'types/global';
 import * as Multer from 'multer';
+import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 @Controller('organization')
 export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) { }
@@ -35,7 +36,7 @@ export class OrganizationController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     return this.organizationService.findAll(data);
   }

@@ -128,7 +128,7 @@ model ProductServiceCategory {
   createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
   updatedAt                          DateTime?                            @updatedAt @map("updated_at")
   deletedAt                          DateTime?                            @updatedAt @map("deleted_at")
-  product_service_sub_categories     ProductServiceSubCategory[]
+  Product_service_sub_categories     ProductServiceSubCategory[]
   ProductServiceCategoryTranslations ProductServiceCategoryTranslations[]
   // Organization                       Organization[]
   ProductServices                   ProductServices[]
@@ -145,7 +145,7 @@ model ProductServiceCategoryTranslations {
   createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                DateTime? @updatedAt @map("updated_at")
 
-  productServiceCategory ProductServiceCategory @relation(fields: [productServiceCategoryId], references: [id])
+  ProductServiceCategory ProductServiceCategory @relation(fields: [productServiceCategoryId], references: [id])
 
   @@map("product_service_category_translations")
 }
@@ -159,11 +159,12 @@ model ProductServiceSubCategory {
   updatedAt                DateTime? @updatedAt @map("updated_at")
   deletedAt                DateTime? @updatedAt @map("deleted_at")
 
-  productServiceCategory                ProductServiceCategory                  @relation(fields: [productServiceCategoryId], references: [id])
-  productServiceSubCategoryTranslations ProductServiceSubCategoryTranslations[]
-  // Organization                          Organization[]
-  ProductServices                       ProductServices[]
-  ProductServicesVersion                ProductServicesVersion[]
+
+  ProductServiceCategory                ProductServiceCategory                  @relation(fields: [productServiceCategoryId], references: [id])
+  ProductServiceSubCategoryTranslations ProductServiceSubCategoryTranslations[]
+  ProductServices     ProductServices[]
+
+  ProductServicesVersion   ProductServicesVersion[]
 
 
   @@map("product_service_sub_category")
@@ -177,7 +178,7 @@ model ProductServiceSubCategoryTranslations {
   createdAt                  DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                  DateTime? @updatedAt @map("updated_at")
 
-  productServiceSubCategory ProductServiceSubCategory @relation(fields: [productServicSubCategoryId], references: [id])
+  ProductServiceSubCategory ProductServiceSubCategory @relation(fields: [productServicSubCategoryId], references: [id])
 
   @@map("product_service_sub_category_translations")
 }
@@ -893,7 +894,6 @@ model PhoneTypesTranslations {
 
   @@map("phone_types_id_translations")
 }
-
 model Organization {
   id                          Int       @id @default(autoincrement())
   name                        String    @map("name") @db.VarChar()
@@ -915,7 +915,6 @@ model Organization {
   workTime                    Json      @map("work_time") @db.Json()
   transport                   Json      @map("transport") @db.Json()
   createdBy                   String    @map("created_by") @db.VarChar()
-  nearbyDescription           String    @map("nearby_description") @db.VarChar()
   mainOrganizationId          Int       @map("main_organization_id")
   subCategoryId               Int       @map("sub_category_id")
   regionId                    Int       @map("region_id")
@@ -935,6 +934,7 @@ model Organization {
   createdAt                   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                   DateTime? @updatedAt @map("updated_at")
   deletedAt                   DateTime? @map("deleted_at")
+
 
   MainOrganization          MainOrganization          @relation(fields: [mainOrganizationId], references: [id])
   SubCategory               SubCategory               @relation(fields: [subCategoryId], references: [id])
@@ -1009,7 +1009,6 @@ model Phone {
 
 model ProductServices {
   id                           Int                     @id @default(autoincrement())
-  link                         String                  @map("link") @db.VarChar()
   ProductServiceCategoryId     Int?                     @map("product_service_category_id")
   ProductServiceSubCategoryId  Int?                     @map("product_service_sub_category_id")
   OrganizationId               Int                      @map("organization_id")
@@ -1058,7 +1057,6 @@ model OrganizationVersion {
   workTime                    Json      @map("work_time") @db.Json()
   transport                   Json      @map("transport") @db.Json()
   createdBy                   String    @map("created_by") @db.VarChar()
-  nearbyDescription           String    @map("nearby_description") @db.VarChar()
   mainOrganizationId          Int       @map("main_organization_id") @db.Integer()
   subCategoryId               Int       @map("sub_category_id") @db.Integer()
   regionId                    Int       @map("region_id") @db.Integer()
