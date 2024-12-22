@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  UploadedFiles,
-} from '@nestjs/common';
+import { Controller, Post, Get, UploadedFiles } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
@@ -11,10 +6,7 @@ import {
   OrganizationInterfaces,
   OrganizationServiceCommands as Commands,
 } from 'types/organization/organization';
-import {
-  GetOneDto,
-  ListQueryDto,
-} from 'types/global';
+import { GetOneDto, ListQueryDto } from 'types/global';
 import * as Multer from 'multer';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 @Controller('organization')
@@ -29,7 +21,6 @@ export class OrganizationController {
     @Payload() data: OrganizationCreateDto,
     @UploadedFiles() files: Array<Multer.File>
   ): Promise<OrganizationInterfaces.Response> {
-    
     return this.organizationService.create(data);
   }
 
@@ -41,9 +32,19 @@ export class OrganizationController {
     return this.organizationService.findAll(data);
   }
 
+  @Get('all-my')
+  @MessagePattern({ cmd: Commands.GET_MY_LIST })
+  findMy(
+    @Payload() data: ListQueryDto
+  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
+    return this.organizationService.findMy(data);
+  }
+
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })
-  findOne(@Payload() data: GetOneDto): Promise<OrganizationInterfaces.Response> {
+  findOne(
+    @Payload() data: GetOneDto
+  ): Promise<OrganizationInterfaces.Response> {
     return this.organizationService.findOne(data);
   }
 
