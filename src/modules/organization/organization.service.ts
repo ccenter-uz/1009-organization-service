@@ -361,10 +361,10 @@ export class OrganizationService {
     }
 
     const whereWithLang: any = {
-      ...(data.status + '' == '2'
+      ...(data.status  == 2
         ? {}
         : {
-            status: data.status + '',
+            status: data.status,
           }),
       ...where,
     };

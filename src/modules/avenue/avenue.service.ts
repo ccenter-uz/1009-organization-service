@@ -428,6 +428,7 @@ export class AvenueService {
         cityId: data.cityId || avenue.cityId,
         districtId: data.districtId || avenue.districtId,
         staffNumber: data.staffNumber || avenue.staffNumber,
+        index: data.index || avenue.index,
         AvenueTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
