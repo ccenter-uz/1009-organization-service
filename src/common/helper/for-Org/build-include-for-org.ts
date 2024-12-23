@@ -1,5 +1,3 @@
-
-
 interface IncludeConfig {
   [key: string]: string[];
 }
@@ -32,7 +30,6 @@ export default function buildInclude(
     };
   }
 
-  // Добавляем статически включенные сущности, если нужно
   include.Picture = {
     select: {
       id: true,
@@ -79,6 +76,66 @@ export default function buildInclude(
       },
     },
   };
+  include.Nearbees = {
+    select: {
+      Nearby: {
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          NearbyTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  };
+  include.ProductServices = {
+    select: {
+      ProductServiceCategory: {
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          ProductServiceCategoryTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode, // langCode from request
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      },
+      ProductServiceSubCategory: {
+        select: {
+          ProductServiceCategory: true,
+          ProductServiceSubCategoryTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              name: true,
+              languageCode: true,
+            },
+          },
+        },
+      },
+    },
+  };
 
   return include;
 }
@@ -86,8 +143,6 @@ export default function buildInclude(
 export const includeConfig = {
   MainOrganization: [],
   SubCategory: ['SubCategoryTranslations'],
-  ProductServiceCategory: ['ProductServiceCategoryTranslations'],
-  ProductServiceSubCategory: ['ProductServiceSubCategoryTranslations'],
   Region: ['RegionTranslations'],
   City: ['CityTranslations'],
   District: [
@@ -131,6 +186,6 @@ export const includeConfig = {
     'ImpasseOldNameTranslations',
   ],
   Segment: ['SegmentTranslations'],
-  Nearby: ['NearbyTranslations'],
+
   Section: [],
 };
