@@ -944,7 +944,7 @@ model Organization {
   segmentId                   Int       @map("segment_id")
   sectionId                   Int       @map("section_id")
   passageId                   Int       @map("passage_id")
-  status                      String    @db.VarChar()
+  status                      Int       @map("status") @db.SmallInt()
   createdAt                   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                   DateTime? @updatedAt @map("updated_at")
   deletedAt                   DateTime? @map("deleted_at")
@@ -1087,7 +1087,7 @@ model OrganizationVersion {
   sectionId                   Int       @map("section_id") @db.Integer()
   passageId                   Int       @map("passage_id") @db.Integer()
   organizationId              Int       @map("organization_id") @db.Integer()
-  status                      String    @map("status") @db.VarChar()
+  status                      Int       @map("status") @db.SmallInt()
   createdAt                   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                   DateTime? @updatedAt @map("updated_at")
   deletedAt                   DateTime? @map("deleted_at")
