@@ -42,6 +42,7 @@ import buildInclude, {
   includeConfig,
 } from '@/common/helper/for-Org/build-include-for-org';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
+import { ConfirmDto } from 'types/organization/organization/dto/confirm-organization.dto';
 
 @Injectable()
 export class OrganizationService {
@@ -692,9 +693,44 @@ export class OrganizationService {
     return UpdateOrganization;
   }
 
-  async confirmOrg(data: OrganizationInterfaces.Update): Promise<any> {
+  async confirmOrg(data: ConfirmDto): Promise<any> {
     if (data.role == CreatedByEnum.Moderator) {
-      return await this.update(data.id);
+
+      if (data.status == OrganizationStatusEnum.Accepted) {
+        const organizationVersion =
+          await this.prisma.organizationVersion.findFirst({
+            where: {
+              organizationId: data.id,
+            },
+          });
+        await this.prisma.organizationVersion.update({
+          where: {
+            id: organizationVersion.id,
+          },
+          data: {
+            status: OrganizationStatusEnum.Accepted,
+          },
+        });
+
+        return await this.update(data.id);
+      } else if (data.status == OrganizationStatusEnum.Rejected) {
+        const organizationVersion =
+          await this.prisma.organizationVersion.findFirst({
+            where: {
+              organizationId: data.id,
+            },
+          });
+        await this.prisma.organizationVersion.update({
+          where: {
+            id: organizationVersion.id,
+          },
+          data: {
+            status: OrganizationStatusEnum.Rejected,
+          },
+        });
+
+        // return await this.update(data.id);
+      }
     }
   }
 

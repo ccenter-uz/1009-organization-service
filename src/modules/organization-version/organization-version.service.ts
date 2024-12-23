@@ -579,8 +579,8 @@ export class OrganizationVersionService {
       });
       PhotoLinkCreateVersionArray.push(...PhotoLinks);
     }
-    let role =
-      data.role == CreatedByEnum.Moderator
+    let status =
+      data.role == CreatedByEnum.Moderator && organizationVersion.staffNumber == data.staffNumber 
         ? OrganizationStatusEnum.Accepted
         : OrganizationStatusEnum.Check;
 
@@ -626,7 +626,7 @@ export class OrganizationVersionService {
           staffNumber: data.staffNumber || organizationVersion.staffNumber,
           description: data.description || organizationVersion.description,
           passageId: data.passageId || organizationVersion.passageId,
-          status: role,
+          status: status,
           createdBy: organizationVersion.createdBy,
           PaymentTypesVersion: {
             create: PaymentTypesVersionCreateArray,
@@ -653,7 +653,7 @@ export class OrganizationVersionService {
         },
       });
 
-    if (data.role == CreatedByEnum.Moderator) {
+    if (status == OrganizationStatusEnum.Accepted) {
       await this.organizationService.update(data.id);
     }
     return UpdateOrganizationVersion;
