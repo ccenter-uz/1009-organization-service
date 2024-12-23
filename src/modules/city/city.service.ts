@@ -70,7 +70,7 @@ export class CityService {
         },
         include: {
           Region: {
-            select: {
+            include: {
               RegionTranslations: {
                 where: data.allLang
                   ? {}
@@ -98,20 +98,28 @@ export class CityService {
         },
       });
 
-      const formattedSubCategories = [];
+      const formattedCity = [];
 
       for (let i = 0; i < cities.length; i++) {
-        const city = cities[i];
-        const translations = city.CityTranslations;
+        const formatedCity = cities[i];
+        const translations = formatedCity.CityTranslations;
         const name = formatLanguageResponse(translations);
-
-        delete city.CityTranslations;
-
-        formattedSubCategories.push({ ...city, name });
+  
+        delete formatedCity.CityTranslations;
+  
+        const regionTranslations = formatedCity.Region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+  
+        delete formatedCity.Region.RegionTranslations;
+  
+        const region = { ...formatedCity.Region, name: regionName };
+  
+        delete formatedCity.Region;
+  
+        formattedCity.push({ ...formatedCity, name, region });
       }
-
       return {
-        data: formattedSubCategories,
+        data: formattedCity,
         totalDocs: cities.length,
         totalPage: 1,
       };
@@ -180,7 +188,7 @@ export class CityService {
       skip: pagination.skip,
     });
 
-    const formattedSubCategories = [];
+    const formattedCity = [];
 
     for (let i = 0; i < city.length; i++) {
       const formatedCity = city[i];
@@ -198,11 +206,11 @@ export class CityService {
 
       delete formatedCity.Region;
 
-      formattedSubCategories.push({ ...formatedCity, name, region });
+      formattedCity.push({ ...formatedCity, name, region });
     }
 
     return {
-      data: formattedSubCategories,
+      data: formattedCity,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };

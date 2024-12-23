@@ -101,10 +101,7 @@ export default function buildInclude(
   include.ProductServices = {
     select: {
       ProductServiceCategory: {
-        select: {
-          id: true,
-          createdAt: true,
-          updatedAt: true,
+        include: {
           ProductServiceCategoryTranslations: {
             where: data.allLang
               ? {}
@@ -119,8 +116,7 @@ export default function buildInclude(
         },
       },
       ProductServiceSubCategory: {
-        select: {
-          ProductServiceCategory: true,
+        include: {
           ProductServiceSubCategoryTranslations: {
             where: data.allLang
               ? {}

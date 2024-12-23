@@ -204,11 +204,25 @@ export class DistrictService {
         delete districtData.DistrictNewNameTranslations;
         delete districtData.DistrictOldNameTranslations;
 
+        const regionTranslations = districtData.Region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete districtData.Region.RegionTranslations;
+        const region = { ...districtData.Region, name: regionName };
+        delete districtData.Region;
+  
+        const cityTranslations = districtData.City.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete districtData.City.CityTranslations;
+        const city = { ...districtData.City, name: cityName };
+        delete districtData.City;
+        
         formattedDistrict.push({
           ...districtData,
           name,
           newName: nameNew,
-          oldName: nameOld,
+          oldName: nameOld, 
+          region,
+          city,
         });
       }
 
