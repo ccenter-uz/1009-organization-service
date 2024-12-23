@@ -142,6 +142,11 @@ export class DistrictService {
           City: {
             include: {
               CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
                 select: {
                   languageCode: true,
                   name: true,

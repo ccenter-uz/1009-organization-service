@@ -92,6 +92,36 @@ export class NearbyService {
               name: true,
             },
           },
+          Region: {
+            include: {
+              RegionTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          City: {
+            include: {
+              CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -103,9 +133,23 @@ export class NearbyService {
         const name = formatLanguageResponse(translations);
         delete nearbyData.NearbyTranslations;
 
+        const regionTranslations = nearbyData.Region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete nearbyData.Region.RegionTranslations;
+        const region = { ...nearbyData.Region, name: regionName };
+        delete nearbyData.Region;
+
+        const cityTranslations = nearbyData.City.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete nearbyData.City.CityTranslations;
+        const city = { ...nearbyData.City, name: cityName };
+        delete nearbyData.City;
+
         formattedDistrict.push({
           ...nearbyData,
           name,
+          region,
+          city,
         });
       }
 
@@ -158,6 +202,31 @@ export class NearbyService {
             languageCode: true,
           },
         },
+        Region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        City: {
+          include: {
+            CityTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -172,9 +241,23 @@ export class NearbyService {
 
       delete nearbyData.NearbyTranslations;
 
+      const regionTranslations = nearbyData.Region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+      delete nearbyData.Region.RegionTranslations;
+      const region = { ...nearbyData.Region, name: regionName };
+      delete nearbyData.Region;
+
+      const cityTranslations = nearbyData.City.CityTranslations;
+      const cityName = formatLanguageResponse(cityTranslations);
+      delete nearbyData.City.CityTranslations;
+      const city = { ...nearbyData.City, name: cityName };
+      delete nearbyData.City;
+
       formattedNearby.push({
         ...nearbyData,
         name,
+        region,
+        city,
       });
     }
 
@@ -204,23 +287,57 @@ export class NearbyService {
           },
         },
         Region: {
-          select: {
-            RegionTranslations: true,
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
           },
         },
         City: {
-          select: {
-            CityTranslations: true,
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
           },
         },
       },
     });
+
     if (!nearby) {
       throw new NotFoundException('Nearby is not found');
     }
     const name = formatLanguageResponse(nearby.NearbyTranslations);
     delete nearby.NearbyTranslations;
-    return { ...nearby, name };
+
+    const regionTranslations = nearby.Region.RegionTranslations;
+    const regionName = formatLanguageResponse(regionTranslations);
+    delete nearby.Region.RegionTranslations;
+    const region = { ...nearby.Region, name: regionName };
+    delete nearby.Region;
+
+    const cityTranslations = nearby.City.CityTranslations;
+    const cityName = formatLanguageResponse(cityTranslations);
+    delete nearby.City.CityTranslations;
+    const city = { ...nearby.City, name: cityName };
+    delete nearby.City;
+
+    return { ...nearby, name, region, city };
   }
 
   async update(data: NearbyUpdateDto): Promise<NearbyInterfaces.Response> {
