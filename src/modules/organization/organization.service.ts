@@ -151,12 +151,12 @@ export class OrganizationService {
     for (let i = 0; i < productServices?.length; i++) {
       if (productServices[i].productServiceCategoryId) {
         await this.productServiceCategoryService.findOne({
-          id: data.productServiceCategoryId,
+          id: productServices[i].productServiceCategoryId,
         });
       }
       if (productServices[i].productServiceSubCategoryId) {
         await this.productServiceSubCategoryService.findOne({
-          id: data.productServiceSubCategoryId,
+          id: productServices[i].productServiceSubCategoryId,
         });
       }
 
