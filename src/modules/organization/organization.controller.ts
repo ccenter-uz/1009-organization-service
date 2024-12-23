@@ -1,4 +1,4 @@
-import { Controller, Post, Get, UploadedFiles } from '@nestjs/common';
+import { Controller, Post, Get, UploadedFiles, Put } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
@@ -11,8 +11,7 @@ import * as Multer from 'multer';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 @Controller('organization')
 export class OrganizationController {
-  constructor(private readonly organizationService: OrganizationService) { }
-  
+  constructor(private readonly organizationService: OrganizationService) {}
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
@@ -48,11 +47,15 @@ export class OrganizationController {
     return this.organizationService.findOne(data);
   }
 
-  // @Put()
-  // @MessagePattern({ cmd: Commands.UPDATE })
-  // update(@Payload() data: OrganizationUpdateDto): Promise<OrganizationInterfaces.Response> {
-  //   return this.organizationService.update(data);
-  // }
+  @Put()
+  @MessagePattern({ cmd: Commands.CONFIRM })
+  update(
+    @Payload() data: OrganizationInterfaces.Update
+  ): Promise<OrganizationInterfaces.Response> {
+
+    
+    return this.organizationService.confirmOrg(data);
+  }
 
   // @Delete()
   // @MessagePattern({ cmd: Commands.DELETE })

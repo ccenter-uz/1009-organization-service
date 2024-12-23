@@ -15,6 +15,7 @@ import {
   // OrganizationUpdateDto,
   OrganizationVersionInterfaces,
   OrganizationVersionServiceCommands as Commands,
+  OrganizationVersionUpdateDto,
 } from 'types/organization/organization-version';
 import {
   DeleteDto,
@@ -63,8 +64,10 @@ export class OrganizationVersionController {
   // }
 
   // @Put()
-  // @MessagePattern({ cmd: Commands.UPDATE })
-  // update(@Payload() data: OrganizationUpdateDto): Promise<OrganizationInterfaces.Response> {
+  // @MessagePattern({ cmd: Commands. })
+  // update(
+  //   @Payload() data: OrganizationVersionUpdateDto
+  // ): Promise<OrganizationVersionInterfaces.Update> {
   //   return this.organizationService.update(data);
   // }
 
