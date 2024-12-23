@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { OrganizationController } from './organization.controller';
 import { CityModule } from '../city/city.module';
@@ -19,9 +19,11 @@ import { NearbyModule } from '../nearby/nearby.module';
 import { SegmentModule } from '../segment/segment.module';
 import { SectionModule } from '../section/section.module';
 import { OrganizationVersionModule } from '../organization-version/organization-version.module';
+import { PhoneTypeModule } from '../phone-type/phone-type.module';
 
 @Module({
   imports: [
+    forwardRef(() => OrganizationVersionModule),
     MainOrganizationModule,
     SubCategoryModule,
     ProductServiceCategoryModule,
@@ -39,6 +41,7 @@ import { OrganizationVersionModule } from '../organization-version/organization-
     NearbyModule,
     SegmentModule,
     SectionModule,
+    PhoneTypeModule,
     OrganizationVersionModule,
   ],
   controllers: [OrganizationController],

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreatedByEnum,
@@ -29,10 +34,20 @@ import { NearbyService } from '../nearby/nearby.service';
 import { SegmentService } from '../segment/segment.service';
 import { SectionService } from '../section/section.service';
 import { OrganizationVersionService } from '../organization-version/organization-version.service';
+import { PhoneTypeService } from '../phone-type/phone-type.service';
+import formatOrganizationResponse, {
+  modulesConfig,
+} from '@/common/helper/for-Org/format-module-for-org';
+import buildInclude, {
+  includeConfig,
+} from '@/common/helper/for-Org/build-include-for-org';
+import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 
 @Injectable()
 export class OrganizationService {
   constructor(
+    @Inject(forwardRef(() => OrganizationVersionService))
+    private readonly organizationVersionService: OrganizationVersionService,
     private readonly prisma: PrismaService,
     private readonly mainOrganizationService: MainOrganizationService,
     private readonly subCategoryService: SubCategoryService,
@@ -51,7 +66,7 @@ export class OrganizationService {
     private readonly NearbyService: NearbyService,
     private readonly SegmentService: SegmentService,
     private readonly SectionService: SectionService,
-    private readonly organizationVersionService: OrganizationVersionService
+    private readonly PhoneTypeService: PhoneTypeService
   ) {}
 
   async create(
@@ -63,14 +78,7 @@ export class OrganizationService {
     const subCategory = await this.subCategoryService.findOne({
       id: data.subCategoryId,
     });
-    const productServiceCategory =
-      await this.productServiceCategoryService.findOne({
-        id: data.productServiceCategoryId,
-      });
-    const productServiceSubCategory =
-      await this.productServiceSubCategoryService.findOne({
-        id: data.productServiceSubCategoryId,
-      });
+
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -104,9 +112,7 @@ export class OrganizationService {
     const impasse = await this.ImpasseService.findOne({
       id: data.impasseId,
     });
-    const nearby = await this.NearbyService.findOne({
-      id: data.nearbyId,
-    });
+
     const segment = await this.SegmentService.findOne({
       id: data.segmentId,
     });
@@ -118,9 +124,46 @@ export class OrganizationService {
     let phoneCreateArray = [];
     let phones = data.phone['phones'];
     for (let i = 0; i < phones?.length; i++) {
+      const phoneType = await this.PhoneTypeService.findOne({
+        id: phones[i].phoneTypeId,
+      });
       phoneCreateArray.push({
         phone: phones[i].phone,
-        PhoneTypeId: phones[i].phoneId, // Yoki kerakli qiymatni qo'shish
+        PhoneTypeId: phoneType.id,
+        isSecret: phones[i].isSecret,
+      });
+    }
+
+    let nearbeesCreateArray = [];
+    let nearbees = data?.nearby['nearbees'];
+    for (let i = 0; i < nearbees?.length; i++) {
+      const nearby = await this.NearbyService.findOne({
+        id: nearbees[i].nearbyId,
+      });
+      nearbeesCreateArray.push({
+        description: nearbees[i].description,
+        NearbyId: nearby.id,
+      });
+    }
+
+    let productServiceCreateArray = [];
+    let productServices = data?.productService['productServices'];
+    for (let i = 0; i < productServices?.length; i++) {
+      if (productServices[i].productServiceCategoryId) {
+        await this.productServiceCategoryService.findOne({
+          id: data.productServiceCategoryId,
+        });
+      }
+      if (productServices[i].productServiceSubCategoryId) {
+        await this.productServiceSubCategoryService.findOne({
+          id: data.productServiceSubCategoryId,
+        });
+      }
+
+      productServiceCreateArray.push({
+        ProductServiceCategoryId: productServices[i].productServiceCategoryId,
+        ProductServiceSubCategoryId:
+          productServices[i].productServiceSubCategoryId,
       });
     }
 
@@ -136,15 +179,13 @@ export class OrganizationService {
         streetId: street.id,
         laneId: lane.id,
         impasseId: impasse.id,
-        nearbyId: nearby.id,
         segmentId: segment.id,
         sectionId: section.id,
         mainOrganizationId: mainOrganization.id,
         subCategoryId: subCategory.id,
-        productServiceCategoryId: productServiceCategory.id,
-        productServiceSubCategoryId: productServiceSubCategory.id,
+        description: data.description,
         account: data.account,
-        bank_number: data.bank_number,
+        bankNumber: data.bankNumber,
         address: data.address,
         apartment: data.apartment,
         home: data.home,
@@ -155,12 +196,12 @@ export class OrganizationService {
         mail: data.mail,
         name: data.name,
         secret: data.secret,
-        nearbyDescription: data.nearbyDescription,
-        maneger: data.maneger,
+        manager: data.manager,
         index: data.index,
         transport: data.transport,
         workTime: data.workTime,
         staffNumber: data.staffNumber,
+        passageId: data.passageId,
         status:
           data.role == CreatedByEnum.Moderator
             ? OrganizationStatusEnum.Accepted
@@ -179,90 +220,157 @@ export class OrganizationService {
           ],
         },
         Phone: {
-          create: [
-            { phone: '+998901234567', PhoneTypeId: 1 },
-            { phone: '+998907654321', PhoneTypeId: 1 },
-          ],
+          create: phoneCreateArray,
         },
         Picture: {
           create: data.PhotoLink,
         },
+        Nearbees: {
+          create: nearbeesCreateArray,
+        },
+        ProductServices: {
+          create: productServiceCreateArray,
+        },
+      },
+      include: {
+        PaymentTypes: true,
+        Phone: true,
+        Picture: true,
+        Nearbees: true,
+        ProductServices: true,
       },
     });
 
-    // this.organizationVersionService.create(organization);
+    await this.organizationVersionService.create(organization);
 
     return organization;
   }
 
   async findAll(
-    data: ListQueryDto
+    data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
+    const include = buildInclude(includeConfig, data);
+    const where: any = {};
+
+    if (data.address) {
+      where.address = { contains: data.address, mode: 'insensitive' };
+    }
+
+    if (data.apartment) {
+      where.apartment = { contains: data.apartment, mode: 'insensitive' };
+    }
+
+    if (data.categoryId) {
+      where.subCategoryId = data.categoryId;
+    }
+
+    if (data.categoryTuId) {
+      where.productServiceCategoryId = data.categoryTuId;
+    }
+
+    if (data.cityId) {
+      where.cityId = data.cityId;
+    }
+
+    if (data.districtId) {
+      where.districtId = data.districtId;
+    }
+
+    if (data.home) {
+      where.home = { contains: data.home, mode: 'insensitive' };
+    }
+
+    if (data.kvartal) {
+      where.kvartal = { contains: data.kvartal, mode: 'insensitive' };
+    }
+
+    if (data.mainOrg) {
+      where.mainOrganizationId = data.mainOrg;
+    }
+
+    if (data.name) {
+      where.name = { contains: data.name, mode: 'insensitive' };
+    }
+
+    if (data.nearbyId) {
+      where.nearbyId = data.nearbyId;
+    }
+
+    if (data.phone) {
+      where.Phone = {
+        some: { phone: { contains: data.phone, mode: 'insensitive' } },
+      };
+    }
+
+    if (data.phoneType) {
+      where.Phone = { some: { PhoneTypes: { id: data.phoneType } } };
+    }
+
+    if (data.regionId) {
+      where.regionId = data.regionId;
+    }
+
+    if (data.subCategoryId) {
+      where.subCategoryId = data.subCategoryId;
+    }
+
+    if (data.subCategoryTuId) {
+      where.productServiceSubCategoryId = data.subCategoryTuId;
+    }
+
+    if (data.villageId) {
+      where.villageId = data.villageId;
+    }
+
+    if (data.belongAbonent === true) {
+      where.createdBy = CreatedByEnum.Client;
+    }
+
+    if (data.bounded === true) {
+      where.createdBy = CreatedByEnum.Billing;
+    }
+
+    if (data.mine === true) {
+      where.staffNumber = data.staffNumber;
+    }
+
     if (data.all) {
       const organizations = await this.prisma.organization.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
-        include: {
-          Picture: {
-            select: {
-              id: true,
-              link: true,
-              createdAt: true,
-              updatedAt: true,
-            },
-          },
-          PaymentTypes: {
-            select: {
-              id: true,
-              Cash: true,
-              Terminal: true,
-              Transfer: true,
-              createdAt: true,
-              updatedAt: true,
-            },
-          },
-          Phone: {
-            select: {
-              id: true,
-              phone: true,
-              PhoneTypeId: true,
-              createdAt: true,
-              updatedAt: true,
-              PhoneTypes: {
-                select: {
-                  id: true,
-                  PhoneTypesTranslations: {
-                    select: {
-                      languageCode: true,
-                      name: true,
-                    },
-                  },
-                  createdAt: true,
-                  updatedAt: true,
-                  staffNumber: true,
-                },
-              },
-            },
-          },
-        },
+        include,
       });
+      const result = [];
+      for (let [index, org] of Object.entries(organizations)) {
+        for (let [key, prop] of Object.entries(includeConfig)) {
+          let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+          delete org?.[idNameOfModules];
+        }
+        const formattedOrganization = formatOrganizationResponse(
+          org,
+          modulesConfig
+        );
+        result.push(formattedOrganization);
+      }
 
       return {
-        data: organizations,
+        data: result,
         totalPage: 1,
         totalDocs: organizations.length,
       };
     }
 
-    const where: any = {
-      ...(data.status == 2
+    const whereWithLang: any = {
+      ...(data.status + '' == '2'
         ? {}
         : {
-            status: data.status,
+            status: data.status + '',
           }),
+      ...where,
     };
 
     if (data.search) {
-      where.StreetTranslations = {
+      whereWithLang.StreetTranslations = {
         some: {
           languageCode: data.langCode,
           name: {
@@ -271,8 +379,9 @@ export class OrganizationService {
         },
       };
     }
-    const count = await this.prisma.street.count({
-      where,
+
+    const count = await this.prisma.organization.count({
+      where: whereWithLang,
     });
 
     const pagination = createPagination({
@@ -282,191 +391,312 @@ export class OrganizationService {
     });
 
     const organization = await this.prisma.organization.findMany({
+      where: whereWithLang,
       orderBy: { createdAt: 'desc' },
-      include: {
-        Picture: {
-          select: {
-            id: true,
-            link: true,
-            createdAt: true,
-            updatedAt: true,
+      include,
+      take: pagination.take,
+      skip: pagination.skip,
+    });
+    const result = [];
+    for (let [index, org] of Object.entries(organization)) {
+      for (let [key, prop] of Object.entries(includeConfig)) {
+        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+        delete org?.[idNameOfModules];
+      }
+      const formattedOrganization = formatOrganizationResponse(
+        org,
+        modulesConfig
+      );
+      result.push(formattedOrganization);
+    }
+    return {
+      data: result,
+      totalPage: pagination.totalPage,
+      totalDocs: count,
+    };
+  }
+
+  async findMy(
+    data: ListQueryDto
+  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
+    const include = buildInclude(includeConfig, data);
+    const where = {
+      staffNumber: data.staffNumber,
+    };
+    if (data.all) {
+      const organizations = await this.prisma.organization.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include,
+      });
+      const result = [];
+      for (let [index, org] of Object.entries(organizations)) {
+        for (let [key, prop] of Object.entries(includeConfig)) {
+          let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+          delete org?.[idNameOfModules];
+        }
+        const formattedOrganization = formatOrganizationResponse(
+          org,
+          modulesConfig
+        );
+        result.push(formattedOrganization);
+      }
+      return {
+        data: result,
+        totalPage: 1,
+        totalDocs: organizations.length,
+      };
+    }
+
+    const whereWithLang: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+      ...where,
+    };
+
+    if (data.search) {
+      whereWithLang.StreetTranslations = {
+        some: {
+          languageCode: data.langCode,
+          name: {
+            contains: data.search,
           },
         },
-        PaymentTypes: {
-          select: {
-            id: true,
-            Cash: true,
-            Terminal: true,
-            Transfer: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-        Phone: {
-          select: {
-            id: true,
-            phone: true,
-            PhoneTypeId: true,
-            createdAt: true,
-            updatedAt: true,
-            PhoneTypes: {
-              select: {
-                id: true,
-                PhoneTypesTranslations: {
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
-                createdAt: true,
-                updatedAt: true,
-                staffNumber: true,
-              },
-            },
-          },
-        },
-      },
+      };
+    }
+
+    const count = await this.prisma.organization.count({
+      where: whereWithLang,
     });
 
+    const pagination = createPagination({
+      count,
+      page: data.page,
+      perPage: data.limit,
+    });
+
+    const organization = await this.prisma.organization.findMany({
+      where: whereWithLang,
+      orderBy: { createdAt: 'desc' },
+      include,
+      take: pagination.take,
+      skip: pagination.skip,
+    });
+
+    const result = [];
+
+    for (let [index, org] of Object.entries(organization)) {
+      for (let [key, prop] of Object.entries(includeConfig)) {
+        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+        delete org?.[idNameOfModules];
+      }
+
+      const formattedOrganization = formatOrganizationResponse(
+        org,
+        modulesConfig
+      );
+
+      result.push(formattedOrganization);
+    }
     return {
-      data: organization,
+      data: result,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
   }
 
   async findOne(data: GetOneDto): Promise<OrganizationInterfaces.Response> {
+    const include = buildInclude(includeConfig, data);
+
     const organization = await this.prisma.organization.findFirst({
       where: {
         id: data.id,
       },
       orderBy: { createdAt: 'desc' },
       include: {
-        Picture: {
-          select: {
-            id: true,
-            link: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-        PaymentTypes: {
-          select: {
-            id: true,
-            Cash: true,
-            Terminal: true,
-            Transfer: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-        Phone: {
-          select: {
-            id: true,
-            phone: true,
-            PhoneTypeId: true,
-            createdAt: true,
-            updatedAt: true,
-            PhoneTypes: {
-              select: {
-                id: true,
-                PhoneTypesTranslations: {
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
-                createdAt: true,
-                updatedAt: true,
-                staffNumber: true,
-              },
-            },
-          },
-        },
+        ...include,
       },
     });
+    for (let [key, prop] of Object.entries(includeConfig)) {
+      let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+      delete organization?.[idNameOfModules];
+    }
     if (!organization) {
       throw new NotFoundException('Street is not found');
     }
 
-    return { ...organization };
+    let formattedOrganization = formatOrganizationResponse(
+      organization,
+      modulesConfig
+    );
+
+    return formattedOrganization;
   }
 
-  // async update(
-  //   data: OrganizationUpdateDto
-  // ): Promise<OrganizationInterfaces.Response> {
-  //   const street = await this.findOne({ id: data.id });
+  async update(id: number): Promise<any> {
+    const organizationVersion = await this.prisma.organizationVersion.findFirst(
+      {
+        where: {
+          organizationId: id,
+        },
+        include: {
+          PaymentTypesVersion: true,
+          PhoneVersion: true,
+          PictureVersion: true,
+          ProductServicesVersion: true,
+          NearbeesVersion: true,
+        },
+      }
+    );
 
-  //   if (data.regionId) {
-  //     await this.regionService.findOne({ id: data.regionId });
-  //   }
+    let PhoneCreateArray = [];
+    let phones = organizationVersion.PhoneVersion;
 
-  //   if (data.cityId) {
-  //     await this.cityService.findOne({ id: data.cityId });
-  //   }
+    await this.prisma.phone.deleteMany({
+      where: {
+        OrganizationId: organizationVersion.organizationId,
+      },
+    });
+    for (let i = 0; i < phones?.length; i++) {
+      PhoneCreateArray.push({
+        phone: phones[i].phone,
+        PhoneTypeId: phones[i].PhoneTypeId,
+        isSecret: phones[i].isSecret,
+      });
+    }
+    let nearbeesCreateArray = [];
+    let nearbees = organizationVersion.NearbeesVersion;
 
-  //   if (data.districtId) {
-  //     await this.districtService.findOne({ id: data.districtId });
-  //   }
+    await this.prisma.nearbees.deleteMany({
+      where: {
+        OrganizationId: organizationVersion.organizationId,
+      },
+    });
+    for (let i = 0; i < nearbees?.length; i++) {
+      nearbeesCreateArray.push({
+        description: nearbees[i].description,
+        NearbyId: nearbees[i].NearbyId,
+      });
+    }
 
-  //   const translationUpdates = [];
-  //   const translationNewNameUpdates = [];
-  //   const translationOldNameUpdates = [];
+    let productServiceCreateArray = [];
+    let productServices = organizationVersion?.ProductServicesVersion;
+    await this.prisma.productServices.deleteMany({
+      where: {
+        OrganizationId: organizationVersion.organizationId,
+      },
+    });
+    for (let i = 0; i < productServices?.length; i++) {
+      productServiceCreateArray.push({
+        ProductServiceCategoryId: productServices[i].ProductServiceCategoryId,
+        ProductServiceSubCategoryId:
+          productServices[i].ProductServiceSubCategoryId,
+      });
+    }
 
-  //   if (data.name?.[LanguageRequestEnum.RU]) {
-  //     translationUpdates.push({
-  //       where: { languageCode: LanguageRequestEnum.RU },
-  //       data: { name: data.name[LanguageRequestEnum.RU] },
-  //     });
-  //   }
+    let PaymentTypesCreateArray = [];
 
-  //   if (data.name?.[LanguageRequestEnum.UZ]) {
-  //     translationUpdates.push({
-  //       where: { languageCode: LanguageRequestEnum.UZ },
-  //       data: { name: data.name[LanguageRequestEnum.UZ] },
-  //     });
-  //   }
+    await this.prisma.paymentTypes.deleteMany({
+      where: {
+        OrganizationId: organizationVersion.organizationId,
+      },
+    });
+    PaymentTypesCreateArray.push({
+      Cash: organizationVersion.PaymentTypesVersion[0].Cash,
+      Terminal: organizationVersion.PaymentTypesVersion[0].Terminal,
+      Transfer: organizationVersion.PaymentTypesVersion[0].Transfer,
+    });
 
-  //   if (data.name?.[LanguageRequestEnum.CY]) {
-  //     translationUpdates.push({
-  //       where: { languageCode: LanguageRequestEnum.CY },
-  //       data: { name: data.name[LanguageRequestEnum.CY] },
-  //     });
-  //   }
+    let PhotoLinkCreateArray = [];
 
-  //   // return await this.prisma.street.update({
-  //   //   where: {
-  //   //     id: street.id,
-  //   //   },
-  //   //   data: {
-  //   //     regionId: data.regionId || street.regionId,
-  //   //     cityId: data.cityId || street.cityId,
-  //   //     districtId: data.districtId || street.districtId,
-  //   //     staffNumber: data.staffNumber || street.staffNumber,
-  //   //     StreetTranslations: {
-  //   //       updateMany:
-  //   //         translationUpdates.length > 0 ? translationUpdates : undefined,
-  //   //     },
-  //   //     StreetNewNameTranslations: {
-  //   //       updateMany:
-  //   //         translationNewNameUpdates.length > 0
-  //   //           ? translationNewNameUpdates
-  //   //           : undefined,
-  //   //     },
-  //   //     StreetOldNameTranslations: {
-  //   //       updateMany:
-  //   //         translationOldNameUpdates.length > 0
-  //   //           ? translationOldNameUpdates
-  //   //           : undefined,
-  //   //     },
-  //   //   },
-  //   //   include: {
-  //   //     StreetTranslations: true,
-  //   //     StreetNewNameTranslations: true,
-  //   //     StreetOldNameTranslations: true,
-  //   //   },
-  //   // });
-  // }
+    let PhotoLinks = organizationVersion?.PictureVersion;
+
+    await this.prisma.picture.deleteMany({
+      where: {
+        OrganizationId: organizationVersion.organizationId,
+      },
+    });
+    for (let i = 0; i < PhotoLinks?.length; i++) {
+      PhotoLinkCreateArray.push({
+        link: PhotoLinks[i].link,
+      });
+    }
+
+    const UpdateOrganization = await this.prisma.organization.update({
+      where: {
+        id: id,
+      },
+      data: {
+        regionId: organizationVersion.regionId,
+        cityId: organizationVersion.cityId,
+        districtId: organizationVersion.districtId,
+        villageId: organizationVersion.villageId,
+        avenueId: organizationVersion.avenueId,
+        residentialId: organizationVersion.residentialId,
+        areaId: organizationVersion.areaId,
+        streetId: organizationVersion.streetId,
+        laneId: organizationVersion.laneId,
+        impasseId: organizationVersion.impasseId,
+        segmentId: organizationVersion.segmentId,
+        sectionId: organizationVersion.sectionId,
+        mainOrganizationId: organizationVersion.mainOrganizationId,
+        subCategoryId: organizationVersion.subCategoryId,
+        account: organizationVersion.account,
+        bankNumber: organizationVersion.bankNumber,
+        address: organizationVersion.address,
+        apartment: organizationVersion.apartment,
+        home: organizationVersion.home,
+        clientId: organizationVersion.clientId,
+        inn: organizationVersion.inn,
+        kvartal: organizationVersion.kvartal,
+        legalName: organizationVersion.legalName,
+        mail: organizationVersion.mail,
+        name: organizationVersion.name,
+        secret: organizationVersion.secret,
+        manager: organizationVersion.manager,
+        index: organizationVersion.index,
+        transport: organizationVersion.transport,
+        workTime: organizationVersion.workTime,
+        staffNumber: organizationVersion.staffNumber,
+        description: organizationVersion.description,
+        passageId: organizationVersion.passageId,
+        status: OrganizationStatusEnum.Accepted,
+        PaymentTypes: {
+          create: PaymentTypesCreateArray,
+        },
+        Phone: {
+          create: PhoneCreateArray,
+        },
+        Picture: {
+          create: PhotoLinkCreateArray,
+        },
+        ProductServices: {
+          create: productServiceCreateArray,
+        },
+        Nearbees: {
+          create: nearbeesCreateArray,
+        },
+      },
+      include: {
+        PaymentTypes: true,
+        Phone: true,
+        Picture: true,
+        ProductServices: true,
+        Nearbees: true,
+      },
+    });
+
+    return UpdateOrganization;
+  }
+
+  async confirmOrg(data: OrganizationInterfaces.Update): Promise<any> {
+    if (data.role == CreatedByEnum.Moderator) {
+      return await this.update(data.id);
+    }
+  }
 
   // async remove(data: DeleteDto): Promise<OrganizationInterfaces.Response> {
   //   if (data.delete) {

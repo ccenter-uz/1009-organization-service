@@ -13,8 +13,9 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
   // OrganizationCreateDto,
   // OrganizationUpdateDto,
-OrganizationVersionInterfaces,
+  OrganizationVersionInterfaces,
   OrganizationVersionServiceCommands as Commands,
+  OrganizationVersionUpdateDto,
 } from 'types/organization/organization-version';
 import {
   DeleteDto,
@@ -30,17 +31,15 @@ export class OrganizationVersionController {
     private readonly organizationService: OrganizationVersionService
   ) {}
 
-  // @Post()
-  // @MessagePattern({ cmd: Commands.CREATE })
-  // // @UseInterceptors(FilesInterceptor('photos'))
-  // create(
-  //   @Payload() data: OrganizationVersionInterfaces.Request,
-  //   @UploadedFiles() files: Array<Multer.File>
-  // ): Promise<OrganizationVersionInterfaces.Response> {
-
-  // /*  */
-  //   return this.organizationService.create(data);
-  // }
+  @Post()
+  @MessagePattern({ cmd: Commands.CREATE })
+  // @UseInterceptors(FilesInterceptor('photos'))
+  create(
+    @Payload() data: OrganizationVersionInterfaces.Request,
+    @UploadedFiles() files: Array<Multer.File>
+  ): Promise<OrganizationVersionInterfaces.Response> {
+    return this.organizationService.create(data);
+  }
 
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
@@ -65,8 +64,10 @@ export class OrganizationVersionController {
   // }
 
   // @Put()
-  // @MessagePattern({ cmd: Commands.UPDATE })
-  // update(@Payload() data: OrganizationUpdateDto): Promise<OrganizationInterfaces.Response> {
+  // @MessagePattern({ cmd: Commands. })
+  // update(
+  //   @Payload() data: OrganizationVersionUpdateDto
+  // ): Promise<OrganizationVersionInterfaces.Update> {
   //   return this.organizationService.update(data);
   // }
 

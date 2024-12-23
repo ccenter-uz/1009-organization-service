@@ -179,7 +179,7 @@ export class SubCategoryService {
     const subCategory = await this.prisma.subCategory.findFirst({
       where: {
         id: data.id,
-        status: DefaultStatus.ACTIVE,
+        status: DefaultStatus.ACTIVE
       },
       include: {
         category: true,
