@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreatedByEnum,
@@ -30,11 +35,18 @@ import { ImpasseService } from '../impasse/impasse.service';
 import { NearbyService } from '../nearby/nearby.service';
 import { SegmentService } from '../segment/segment.service';
 import { SectionService } from '../section/section.service';
-import { OrganizationVersionInterfaces } from 'types/organization/organization-version';
+import {
+  OrganizationVersionInterfaces,
+  OrganizationVersionUpdateDto,
+} from 'types/organization/organization-version';
+import { OrganizationService } from '../organization/organization.service';
+import { PhoneTypeService } from '../phone-type/phone-type.service';
 
 @Injectable()
 export class OrganizationVersionService {
   constructor(
+    @Inject(forwardRef(() => OrganizationService))
+    private readonly organizationService: OrganizationService,
     private readonly prisma: PrismaService,
     private readonly mainOrganizationService: MainOrganizationService,
     private readonly subCategoryService: SubCategoryService,
@@ -43,40 +55,75 @@ export class OrganizationVersionService {
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
     private readonly districtService: DistrictService,
-    private readonly VillageService: VillageService,
-    private readonly AvenueService: AvenueService,
-    private readonly ResidentialAreaService: ResidentialAreaService,
-    private readonly AreaService: AreaService,
-    private readonly StreetService: StreetService,
-    private readonly LaneService: LaneService,
-    private readonly ImpasseService: ImpasseService,
-    private readonly NearbyService: NearbyService,
-    private readonly SegmentService: SegmentService,
-    private readonly SectionService: SectionService
+    private readonly villageService: VillageService,
+    private readonly avenueService: AvenueService,
+    private readonly residentialAreaService: ResidentialAreaService,
+    private readonly areaService: AreaService,
+    private readonly streetService: StreetService,
+    private readonly laneService: LaneService,
+    private readonly impasseService: ImpasseService,
+    private readonly nearbyService: NearbyService,
+    private readonly segmentService: SegmentService,
+    private readonly sectionService: SectionService,
+    private readonly phoneTypeService: PhoneTypeService
   ) {}
 
-  async create(data: OrganizationVersionInterfaces.Request): Promise<any> {
-    let phones = data.phone;
-    const updatedPhones = [];
+  async create(
+    data: OrganizationVersionInterfaces.Request
+  ): Promise<OrganizationVersionInterfaces.Response> {
+    let phones = data['Phone'] || [];
+    const createdPhonesVersion = [];
 
-    for (const phone of phones) {
-      updatedPhones.push({
-        ...phone,
-        action: OrganizationVersionActionsEnum.GET, // Qo'shmoqchi bo'lgan action qiymatini bu yerda yozasiz
+    for (let i = 0; i < phones?.length; i++) {
+      createdPhonesVersion.push({
+        phone: phones[i].phone,
+        PhoneTypeId: phones[i].PhoneTypeId,
+        isSecret: phones[i].isSecret,
+        // phoneAction: OrganizationVersionActionsEnum.GET,
       });
     }
-    const updatedPictures = [];
+    const createdPicturesVersion = [];
     let pictures = data.Picture;
 
-    for (const picture of pictures) {
-      updatedPictures.push({
-        ...picture,
-        action: OrganizationVersionActionsEnum.GET, // Bu yerda action qiymatini belgilang
+    for (let i = 0; i < pictures?.length; i++) {
+      createdPicturesVersion.push({
+        link: pictures[i].link,
+        //  pictureAction: OrganizationVersionActionsEnum.GET,
       });
     }
 
-    /*  const organization = await this.prisma.organizationVersion.create({
+    let nearbeesCreateVersionArray = [];
+    let nearbees = data['Nearbees'];
+    for (let i = 0; i < nearbees?.length; i++) {
+      //  const nearby = await this.NearbyService.findOne({
+      //    id: nearbees[i].nearbyId,
+      //  });
+      nearbeesCreateVersionArray.push({
+        description: nearbees[i].description,
+        NearbyId: nearbees[i].NearbyId,
+      });
+    }
+
+    let productServiceCreateVersionArray = [];
+    let productServices = data['ProductServices'];
+    for (let i = 0; i < productServices?.length; i++) {
+      productServiceCreateVersionArray.push({
+        ProductServiceCategoryId: productServices[i].ProductServiceCategoryId,
+        ProductServiceSubCategoryId:
+          productServices[i].ProductServiceSubCategoryId,
+      });
+    }
+    let PymentTypesVersion = [
+      {
+        Cash: data['PaymentTypes'][0].Cash,
+        Terminal: data['PaymentTypes'][0].Terminal,
+        Transfer: data['PaymentTypes'][0].Transfer,
+      },
+    ];
+
+    const organizationVersion = await this.prisma.organizationVersion.create({
       data: {
+        organizationId: data.id,
         regionId: data.regionId,
         cityId: data.cityId,
         districtId: data.districtId,
@@ -87,15 +134,12 @@ export class OrganizationVersionService {
         streetId: data.streetId,
         laneId: data.laneId,
         impasseId: data.impasseId,
-        nearbyId: data.nearbyId,
         segmentId: data.segmentId,
         sectionId: data.sectionId,
         mainOrganizationId: data.mainOrganizationId,
         subCategoryId: data.subCategoryId,
-        productServiceCategoryId: data.productServiceCategoryId,
-        productServiceSubCategoryId: data.productServiceSubCategoryId,
         account: data.account,
-        bank_number: data.bank_number,
+        bankNumber: data.bankNumber,
         address: data.address,
         apartment: data.apartment,
         home: data.home,
@@ -106,39 +150,41 @@ export class OrganizationVersionService {
         mail: data.mail,
         name: data.name,
         secret: data.secret,
-        nearbyDescription: data.nearbyDescription,
-        maneger: data.maneger,
+        manager: data.manager,
         index: data.index,
         transport: data.transport,
         workTime: data.workTime,
         staffNumber: data.staffNumber,
+        description: data.description,
+        passageId: data.passageId,
         status: data.status,
         createdBy: data.createdBy,
         PaymentTypesVersion: {
-          create: [
-            {
-              paymentAction: 'create',
-              Cash: data.paymentTypes.cash,
-              Terminal: data.paymentTypes.terminal,
-              Transfer: data.paymentTypes.transfer,
-            },
-          ],
-        }, 
+          create: PymentTypesVersion,
+        },
         PhoneVersion: {
-          create: updatedPhones,
+          create: createdPhonesVersion,
         },
         PictureVersion: {
-          create: updatedPictures,
+          create: createdPicturesVersion,
+        },
+        ProductServicesVersion: {
+          create: productServiceCreateVersionArray,
+        },
+        NearbeesVersion: {
+          create: nearbeesCreateVersionArray,
         },
       },
       include: {
         PaymentTypesVersion: true,
         PhoneVersion: true,
         PictureVersion: true,
+        ProductServicesVersion: true,
+        NearbeesVersion: true,
       },
-    }); */
+    });
 
-    // return organization;
+    return organizationVersion;
   }
 
   async findAll(
@@ -352,81 +398,266 @@ export class OrganizationVersionService {
     return { ...organization };
   }
 
-  // async update(
-  //   data: OrganizationUpdateDto
-  // ): Promise<OrganizationInterfaces.Response> {
-  //   const street = await this.findOne({ id: data.id });
+  async update(
+    data: OrganizationVersionUpdateDto
+  ): Promise<OrganizationVersionInterfaces.Response> {
+    const organizationVersion = await this.prisma.organizationVersion.findFirst(
+      {
+        where: {
+          organizationId: data.id,
+        },
+        include: {
+          PaymentTypesVersion: true,
+          PhoneVersion: true,
+          PictureVersion: true,
+          ProductServicesVersion: true,
+          NearbeesVersion: true,
+        },
+      }
+    );
 
-  //   if (data.regionId) {
-  //     await this.regionService.findOne({ id: data.regionId });
-  //   }
+    if (!organizationVersion) {
+      throw new NotFoundException('Orgnization version is not found');
+    }
 
-  //   if (data.cityId) {
-  //     await this.cityService.findOne({ id: data.cityId });
-  //   }
+    if (data.mainOrganizationId) {
+      await this.mainOrganizationService.findOne({
+        id: data.mainOrganizationId,
+      });
+    }
 
-  //   if (data.districtId) {
-  //     await this.districtService.findOne({ id: data.districtId });
-  //   }
+    if (data.subCategoryId) {
+      await this.subCategoryService.findOne({
+        id: data.subCategoryId,
+      });
+    }
+    if (data.regionId) {
+      await this.regionService.findOne({
+        id: data.regionId,
+      });
+    }
+    if (data.cityId) {
+      await this.cityService.findOne({
+        id: data.cityId,
+      });
+    }
+    if (data.districtId) {
+      await this.districtService.findOne({
+        id: data.districtId,
+      });
+    }
+    if (data.villageId) {
+      await this.villageService.findOne({
+        id: data.villageId,
+      });
+    }
+    if (data.avenueId) {
+      await this.avenueService.findOne({
+        id: data.avenueId,
+      });
+    }
+    if (data.residentialId) {
+      await this.residentialAreaService.findOne({
+        id: data.residentialId,
+      });
+    }
+    if (data.areaId) {
+      await this.areaService.findOne({
+        id: data.areaId,
+      });
+    }
+    if (data.streetId) {
+      await this.streetService.findOne({
+        id: data.streetId,
+      });
+    }
 
-  //   const translationUpdates = [];
-  //   const translationNewNameUpdates = [];
-  //   const translationOldNameUpdates = [];
+    if (data.laneId) {
+      await this.laneService.findOne({ id: data.laneId });
+    }
 
-  //   if (data.name?.[LanguageRequestEnum.RU]) {
-  //     translationUpdates.push({
-  //       where: { languageCode: LanguageRequestEnum.RU },
-  //       data: { name: data.name[LanguageRequestEnum.RU] },
-  //     });
-  //   }
+    if (data.impasseId) {
+      await this.impasseService.findOne({ id: data.impasseId });
+    }
 
-  //   if (data.name?.[LanguageRequestEnum.UZ]) {
-  //     translationUpdates.push({
-  //       where: { languageCode: LanguageRequestEnum.UZ },
-  //       data: { name: data.name[LanguageRequestEnum.UZ] },
-  //     });
-  //   }
+    if (data.segmentId) {
+      await this.segmentService.findOne({ id: data.segmentId });
+    }
+    if (data.sectionId) {
+      await this.sectionService.findOne({ id: data.sectionId });
+    }
 
-  //   if (data.name?.[LanguageRequestEnum.CY]) {
-  //     translationUpdates.push({
-  //       where: { languageCode: LanguageRequestEnum.CY },
-  //       data: { name: data.name[LanguageRequestEnum.CY] },
-  //     });
-  //   }
+    let PhoneCreateVersionArray = [];
+    let phones = data.phone['phones'];
+    if (phones.length > 0) {
+      await this.prisma.phoneVersion.deleteMany({
+        where: {
+          OrganizationVersionId: organizationVersion.id,
+        },
+      });
+      for (let i = 0; i < phones?.length; i++) {
+        const phoneType = await this.phoneTypeService.findOne({
+          id: phones[i].phoneTypeId,
+        });
+        PhoneCreateVersionArray.push({
+          phone: phones[i].phone,
+          PhoneTypeId: phoneType.id,
+          isSecret: phones[i].isSecret,
+        });
+      }
+    }
 
-  //   // return await this.prisma.street.update({
-  //   //   where: {
-  //   //     id: street.id,
-  //   //   },
-  //   //   data: {
-  //   //     regionId: data.regionId || street.regionId,
-  //   //     cityId: data.cityId || street.cityId,
-  //   //     districtId: data.districtId || street.districtId,
-  //   //     staffNumber: data.staffNumber || street.staffNumber,
-  //   //     StreetTranslations: {
-  //   //       updateMany:
-  //   //         translationUpdates.length > 0 ? translationUpdates : undefined,
-  //   //     },
-  //   //     StreetNewNameTranslations: {
-  //   //       updateMany:
-  //   //         translationNewNameUpdates.length > 0
-  //   //           ? translationNewNameUpdates
-  //   //           : undefined,
-  //   //     },
-  //   //     StreetOldNameTranslations: {
-  //   //       updateMany:
-  //   //         translationOldNameUpdates.length > 0
-  //   //           ? translationOldNameUpdates
-  //   //           : undefined,
-  //   //     },
-  //   //   },
-  //   //   include: {
-  //   //     StreetTranslations: true,
-  //   //     StreetNewNameTranslations: true,
-  //   //     StreetOldNameTranslations: true,
-  //   //   },
-  //   // });
-  // }
+    let nearbeesCreateVersionArray = [];
+    let nearbees = data?.nearby['nearbees'];
+    if (nearbees.length > 0) {
+      await this.prisma.nearbeesVersion.deleteMany({
+        where: {
+          OrganizationVersionId: organizationVersion.id,
+        },
+      });
+      for (let i = 0; i < nearbees?.length; i++) {
+        const nearby = await this.nearbyService.findOne({
+          id: nearbees[i].nearbyId,
+        });
+        nearbeesCreateVersionArray.push({
+          description: nearbees[i].description,
+          NearbyId: nearby.id,
+        });
+      }
+    }
+
+    let productServiceCreateArray = [];
+    let productServices = data?.productService['productServices'];
+    if (productServices.length > 0) {
+      await this.prisma.productServicesVersion.deleteMany({
+        where: {
+          OrganizationVersionId: organizationVersion.id,
+        },
+      });
+      for (let i = 0; i < productServices?.length; i++) {
+        if (productServices[i].productServiceCategoryId) {
+          await this.productServiceCategoryService.findOne({
+            id: data.productServiceCategoryId,
+          });
+        }
+        if (productServices[i].productServiceSubCategoryId) {
+          await this.productServiceSubCategoryService.findOne({
+            id: data.productServiceSubCategoryId,
+          });
+        }
+
+        productServiceCreateArray.push({
+          ProductServiceCategoryId: productServices[i].productServiceCategoryId,
+          ProductServiceSubCategoryId:
+            productServices[i].productServiceSubCategoryId,
+        });
+      }
+    }
+
+    let PaymentTypesVersionCreateArray = [];
+    if (data.paymentTypes) {
+      await this.prisma.paymentTypesVersion.deleteMany({
+        where: {
+          OrganizationVersionId: organizationVersion.id,
+        },
+      });
+      PaymentTypesVersionCreateArray.push({
+        Cash: data.paymentTypes.cash,
+        Terminal: data.paymentTypes.terminal,
+        Transfer: data.paymentTypes.transfer,
+      });
+    }
+
+    let PhotoLinkCreateVersionArray = [...data.PhotoLink];
+
+    let PhotoLinks = data?.picture['pictures'];
+    if (PhotoLinks.length > 0) {
+      await this.prisma.pictureVersion.deleteMany({
+        where: {
+          OrganizationVersionId: organizationVersion.id,
+        },
+      });
+      PhotoLinkCreateVersionArray.push(...PhotoLinks);
+    }
+    let role =
+      data.role == CreatedByEnum.Moderator
+        ? OrganizationStatusEnum.Accepted
+        : OrganizationStatusEnum.Check;
+
+    const UpdateOrganizationVersion =
+      await this.prisma.organizationVersion.update({
+        where: {
+          id: organizationVersion.id,
+        },
+        data: {
+          regionId: data.regionId || organizationVersion.regionId,
+          cityId: data.cityId || organizationVersion.cityId,
+          districtId: data.districtId || organizationVersion.districtId,
+          villageId: data.villageId || organizationVersion.villageId,
+          avenueId: data.avenueId || organizationVersion.avenueId,
+          residentialId:
+            data.residentialId || organizationVersion.residentialId,
+          areaId: data.areaId || organizationVersion.areaId,
+          streetId: data.streetId || organizationVersion.streetId,
+          laneId: data.laneId || organizationVersion.laneId,
+          impasseId: data.impasseId || organizationVersion.impasseId,
+          segmentId: data.segmentId || organizationVersion.segmentId,
+          sectionId: data.sectionId || organizationVersion.sectionId,
+          mainOrganizationId:
+            data.mainOrganizationId || organizationVersion.mainOrganizationId,
+          subCategoryId:
+            data.subCategoryId || organizationVersion.subCategoryId,
+          account: data.account || organizationVersion.account,
+          bankNumber: data.bankNumber || organizationVersion.bankNumber,
+          address: data.address || organizationVersion.address,
+          apartment: data.apartment || organizationVersion.apartment,
+          home: data.home || organizationVersion.home,
+          clientId: data.clientId || organizationVersion.clientId,
+          inn: data.inn || organizationVersion.inn,
+          kvartal: data.kvartal || organizationVersion.kvartal,
+          legalName: data.legalName || organizationVersion.legalName,
+          mail: data.mail || organizationVersion.mail,
+          name: data.name || organizationVersion.name,
+          secret: data.secret || organizationVersion.secret,
+          manager: data.manager || organizationVersion.manager,
+          index: data.index || organizationVersion.index,
+          transport: data.transport || organizationVersion.transport,
+          workTime: data.workTime || organizationVersion.workTime,
+          staffNumber: data.staffNumber || organizationVersion.staffNumber,
+          description: data.description || organizationVersion.description,
+          passageId: data.passageId || organizationVersion.passageId,
+          status: role,
+          createdBy: organizationVersion.createdBy,
+          PaymentTypesVersion: {
+            create: PaymentTypesVersionCreateArray,
+          },
+          PhoneVersion: {
+            create: PhoneCreateVersionArray,
+          },
+          PictureVersion: {
+            create: PhotoLinkCreateVersionArray,
+          },
+          ProductServicesVersion: {
+            create: productServiceCreateArray,
+          },
+          NearbeesVersion: {
+            create: nearbeesCreateVersionArray,
+          },
+        },
+        include: {
+          PaymentTypesVersion: true,
+          PhoneVersion: true,
+          PictureVersion: true,
+          ProductServicesVersion: true,
+          NearbeesVersion: true,
+        },
+      });
+
+    if (data.role == CreatedByEnum.Moderator) {
+      await this.organizationService.update(data.id);
+    }
+    return UpdateOrganizationVersion;
+  }
 
   // async remove(data: DeleteDto): Promise<OrganizationInterfaces.Response> {
   //   if (data.delete) {
