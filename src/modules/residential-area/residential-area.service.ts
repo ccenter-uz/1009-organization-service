@@ -4,7 +4,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -13,15 +12,19 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
-import { ResidentialAreaCreateDto, ResidentialAreaInterfaces, ResidentialAreaUpdateDto } from 'types/organization/residential-area';
+import {
+  ResidentialAreaCreateDto,
+  ResidentialAreaInterfaces,
+  ResidentialAreaUpdateDto,
+} from 'types/organization/residential-area';
 @Injectable()
 export class ResidentialAreaService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
-    private readonly districtService: DistrictService,
-  ) { }
+    private readonly districtService: DistrictService
+  ) {}
 
   async create(
     data: ResidentialAreaCreateDto
@@ -32,16 +35,19 @@ export class ResidentialAreaService {
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
-    const district = await this.districtService.findOne({
-      id: data.districtId,
-    });
+    let district;
+    if (data.districtId) {
+      district = await this.districtService.findOne({
+        id: data.districtId,
+      });
+    }
     const residentialArea = await this.prisma.residentialArea.create({
       data: {
         regionId: region.id,
         cityId: city.id,
-        districtId: district.id,
+        ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
-        staffId: data.staffId,
+        staffNumber: data.staffNumber,
         ResidentialAreaTranslations: {
           create: [
             {
@@ -62,15 +68,15 @@ export class ResidentialAreaService {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
-              name: data.new_name[LanguageRequestEnum.RU],
+              name: data.newName[LanguageRequestEnum.RU],
             },
             {
               languageCode: LanguageRequestEnum.UZ,
-              name: data.new_name[LanguageRequestEnum.UZ],
+              name: data.newName[LanguageRequestEnum.UZ],
             },
             {
               languageCode: LanguageRequestEnum.CY,
-              name: data.new_name[LanguageRequestEnum.CY],
+              name: data.newName[LanguageRequestEnum.CY],
             },
           ],
         },
@@ -78,18 +84,18 @@ export class ResidentialAreaService {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
-              name: data.old_name[LanguageRequestEnum.RU],
+              name: data.oldName[LanguageRequestEnum.RU],
             },
             {
               languageCode: LanguageRequestEnum.UZ,
-              name: data.old_name[LanguageRequestEnum.UZ],
+              name: data.oldName[LanguageRequestEnum.UZ],
             },
             {
               languageCode: LanguageRequestEnum.CY,
-              name: data.old_name[LanguageRequestEnum.CY],
+              name: data.oldName[LanguageRequestEnum.CY],
             },
           ],
-        }
+        },
       },
       include: {
         ResidentialAreaTranslations: true,
@@ -101,83 +107,96 @@ export class ResidentialAreaService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<ResidentialAreaInterfaces.ResponseWithoutPagination> {
-    const residentialAreas = await this.prisma.residentialArea.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        ResidentialAreaTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        ResidentialAreaOldNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        ResidentialAreaNewNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedResidentialArea = [];
-
-    for (let i = 0; i < residentialAreas.length; i++) {
-      const residentialAreaData = residentialAreas[i];
-      const translations = residentialAreaData.ResidentialAreaTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = residentialAreaData.ResidentialAreaNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = residentialAreaData.ResidentialAreaOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-      delete residentialAreaData.ResidentialAreaTranslations;
-      delete residentialAreaData.ResidentialAreaNewNameTranslations;
-      delete residentialAreaData.ResidentialAreaOldNameTranslations;
-
-      formattedResidentialArea.push({
-        ...residentialAreaData,
-        name,
-        new_name: nameNew,
-        old_name: nameOld,
-      });
-    }
-
-    return {
-      data: formattedResidentialArea,
-      totalDocs: residentialAreas.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<ResidentialAreaInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const residentialAreas = await this.prisma.residentialArea.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          ResidentialAreaTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          ResidentialAreaOldNameTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          ResidentialAreaNewNameTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedResidentialArea = [];
+
+      for (let i = 0; i < residentialAreas.length; i++) {
+        const residentialAreaData = residentialAreas[i];
+        const translations = residentialAreaData.ResidentialAreaTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew =
+          residentialAreaData.ResidentialAreaNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld =
+          residentialAreaData.ResidentialAreaOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete residentialAreaData.ResidentialAreaTranslations;
+        delete residentialAreaData.ResidentialAreaNewNameTranslations;
+        delete residentialAreaData.ResidentialAreaOldNameTranslations;
+
+        formattedResidentialArea.push({
+          ...residentialAreaData,
+          name,
+          newName: nameNew,
+          oldName: nameOld,
+        });
+      }
+
+      return {
+        data: formattedResidentialArea,
+        totalDocs: residentialAreas.length,
+        totalPage: 1,
+      };
+    }
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.ResidentialAreaTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -199,33 +218,33 @@ export class ResidentialAreaService {
       orderBy: { createdAt: 'desc' },
       include: {
         ResidentialAreaTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             name: true,
             languageCode: true,
           },
         },
         ResidentialAreaNewNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             name: true,
             languageCode: true,
           },
         },
         ResidentialAreaOldNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -242,9 +261,11 @@ export class ResidentialAreaService {
       const residentialAreaData = residentialAreas[i];
       const translations = residentialAreaData.ResidentialAreaTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = residentialAreaData.ResidentialAreaNewNameTranslations;
+      const translationsNew =
+        residentialAreaData.ResidentialAreaNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = residentialAreaData.ResidentialAreaOldNameTranslations;
+      const translationsOld =
+        residentialAreaData.ResidentialAreaOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
 
       delete residentialAreaData.ResidentialAreaTranslations;
@@ -254,8 +275,8 @@ export class ResidentialAreaService {
       formattedResidentialArea.push({
         ...residentialAreaData,
         name,
-        new_name: nameNew,
-        old_name: nameOld,
+        newName: nameNew,
+        oldName: nameOld,
       });
     }
 
@@ -274,33 +295,33 @@ export class ResidentialAreaService {
       },
       include: {
         ResidentialAreaTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             languageCode: true,
             name: true,
           },
         },
         ResidentialAreaNewNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             languageCode: true,
             name: true,
           },
         },
         ResidentialAreaOldNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -311,17 +332,24 @@ export class ResidentialAreaService {
     if (!residentialArea) {
       throw new NotFoundException('ResidentialArea is not found');
     }
-    const name = formatLanguageResponse(residentialArea.ResidentialAreaTranslations);
+    const name = formatLanguageResponse(
+      residentialArea.ResidentialAreaTranslations
+    );
     const nameNew = formatLanguageResponse(
       residentialArea.ResidentialAreaNewNameTranslations
     );
     const nameOld = formatLanguageResponse(
       residentialArea.ResidentialAreaOldNameTranslations
     );
-    return { ...residentialArea, name, new_name: nameNew, old_name: nameOld };
+    delete residentialArea.ResidentialAreaNewNameTranslations;
+    delete residentialArea.ResidentialAreaOldNameTranslations;
+    delete residentialArea.ResidentialAreaTranslations;
+    return { ...residentialArea, name, newName: nameNew, oldName: nameOld };
   }
 
-  async update(data: ResidentialAreaUpdateDto): Promise<ResidentialAreaInterfaces.Response> {
+  async update(
+    data: ResidentialAreaUpdateDto
+  ): Promise<ResidentialAreaInterfaces.Response> {
     const residentialArea = await this.findOne({ id: data.id });
 
     if (data.regionId) {
@@ -360,45 +388,45 @@ export class ResidentialAreaService {
         data: { name: data.name[LanguageRequestEnum.CY] },
       });
     }
-    if (data.new_name?.[LanguageRequestEnum.RU]) {
+    if (data.newName?.[LanguageRequestEnum.RU]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.RU },
-        data: { name: data.new_name[LanguageRequestEnum.RU] },
+        data: { name: data.newName[LanguageRequestEnum.RU] },
       });
     }
 
-    if (data.new_name?.[LanguageRequestEnum.UZ]) {
+    if (data.newName?.[LanguageRequestEnum.UZ]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.UZ },
-        data: { name: data.new_name[LanguageRequestEnum.UZ] },
+        data: { name: data.newName[LanguageRequestEnum.UZ] },
       });
     }
 
-    if (data.new_name?.[LanguageRequestEnum.CY]) {
+    if (data.newName?.[LanguageRequestEnum.CY]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.CY },
-        data: { name: data.new_name[LanguageRequestEnum.CY] },
+        data: { name: data.newName[LanguageRequestEnum.CY] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.RU]) {
+    if (data.oldName?.[LanguageRequestEnum.RU]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.RU },
-        data: { name: data.old_name[LanguageRequestEnum.RU] },
+        data: { name: data.oldName[LanguageRequestEnum.RU] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.UZ]) {
+    if (data.oldName?.[LanguageRequestEnum.UZ]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.UZ },
-        data: { name: data.old_name[LanguageRequestEnum.UZ] },
+        data: { name: data.oldName[LanguageRequestEnum.UZ] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.CY]) {
+    if (data.oldName?.[LanguageRequestEnum.CY]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.CY },
-        data: { name: data.old_name[LanguageRequestEnum.CY] },
+        data: { name: data.oldName[LanguageRequestEnum.CY] },
       });
     }
 
@@ -410,7 +438,7 @@ export class ResidentialAreaService {
         regionId: data.regionId || residentialArea.regionId,
         cityId: data.cityId || residentialArea.cityId,
         districtId: data.districtId || residentialArea.districtId,
-        staffId: data.staffId || residentialArea.staffId,
+        staffNumber: data.staffNumber || residentialArea.staffNumber,
         ResidentialAreaTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

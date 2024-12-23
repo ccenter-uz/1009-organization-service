@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import {} from 'types/organization/district';
 import {
   NearbyCreateDto,
   NearbyUpdateDto,
@@ -10,7 +9,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -70,53 +68,109 @@ export class NearbyService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<NearbyInterfaces.ResponseWithoutPagination> {
-    const district = await this.prisma.nearby.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        NearbyTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-                languageCode: data.lang_code,
-              },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedDistrict = [];
-
-    for (let i = 0; i < district.length; i++) {
-      const nearbyData = district[i];
-      const translations = nearbyData.NearbyTranslations;
-      const name = formatLanguageResponse(translations);
-      delete nearbyData.NearbyTranslations;
-
-      formattedDistrict.push({
-        ...nearbyData,
-        name,
-      });
-    }
-
-    return {
-      data: formattedDistrict,
-      totalDocs: district.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<NearbyInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const nearby = await this.prisma.nearby.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          NearbyTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          Region: {
+            include: {
+              RegionTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          City: {
+            include: {
+              CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const formattedDistrict = [];
+
+      for (let i = 0; i < nearby.length; i++) {
+        const nearbyData = nearby[i];
+        const translations = nearbyData.NearbyTranslations;
+        const name = formatLanguageResponse(translations);
+        delete nearbyData.NearbyTranslations;
+
+        const regionTranslations = nearbyData.Region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete nearbyData.Region.RegionTranslations;
+        const region = { ...nearbyData.Region, name: regionName };
+        delete nearbyData.Region;
+
+        const cityTranslations = nearbyData.City.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete nearbyData.City.CityTranslations;
+        const city = { ...nearbyData.City, name: cityName };
+        delete nearbyData.City;
+
+        formattedDistrict.push({
+          ...nearbyData,
+          name,
+          region,
+          city,
+        });
+      }
+
+      return {
+        data: formattedDistrict,
+        totalDocs: nearby.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.NearbyTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -138,14 +192,39 @@ export class NearbyService {
       orderBy: { createdAt: 'desc' },
       include: {
         NearbyTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             name: true,
             languageCode: true,
+          },
+        },
+        Region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        City: {
+          include: {
+            CityTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
           },
         },
       },
@@ -162,9 +241,23 @@ export class NearbyService {
 
       delete nearbyData.NearbyTranslations;
 
+      const regionTranslations = nearbyData.Region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+      delete nearbyData.Region.RegionTranslations;
+      const region = { ...nearbyData.Region, name: regionName };
+      delete nearbyData.Region;
+
+      const cityTranslations = nearbyData.City.CityTranslations;
+      const cityName = formatLanguageResponse(cityTranslations);
+      delete nearbyData.City.CityTranslations;
+      const city = { ...nearbyData.City, name: cityName };
+      delete nearbyData.City;
+
       formattedNearby.push({
         ...nearbyData,
         name,
+        region,
+        city,
       });
     }
 
@@ -176,31 +269,75 @@ export class NearbyService {
   }
 
   async findOne(data: GetOneDto): Promise<NearbyInterfaces.Response> {
-    const district = await this.prisma.nearby.findFirst({
+    const nearby = await this.prisma.nearby.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
       include: {
         NearbyTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code,
+                languageCode: data.langCode,
               },
           select: {
             languageCode: true,
             name: true,
           },
         },
+        Region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        City: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
-    if (!district) {
+
+    if (!nearby) {
       throw new NotFoundException('Nearby is not found');
     }
-    const name = formatLanguageResponse(district.NearbyTranslations);
+    const name = formatLanguageResponse(nearby.NearbyTranslations);
+    delete nearby.NearbyTranslations;
 
-    return { ...district, name };
+    const regionTranslations = nearby.Region.RegionTranslations;
+    const regionName = formatLanguageResponse(regionTranslations);
+    delete nearby.Region.RegionTranslations;
+    const region = { ...nearby.Region, name: regionName };
+    delete nearby.Region;
+
+    const cityTranslations = nearby.City.CityTranslations;
+    const cityName = formatLanguageResponse(cityTranslations);
+    delete nearby.City.CityTranslations;
+    const city = { ...nearby.City, name: cityName };
+    delete nearby.City;
+
+    return { ...nearby, name, region, city };
   }
 
   async update(data: NearbyUpdateDto): Promise<NearbyInterfaces.Response> {

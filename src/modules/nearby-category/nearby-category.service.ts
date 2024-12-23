@@ -20,11 +20,13 @@ import {
 export class NearbyCategoryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: NearbyCategoryCreateDto): Promise<NearbyCategoryInterfaces.Response> {
+  async create(
+    data: NearbyCategoryCreateDto
+  ): Promise<NearbyCategoryInterfaces.Response> {
     // const mainOrganization = await this.prisma.mainOrganization
     const nearbyCategory = await this.prisma.nearbyCategory.create({
       data: {
-        staffNumber : data.staffNumber,
+        staffNumber: data.staffNumber,
         name: data.name,
       },
     });
@@ -32,22 +34,34 @@ export class NearbyCategoryService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<NearbyCategoryInterfaces.ResponseWithoutPagination> {
-    const nearbyCategry = await this.prisma.nearbyCategory.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return {
-      data: nearbyCategry,
-      totalDocs: nearbyCategry.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<NearbyCategoryInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const nearbyCategry = await this.prisma.nearbyCategory.findMany({
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return {
+        data: nearbyCategry,
+        totalDocs: nearbyCategry.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
 
     if (data.search) {
       where.name = {
@@ -63,10 +77,10 @@ export class NearbyCategoryService {
       page: data.page,
       perPage: data.limit,
     });
-console.log(where);
+
 
     const nearby = await this.prisma.nearbyCategory.findMany({
-      where: { status: DefaultStatus.ACTIVE },
+      where,
       orderBy: { createdAt: 'desc' },
       take: pagination.take,
       skip: pagination.skip,
@@ -94,7 +108,9 @@ console.log(where);
     return nearbyCategry;
   }
 
-  async update(data: NearbyCategoryUpdateDto): Promise<NearbyCategoryInterfaces.Response> {
+  async update(
+    data: NearbyCategoryUpdateDto
+  ): Promise<NearbyCategoryInterfaces.Response> {
     const nearbyCategry = await this.findOne({ id: data.id });
 
     return await this.prisma.nearbyCategory.update({

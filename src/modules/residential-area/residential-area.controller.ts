@@ -16,7 +16,9 @@ import {
 
 @Controller('residential-area')
 export class ResidentialAreaController {
-  constructor(private readonly residentialAreaService: ResidentialAreaService) { }
+  constructor(
+    private readonly residentialAreaService: ResidentialAreaService
+  ) {}
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
@@ -29,22 +31,16 @@ export class ResidentialAreaController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<ResidentialAreaInterfaces.ResponseWithoutPagination> {
     return this.residentialAreaService.findAll(data);
   }
 
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<ResidentialAreaInterfaces.ResponseWithPagination> {
-    return this.residentialAreaService.findAllByPagination(data);
-  }
-
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })
-  findOne(@Payload() data: GetOneDto): Promise<ResidentialAreaInterfaces.Response> {
+  findOne(
+    @Payload() data: GetOneDto
+  ): Promise<ResidentialAreaInterfaces.Response> {
     return this.residentialAreaService.findOne(data);
   }
 
@@ -58,13 +54,17 @@ export class ResidentialAreaController {
 
   @Delete()
   @MessagePattern({ cmd: Commands.DELETE })
-  remove(@Payload() data: DeleteDto): Promise<ResidentialAreaInterfaces.Response> {
+  remove(
+    @Payload() data: DeleteDto
+  ): Promise<ResidentialAreaInterfaces.Response> {
     return this.residentialAreaService.remove(data);
   }
 
   @Patch()
   @MessagePattern({ cmd: Commands.RESTORE })
-  restore(@Payload() data: GetOneDto): Promise<ResidentialAreaInterfaces.Response> {
+  restore(
+    @Payload() data: GetOneDto
+  ): Promise<ResidentialAreaInterfaces.Response> {
     return this.residentialAreaService.restore(data);
   }
 }

@@ -48,49 +48,60 @@ export class SegmentService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<SegmentInterfaces.ResponseWithoutPagination> {
-    const segments = await this.prisma.segment.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        SegmentTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-                languageCode: data.lang_code, // lang_code from request
-              },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedSegment = segments.map((segment) => {
-      const translations = segment.SegmentTranslations;
-
-      const name = formatLanguageResponse(translations);
-      delete segment.SegmentTranslations;
-
-      return { ...segment, name };
-    });
-
-    return {
-      data: formattedSegment,
-      totalDocs: segments.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<SegmentInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const segments = await this.prisma.segment.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          SegmentTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode, // langCode from request
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedSegment = segments.map((segment) => {
+        const translations = segment.SegmentTranslations;
+
+        const name = formatLanguageResponse(translations);
+        delete segment.SegmentTranslations;
+
+        return { ...segment, name };
+      });
+
+      return {
+        data: formattedSegment,
+        totalDocs: segments.length,
+        totalPage: 1,
+      };
+    }
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
 
     if (data.search) {
       where.SegmentTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -99,7 +110,7 @@ export class SegmentService {
     }
 
     const count = await this.prisma.segment.count({
-      where
+      where,
     });
 
     const pagination = createPagination({
@@ -113,10 +124,10 @@ export class SegmentService {
       orderBy: { createdAt: 'desc' },
       include: {
         SegmentTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code, // lang_code from request
+                languageCode: data.langCode, // langCode from request
               },
           select: {
             languageCode: true,
@@ -152,10 +163,10 @@ export class SegmentService {
       },
       include: {
         SegmentTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-                languageCode: data.lang_code, // lang_code from request
+                languageCode: data.langCode, // langCode from request
               },
           select: {
             languageCode: true,

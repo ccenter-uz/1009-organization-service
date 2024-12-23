@@ -1,12 +1,11 @@
+import { ProductServiceSubCategoryFilterDto } from './../../../types/organization/product-service-sub-category/dto/filter-product-service-sub-category.dto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
-  ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
@@ -20,21 +19,21 @@ import {
 export class ProductServiceSubCategoryService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly productServiceCategoryService: ProductServiceCategoryService
+    private readonly ProductServiceCategoryService: ProductServiceCategoryService
   ) {}
 
   async create(
     data: ProductServiceSubCategoryCreateDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
-    const productServiceCategory =
-      await this.productServiceCategoryService.findOne({
+    const ProductServiceCategory =
+      await this.ProductServiceCategoryService.findOne({
         id: data.productServiceCategoryId,
       });
     const subCategory = await this.prisma.productServiceSubCategory.create({
       data: {
         staffNumber: data.staffNumber,
-        productServiceCategoryId: productServiceCategory.id,
-        productServiceSubCategoryTranslations: {
+        productServiceCategoryId: ProductServiceCategory.id,
+        ProductServiceSubCategoryTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -52,59 +51,76 @@ export class ProductServiceSubCategoryService {
         },
       },
       include: {
-        productServiceSubCategoryTranslations: true,
+        ProductServiceCategory: true,
+        ProductServiceSubCategoryTranslations: true,
       },
     });
     return subCategory;
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithoutPagination> {
-    const productServiceSubCategories =
-      await this.prisma.productServiceSubCategory.findMany({
-        orderBy: { createdAt: 'desc' },
-        include: {
-          productServiceSubCategoryTranslations: {
-            where: data.all_lang
+    data: ProductServiceSubCategoryFilterDto
+  ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
+    if (data.all) {
+      const ProductServiceSubCategories =
+        await this.prisma.productServiceSubCategory.findMany({
+          orderBy: { createdAt: 'desc' },
+          where: {
+            ...(data.status == 2
               ? {}
               : {
-                  languageCode: data.lang_code,
-                },
-            select: {
-              languageCode: true,
-              name: true,
+                  status: data.status,
+                }),
+            productServiceCategoryId: data.categoryId,
+          },
+
+          include: {
+            ProductServiceCategory: true,
+            ProductServiceSubCategoryTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
             },
           },
-        },
-      });
+        });
 
-    const formattedSubCategories = [];
+      const formattedSubCategories = [];
 
-    for (let i = 0; i < productServiceSubCategories.length; i++) {
-      const subCategory = productServiceSubCategories[i];
-      const translations = subCategory.productServiceSubCategoryTranslations;
-      const name = formatLanguageResponse(translations);
+      for (let i = 0; i < ProductServiceSubCategories.length; i++) {
+        const subCategory = ProductServiceSubCategories[i];
+        const translations = subCategory.ProductServiceSubCategoryTranslations;
+        const name = formatLanguageResponse(translations);
 
-      delete subCategory.productServiceSubCategoryTranslations;
+        delete subCategory.ProductServiceSubCategoryTranslations;
 
-      formattedSubCategories.push({ ...subCategory, name });
+        formattedSubCategories.push({ ...subCategory, name });
+      }
+
+      return {
+        data: formattedSubCategories,
+        totalDocs: ProductServiceSubCategories.length,
+        totalPage: 1,
+      };
     }
 
-    return {
-      data: formattedSubCategories,
-      totalDocs: productServiceSubCategories.length,
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+      productServiceCategoryId: data.categoryId,
     };
-  }
-
-  async findAllByPagination(
-    data: ListQueryDto
-  ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
     if (data.search) {
-      where.productServiceSubCategoryTranslations = {
+      where.ProductServiceSubCategoryTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -121,16 +137,31 @@ export class ProductServiceSubCategoryService {
       perPage: data.limit,
     });
 
-    const productServiceSubCategories =
+    const ProductServiceSubCategories =
       await this.prisma.productServiceSubCategory.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         include: {
-          productServiceSubCategoryTranslations: {
-            where: data.all_lang
+          ProductServiceCategory: {
+            include: {
+              ProductServiceCategoryTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode, // langCode from request
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          ProductServiceSubCategoryTranslations: {
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               name: true,
@@ -144,14 +175,22 @@ export class ProductServiceSubCategoryService {
 
     const formattedSubCategories = [];
 
-    for (let i = 0; i < productServiceSubCategories.length; i++) {
-      const subCategory = productServiceSubCategories[i];
-      const translations = subCategory.productServiceSubCategoryTranslations;
+    for (let i = 0; i < ProductServiceSubCategories.length; i++) {
+      const subCategory = ProductServiceSubCategories[i];
+      const translations = subCategory.ProductServiceSubCategoryTranslations;
       const name = formatLanguageResponse(translations);
 
-      delete subCategory.productServiceSubCategoryTranslations;
-
-      formattedSubCategories.push({ ...subCategory, name });
+      const category = ProductServiceSubCategories[i].ProductServiceCategory;
+      const categoryTranslations = category.ProductServiceCategoryTranslations;
+      const categoryName = formatLanguageResponse(categoryTranslations);
+      delete ProductServiceSubCategories[i].ProductServiceCategory
+        .ProductServiceCategoryTranslations;
+      delete subCategory.ProductServiceSubCategoryTranslations;
+      formattedSubCategories.push({
+        ...subCategory,
+        name,
+        ProductServiceCategory: { ...category, name: { ...categoryName } },
+      });
     }
 
     return {
@@ -164,18 +203,19 @@ export class ProductServiceSubCategoryService {
   async findOne(
     data: GetOneDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
-    const productServiceSubCategory =
+    const ProductServiceSubCategory =
       await this.prisma.productServiceSubCategory.findFirst({
         where: {
           id: data.id,
           status: DefaultStatus.ACTIVE,
         },
         include: {
-          productServiceSubCategoryTranslations: {
-            where: data.all_lang
+          ProductServiceCategory: true,
+          ProductServiceSubCategoryTranslations: {
+            where: data.allLang
               ? {}
               : {
-                  languageCode: data.lang_code,
+                  languageCode: data.langCode,
                 },
             select: {
               languageCode: true,
@@ -184,22 +224,23 @@ export class ProductServiceSubCategoryService {
           },
         },
       });
-    if (!productServiceSubCategory) {
+    if (!ProductServiceSubCategory) {
       throw new NotFoundException('SubCategory is not found');
     }
     const name = formatLanguageResponse(
-      productServiceSubCategory.productServiceSubCategoryTranslations
+      ProductServiceSubCategory.ProductServiceSubCategoryTranslations
     );
-    return { ...productServiceSubCategory, name };
+    delete ProductServiceSubCategory.ProductServiceSubCategoryTranslations;
+    return { ...ProductServiceSubCategory, name };
   }
 
   async update(
     data: ProductServiceSubCategoryUpdateDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
-    const productServiceSubCategory = await this.findOne({ id: data.id });
+    const ProductServiceSubCategory = await this.findOne({ id: data.id });
 
     if (data.productServiceCategoryId) {
-      await this.productServiceCategoryService.findOne({
+      await this.ProductServiceCategoryService.findOne({
         id: data.productServiceCategoryId,
       });
     }
@@ -229,21 +270,22 @@ export class ProductServiceSubCategoryService {
 
     return await this.prisma.productServiceSubCategory.update({
       where: {
-        id: productServiceSubCategory.id,
+        id: ProductServiceSubCategory.id,
       },
       data: {
-        staffNumber: data.staffNumber || productServiceSubCategory.staffNumber,
+        staffNumber: data.staffNumber || ProductServiceSubCategory.staffNumber,
         productServiceCategoryId:
           data.productServiceCategoryId ||
-          productServiceSubCategory.productServiceCategoryId,
+          ProductServiceSubCategory.productServiceCategoryId,
 
-        productServiceSubCategoryTranslations: {
+        ProductServiceSubCategoryTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
         },
       },
       include: {
-        productServiceSubCategoryTranslations: true,
+        ProductServiceCategory: true,
+        ProductServiceSubCategoryTranslations: true,
       },
     });
   }
@@ -255,7 +297,8 @@ export class ProductServiceSubCategoryService {
       return await this.prisma.productServiceSubCategory.delete({
         where: { id: data.id },
         include: {
-          productServiceSubCategoryTranslations: {
+          ProductServiceCategory: true,
+          ProductServiceSubCategoryTranslations: {
             select: {
               languageCode: true,
               name: true,
@@ -269,7 +312,8 @@ export class ProductServiceSubCategoryService {
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
-        productServiceSubCategoryTranslations: {
+        ProductServiceCategory: true,
+        ProductServiceSubCategoryTranslations: {
           select: {
             languageCode: true,
             name: true,
@@ -289,7 +333,8 @@ export class ProductServiceSubCategoryService {
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-        productServiceSubCategoryTranslations: {
+        ProductServiceCategory: true,
+        ProductServiceSubCategoryTranslations: {
           select: {
             languageCode: true,
             name: true,

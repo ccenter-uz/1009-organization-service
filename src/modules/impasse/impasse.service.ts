@@ -4,7 +4,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -13,35 +12,40 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
-import { ImpasseCreateDto, ImpasseInterfaces, ImpasseUpdateDto } from 'types/organization/impasse';
+import {
+  ImpasseCreateDto,
+  ImpasseInterfaces,
+  ImpasseUpdateDto,
+} from 'types/organization/impasse';
 @Injectable()
 export class ImpasseService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
-    private readonly districtService: DistrictService,
-  ) { }
+    private readonly districtService: DistrictService
+  ) {}
 
-  async create(
-    data: ImpasseCreateDto
-  ): Promise<ImpasseInterfaces.Response> {
+  async create(data: ImpasseCreateDto): Promise<ImpasseInterfaces.Response> {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
-    const district = await this.districtService.findOne({
-      id: data.districtId,
-    });
+    let district;
+    if (data.districtId) {
+      district = await this.districtService.findOne({
+        id: data.districtId,
+      });
+    }
     const impasse = await this.prisma.impasse.create({
       data: {
         regionId: region.id,
         cityId: city.id,
-        districtId: district.id,
+        ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
-        staffId: data.staffId,
+        staffNumber: data.staffNumber,
         ImpasseTranslations: {
           create: [
             {
@@ -62,15 +66,15 @@ export class ImpasseService {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
-              name: data.new_name[LanguageRequestEnum.RU],
+              name: data.newName[LanguageRequestEnum.RU],
             },
             {
               languageCode: LanguageRequestEnum.UZ,
-              name: data.new_name[LanguageRequestEnum.UZ],
+              name: data.newName[LanguageRequestEnum.UZ],
             },
             {
               languageCode: LanguageRequestEnum.CY,
-              name: data.new_name[LanguageRequestEnum.CY],
+              name: data.newName[LanguageRequestEnum.CY],
             },
           ],
         },
@@ -78,18 +82,18 @@ export class ImpasseService {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
-              name: data.old_name[LanguageRequestEnum.RU],
+              name: data.oldName[LanguageRequestEnum.RU],
             },
             {
               languageCode: LanguageRequestEnum.UZ,
-              name: data.old_name[LanguageRequestEnum.UZ],
+              name: data.oldName[LanguageRequestEnum.UZ],
             },
             {
               languageCode: LanguageRequestEnum.CY,
-              name: data.old_name[LanguageRequestEnum.CY],
+              name: data.oldName[LanguageRequestEnum.CY],
             },
           ],
-        }
+        },
       },
       include: {
         ImpasseTranslations: true,
@@ -101,83 +105,95 @@ export class ImpasseService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<ImpasseInterfaces.ResponseWithoutPagination> {
-    const impasses = await this.prisma.impasse.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        ImpasseTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        ImpasseOldNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        ImpasseNewNameTranslations: {
-          where: data.all_lang
-            ? {}
-            : {
-              languageCode: data.lang_code,
-            },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    const formattedImpasse = [];
-
-    for (let i = 0; i < impasses.length; i++) {
-      const impasseData = impasses[i];
-      const translations = impasseData.ImpasseTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = impasseData.ImpasseNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = impasseData.ImpasseOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-      delete impasseData.ImpasseTranslations;
-      delete impasseData.ImpasseNewNameTranslations;
-      delete impasseData.ImpasseOldNameTranslations;
-
-      formattedImpasse.push({
-        ...impasseData,
-        name,
-        new_name: nameNew,
-        old_name: nameOld,
-      });
-    }
-
-    return {
-      data: formattedImpasse,
-      totalDocs: impasses.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<ImpasseInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const impasses = await this.prisma.impasse.findMany({
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        include: {
+          ImpasseTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          ImpasseOldNameTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+          ImpasseNewNameTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const formattedImpasse = [];
+
+      for (let i = 0; i < impasses.length; i++) {
+        const impasseData = impasses[i];
+        const translations = impasseData.ImpasseTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = impasseData.ImpasseNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = impasseData.ImpasseOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete impasseData.ImpasseTranslations;
+        delete impasseData.ImpasseNewNameTranslations;
+        delete impasseData.ImpasseOldNameTranslations;
+
+        formattedImpasse.push({
+          ...impasseData,
+          name,
+          newName: nameNew,
+          oldName: nameOld,
+        });
+      }
+
+      return {
+        data: formattedImpasse,
+        totalDocs: impasses.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
     if (data.search) {
       where.ImpasseTranslations = {
         some: {
-          languageCode: data.lang_code,
+          languageCode: data.langCode,
           name: {
             contains: data.search,
           },
@@ -199,33 +215,33 @@ export class ImpasseService {
       orderBy: { createdAt: 'desc' },
       include: {
         ImpasseTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             name: true,
             languageCode: true,
           },
         },
         ImpasseNewNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             name: true,
             languageCode: true,
           },
         },
         ImpasseOldNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             name: true,
             languageCode: true,
@@ -254,8 +270,8 @@ export class ImpasseService {
       formattedImpasse.push({
         ...impasseData,
         name,
-        new_name: nameNew,
-        old_name: nameOld,
+        newName: nameNew,
+        oldName: nameOld,
       });
     }
 
@@ -274,33 +290,33 @@ export class ImpasseService {
       },
       include: {
         ImpasseTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             languageCode: true,
             name: true,
           },
         },
         ImpasseNewNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             languageCode: true,
             name: true,
           },
         },
         ImpasseOldNameTranslations: {
-          where: data.all_lang
+          where: data.allLang
             ? {}
             : {
-              languageCode: data.lang_code,
-            },
+                languageCode: data.langCode,
+              },
           select: {
             languageCode: true,
             name: true,
@@ -312,13 +328,12 @@ export class ImpasseService {
       throw new NotFoundException('Impasse is not found');
     }
     const name = formatLanguageResponse(impasse.ImpasseTranslations);
-    const nameNew = formatLanguageResponse(
-      impasse.ImpasseNewNameTranslations
-    );
-    const nameOld = formatLanguageResponse(
-      impasse.ImpasseOldNameTranslations
-    );
-    return { ...impasse, name, new_name: nameNew, old_name: nameOld };
+    const nameNew = formatLanguageResponse(impasse.ImpasseNewNameTranslations);
+    const nameOld = formatLanguageResponse(impasse.ImpasseOldNameTranslations);
+    delete impasse.ImpasseNewNameTranslations;
+    delete impasse.ImpasseOldNameTranslations;
+    delete impasse.ImpasseTranslations;
+    return { ...impasse, name, newName: nameNew, oldName: nameOld };
   }
 
   async update(data: ImpasseUpdateDto): Promise<ImpasseInterfaces.Response> {
@@ -360,45 +375,45 @@ export class ImpasseService {
         data: { name: data.name[LanguageRequestEnum.CY] },
       });
     }
-    if (data.new_name?.[LanguageRequestEnum.RU]) {
+    if (data.newName?.[LanguageRequestEnum.RU]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.RU },
-        data: { name: data.new_name[LanguageRequestEnum.RU] },
+        data: { name: data.newName[LanguageRequestEnum.RU] },
       });
     }
 
-    if (data.new_name?.[LanguageRequestEnum.UZ]) {
+    if (data.newName?.[LanguageRequestEnum.UZ]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.UZ },
-        data: { name: data.new_name[LanguageRequestEnum.UZ] },
+        data: { name: data.newName[LanguageRequestEnum.UZ] },
       });
     }
 
-    if (data.new_name?.[LanguageRequestEnum.CY]) {
+    if (data.newName?.[LanguageRequestEnum.CY]) {
       translationNewNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.CY },
-        data: { name: data.new_name[LanguageRequestEnum.CY] },
+        data: { name: data.newName[LanguageRequestEnum.CY] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.RU]) {
+    if (data.oldName?.[LanguageRequestEnum.RU]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.RU },
-        data: { name: data.old_name[LanguageRequestEnum.RU] },
+        data: { name: data.oldName[LanguageRequestEnum.RU] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.UZ]) {
+    if (data.oldName?.[LanguageRequestEnum.UZ]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.UZ },
-        data: { name: data.old_name[LanguageRequestEnum.UZ] },
+        data: { name: data.oldName[LanguageRequestEnum.UZ] },
       });
     }
 
-    if (data.old_name?.[LanguageRequestEnum.CY]) {
+    if (data.oldName?.[LanguageRequestEnum.CY]) {
       translationOldNameUpdates.push({
         where: { languageCode: LanguageRequestEnum.CY },
-        data: { name: data.old_name[LanguageRequestEnum.CY] },
+        data: { name: data.oldName[LanguageRequestEnum.CY] },
       });
     }
 
@@ -410,7 +425,7 @@ export class ImpasseService {
         regionId: data.regionId || impasse.regionId,
         cityId: data.cityId || impasse.cityId,
         districtId: data.districtId || impasse.districtId,
-        staffId: data.staffId || impasse.staffId,
+        staffNumber: data.staffNumber || impasse.staffNumber,
         ImpasseTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

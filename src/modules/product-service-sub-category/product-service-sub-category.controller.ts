@@ -13,6 +13,7 @@ import {
   ProductServiceSubCategoryInterfaces,
   ProductServiceSubCategoryUpdateDto,
 } from 'types/organization/product-service-sub-category';
+import { ProductServiceSubCategoryFilterDto } from 'types/organization/product-service-sub-category/dto/filter-product-service-sub-category.dto';
 
 @Controller('product-service-sub-category')
 export class ProductServiceSubCategoryController {
@@ -31,18 +32,11 @@ export class ProductServiceSubCategoryController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ProductServiceSubCategoryFilterDto
   ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithoutPagination> {
     return this.subCategoryService.findAll(data);
   }
 
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
-    return this.subCategoryService.findAllByPagination(data);
-  }
 
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })

@@ -25,6 +25,12 @@ import { AreaModule } from './modules/area/area.module';
 import { AvenueModule } from './modules/avenue/avenue.module';
 import { ResidentialAreaModule } from './modules/residential-area/residential-area.module';
 import { ImpasseModule } from './modules/impasse/impasse.module';
+import { VillageModule } from './modules/village/village.module';
+import { LaneModule } from './modules/lane/lane.module';
+import { StreetModule } from './modules/street/street.module';
+import { OrganizationModule } from './modules/organization/organization.module';
+import { OrganizationVersionModule } from './modules/organization-version/organization-version.module';
+import { PhoneTypeModule } from './modules/phone-type/phone-type.module';
 
 @Module({
   imports: [
@@ -49,7 +55,13 @@ import { ImpasseModule } from './modules/impasse/impasse.module';
     AreaModule,
     AvenueModule,
     ResidentialAreaModule,
-    ImpasseModule
+    ImpasseModule,
+    VillageModule,
+    LaneModule,
+    StreetModule,
+    OrganizationModule,
+    OrganizationVersionModule,
+    PhoneTypeModule,
   ],
   controllers: [],
   providers: [

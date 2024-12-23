@@ -7,7 +7,6 @@ import {
   DeleteDto,
   GetOneDto,
   LanguageRequestDto,
-
   ListQueryDto,
 } from 'types/global';
 import {
@@ -30,33 +29,47 @@ export class MainOrganizationService {
         name: data.name,
       },
     });
+
     return mainOrganization;
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<MainOrganizationInterfaces.ResponseWithoutPagination> {
-    const mainOrganization = await this.prisma.mainOrganization.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return {
-      data: mainOrganization,
-      totalDocs: mainOrganization.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<MainOrganizationInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE }
-       if (data.search) {
-         where.name = {
-               contains: data.search,
-         };
-       }
+    if (data.all) {
+      const mainOrganization = await this.prisma.mainOrganization.findMany({
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return {
+        data: mainOrganization,
+        totalDocs: mainOrganization.length,
+        totalPage: 1,
+      };
+    }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
+
+    if (data.search) {
+      where.name = {
+        contains: data.search,
+      };
+    }
     const count = await this.prisma.mainOrganization.count({
-      where
+      where,
     });
 
     const pagination = createPagination({
@@ -66,9 +79,7 @@ export class MainOrganizationService {
     });
 
     const mainOrganization = await this.prisma.mainOrganization.findMany({
-      where: {
-        status: DefaultStatus.ACTIVE,
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       take: pagination.take,
       skip: pagination.skip,

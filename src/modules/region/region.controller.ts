@@ -27,17 +27,9 @@ export class RegionController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: LanguageRequestDto
+    @Payload() data: ListQueryDto
   ): Promise<RegionInterfaces.ResponseWithoutPagination> {
     return this.regionService.findAll(data);
-  }
-
-  @Get()
-  @MessagePattern({ cmd: Commands.GET_LIST_BY_PAGINATION })
-  findAllByPagination(
-    @Payload() data: ListQueryDto
-  ): Promise<RegionInterfaces.ResponseWithPagination> {
-    return this.regionService.findAllByPagination(data);
   }
 
   @Get('by-id')

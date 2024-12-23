@@ -31,22 +31,33 @@ export class SectionService {
   }
 
   async findAll(
-    data: LanguageRequestDto
-  ): Promise<SectionInterfaces.ResponseWithoutPagination> {
-    const section = await this.prisma.section.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return {
-      data: section,
-      totalDocs: section.length,
-    };
-  }
-
-  async findAllByPagination(
     data: ListQueryDto
   ): Promise<SectionInterfaces.ResponseWithPagination> {
-    const where: any = { status: DefaultStatus.ACTIVE };
+    if (data.all) {
+      const section = await this.prisma.section.findMany({
+        where: {
+          ...(data.status !== 2
+            ? {
+                status: data.status,
+              }
+            : {}),
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return {
+        data: section,
+        totalDocs: section.length,
+        totalPage: 1,
+      };
+    }
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+    };
 
     if (data.search) {
       where.name = {
@@ -64,7 +75,7 @@ export class SectionService {
     });
 
     const section = await this.prisma.section.findMany({
-      where: where,
+      where,
       orderBy: { createdAt: 'desc' },
       take: pagination.take,
       skip: pagination.skip,
