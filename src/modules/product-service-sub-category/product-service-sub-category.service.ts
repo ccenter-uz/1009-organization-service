@@ -142,7 +142,21 @@ export class ProductServiceSubCategoryService {
         where,
         orderBy: { createdAt: 'desc' },
         include: {
-          ProductServiceCategory: true,
+          ProductServiceCategory: {
+            include: {
+              ProductServiceCategoryTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode, // langCode from request
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
           ProductServiceSubCategoryTranslations: {
             where: data.allLang
               ? {}
@@ -166,9 +180,17 @@ export class ProductServiceSubCategoryService {
       const translations = subCategory.ProductServiceSubCategoryTranslations;
       const name = formatLanguageResponse(translations);
 
+      const category = ProductServiceSubCategories[i].ProductServiceCategory;
+      const categoryTranslations = category.ProductServiceCategoryTranslations;
+      const categoryName = formatLanguageResponse(categoryTranslations);
+      delete ProductServiceSubCategories[i].ProductServiceCategory
+        .ProductServiceCategoryTranslations;
       delete subCategory.ProductServiceSubCategoryTranslations;
-
-      formattedSubCategories.push({ ...subCategory, name });
+      formattedSubCategories.push({
+        ...subCategory,
+        name,
+        ProductServiceCategory: { ...category, name: { ...categoryName } },
+      });
     }
 
     return {
