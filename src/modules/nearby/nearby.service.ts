@@ -203,6 +203,16 @@ export class NearbyService {
             name: true,
           },
         },
+        Region: {
+          select: {
+            RegionTranslations: true,
+          },
+        },
+        City: {
+          select: {
+            CityTranslations: true,
+          },
+        },
       },
     });
     if (!nearby) {
