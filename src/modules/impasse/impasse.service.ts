@@ -426,6 +426,7 @@ export class ImpasseService {
         cityId: data.cityId || impasse.cityId,
         districtId: data.districtId || impasse.districtId,
         staffNumber: data.staffNumber || impasse.staffNumber,
+        index: data.index || impasse.index,
         ImpasseTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

@@ -426,6 +426,7 @@ export class AreaService {
         cityId: data.cityId || area.cityId,
         districtId: data.districtId || area.districtId,
         staffNumber: data.staffNumber || area.staffNumber,
+        index: data.index || area.index,
         AreaTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

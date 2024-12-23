@@ -425,6 +425,7 @@ export class StreetService {
         cityId: data.cityId || street.cityId,
         districtId: data.districtId || street.districtId,
         staffNumber: data.staffNumber || street.staffNumber,
+        index: data.index || street.index,
         StreetTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

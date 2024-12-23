@@ -426,6 +426,7 @@ export class PassageService {
         cityId: data.cityId || passage.cityId,
         districtId: data.districtId || passage.districtId,
         staffNumber: data.staffNumber || passage.staffNumber,
+        index: data.index || passage.index,
         PassageTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

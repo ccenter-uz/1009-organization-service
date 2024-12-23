@@ -439,6 +439,7 @@ export class ResidentialAreaService {
         cityId: data.cityId || residentialArea.cityId,
         districtId: data.districtId || residentialArea.districtId,
         staffNumber: data.staffNumber || residentialArea.staffNumber,
+        index: data.index || residentialArea.index,
         ResidentialAreaTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

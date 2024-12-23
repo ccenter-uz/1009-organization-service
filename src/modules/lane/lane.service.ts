@@ -427,6 +427,7 @@ export class LaneService {
         cityId: data.cityId || lane.cityId,
         districtId: data.districtId || lane.districtId,
         staffNumber: data.staffNumber || lane.staffNumber,
+        index: data.index || lane.index,
         LaneTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
