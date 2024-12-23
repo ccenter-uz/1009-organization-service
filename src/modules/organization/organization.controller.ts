@@ -52,8 +52,6 @@ export class OrganizationController {
   update(
     @Payload() data: OrganizationInterfaces.Update
   ): Promise<OrganizationInterfaces.Response> {
-
-    
     return this.organizationService.confirmOrg(data);
   }
 

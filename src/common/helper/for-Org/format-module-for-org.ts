@@ -60,13 +60,44 @@ export default function formatOrganizationResponse(
     const name = formatLanguageResponse(
       el['PhoneTypes'].PhoneTypesTranslations
     );
-     
+
     formattedOrganization['Phone'][index]['PhoneTypes'].name = name;
-    delete formattedOrganization['Phone'][index]['PhoneTypes'].PhoneTypesTranslations;
+    delete formattedOrganization['Phone'][index]['PhoneTypes']
+      .PhoneTypesTranslations;
+  }
+
+  for (let [index, el] of Object.entries(organization['Nearbees'])) {
+    const name = formatLanguageResponse(el['Nearby'].NearbyTranslations);
+
+    formattedOrganization['Nearbees'][index]['Nearby'].name = name;
+    delete formattedOrganization['Nearbees'][index]['Nearby']
+      .NearbyTranslations;
+  }
+
+  for (let [index, el] of Object.entries(organization['ProductServices'])) {
+    const nameOfProductServiceCategory = formatLanguageResponse(
+      el['ProductServiceCategory']['ProductServiceCategoryTranslations']
+    );
+    const nameOfProductServiceSubCategory = formatLanguageResponse(
+      el['ProductServiceSubCategory']['ProductServiceSubCategoryTranslations']
+    );
+
+    formattedOrganization['ProductServices'][index][
+      'ProductServiceSubCategory'
+    ].name = nameOfProductServiceSubCategory;
+    formattedOrganization['ProductServices'][index][
+      'ProductServiceCategory'
+    ].name = nameOfProductServiceCategory;
+
+    delete formattedOrganization['ProductServices'][index][
+      'ProductServiceSubCategory'
+    ]['ProductServiceSubCategoryTranslations'];
+    delete formattedOrganization['ProductServices'][index][
+      'ProductServiceCategory'
+    ]['ProductServiceCategoryTranslations'];
   }
   return formattedOrganization;
 }
-
 
 export const modulesConfig = [
   {

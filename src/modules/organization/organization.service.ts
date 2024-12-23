@@ -1,9 +1,4 @@
 import {
-  PhoneTypes,
-  PhoneTypesTranslations,
-} from './../../../node_modules/.prisma/client/index.d';
-import { Phone } from './../../../types/organization/organization/types/index';
-import {
   Inject,
   Injectable,
   NotFoundException,
@@ -261,9 +256,9 @@ export class OrganizationService {
       where.address = { contains: data.address, mode: 'insensitive' };
     }
 
-    // if (data.apartment) {
-    //   where.apartment = { contains: data.apartment, mode: 'insensitive' };
-    // }
+    if (data.apartment) {
+      where.apartment = { contains: data.apartment, mode: 'insensitive' };
+    }
 
     if (data.categoryId) {
       where.subCategoryId = data.categoryId;
@@ -281,9 +276,9 @@ export class OrganizationService {
       where.districtId = data.districtId;
     }
 
-    // if (data.home) {
-    //   where.home = { contains: data.home, mode: 'insensitive' };
-    // }
+    if (data.home) {
+      where.home = { contains: data.home, mode: 'insensitive' };
+    }
 
     if (data.kvartal) {
       where.kvartal = { contains: data.kvartal, mode: 'insensitive' };
@@ -327,24 +322,17 @@ export class OrganizationService {
       where.villageId = data.villageId;
     }
 
-    // if (data.belongAbonent === true) {
-    //   where.segmentId = data.belongAbonent;
-    // }
+    if (data.belongAbonent === true) {
+      where.createdBy = CreatedByEnum.Client;
+    }
 
     if (data.bounded === true) {
-      where.createdBy = 'billing';
+      where.createdBy = CreatedByEnum.Billing;
     }
 
     if (data.mine === true) {
       where.staffNumber = data.staffNumber;
     }
-
-    // Дополнительно проверяем на пустоту объекта перед запросом
-    // if (Object.keys(where).length === 0) {
-    //   throw new Error(
-    //     'Необходимо указать хотя бы одно условие для фильтрации.'
-    //   );
-    // }
 
     if (data.all) {
       const organizations = await this.prisma.organization.findMany({
@@ -373,10 +361,10 @@ export class OrganizationService {
     }
 
     const whereWithLang: any = {
-      ...(data.status == 2
+      ...(data.status + '' == '2'
         ? {}
         : {
-            status: data.status,
+            status: data.status + '',
           }),
       ...where,
     };
@@ -391,6 +379,7 @@ export class OrganizationService {
         },
       };
     }
+
     const count = await this.prisma.organization.count({
       where: whereWithLang,
     });
@@ -452,7 +441,6 @@ export class OrganizationService {
         );
         result.push(formattedOrganization);
       }
-
       return {
         data: result,
         totalPage: 1,
@@ -479,6 +467,7 @@ export class OrganizationService {
         },
       };
     }
+
     const count = await this.prisma.organization.count({
       where: whereWithLang,
     });
@@ -700,15 +689,13 @@ export class OrganizationService {
       },
     });
 
-    
-
     return UpdateOrganization;
   }
 
- async confirmOrg(data: OrganizationInterfaces.Update): Promise<any> {
-   if (data.role == CreatedByEnum.Moderator) {
-      return await this.update(data.id)
-   }
+  async confirmOrg(data: OrganizationInterfaces.Update): Promise<any> {
+    if (data.role == CreatedByEnum.Moderator) {
+      return await this.update(data.id);
+    }
   }
 
   // async remove(data: DeleteDto): Promise<OrganizationInterfaces.Response> {
