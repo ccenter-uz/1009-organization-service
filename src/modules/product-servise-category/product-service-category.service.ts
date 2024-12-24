@@ -113,6 +113,7 @@ export class ProductServiceCategoryService {
           languageCode: data.langCode,
           name: {
             contains: data.search,
+            mode: 'insensitive',
           },
         },
       };

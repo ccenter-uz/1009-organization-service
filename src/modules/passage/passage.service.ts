@@ -239,6 +239,7 @@ export class PassageService {
           languageCode: data.langCode,
           name: {
             contains: data.search,
+            mode: 'insensitive',
           },
         },
       };

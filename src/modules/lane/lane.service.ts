@@ -240,6 +240,7 @@ export class LaneService {
           languageCode: data.langCode,
           name: {
             contains: data.search,
+            mode: 'insensitive',
           },
         },
       };

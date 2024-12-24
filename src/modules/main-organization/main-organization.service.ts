@@ -66,6 +66,7 @@ export class MainOrganizationService {
     if (data.search) {
       where.name = {
         contains: data.search,
+        mode: 'insensitive',
       };
     }
     const count = await this.prisma.mainOrganization.count({
