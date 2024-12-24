@@ -1,3 +1,4 @@
+import { Nearbees } from './../../../node_modules/.prisma/client/index.d';
 import {
   Inject,
   Injectable,
@@ -265,9 +266,7 @@ export class OrganizationService {
       where.subCategoryId = data.categoryId;
     }
 
-    if (data.categoryTuId) {
-      where.productServiceCategoryId = data.categoryTuId;
-    }
+    
 
     if (data.cityId) {
       where.cityId = data.cityId;
@@ -293,10 +292,6 @@ export class OrganizationService {
       where.name = { contains: data.name, mode: 'insensitive' };
     }
 
-    if (data.nearbyId) {
-      where.nearbyId = data.nearbyId;
-    }
-
     if (data.phone) {
       where.Phone = {
         some: { phone: { contains: data.phone, mode: 'insensitive' } },
@@ -315,9 +310,6 @@ export class OrganizationService {
       where.subCategoryId = data.subCategoryId;
     }
 
-    if (data.subCategoryTuId) {
-      where.productServiceSubCategoryId = data.subCategoryTuId;
-    }
 
     if (data.villageId) {
       where.villageId = data.villageId;
@@ -333,6 +325,30 @@ export class OrganizationService {
 
     if (data.mine === true) {
       where.staffNumber = data.staffNumber;
+    }
+
+    if (data.nearbyId) {
+      where.Nearbees = {
+        some: {
+          NearbyId: data.nearbyId,
+        },
+      };
+    }
+
+    if (data.categoryTuId) {
+      where.ProductServices = {
+        some: {
+          ProductServiceCategoryId: data.categoryTuId,
+        },
+      };
+    }
+
+    if (data.subCategoryTuId) {
+      where.ProductServices = {
+        some: {
+          ProductServiceSubCategoryId: data.subCategoryTuId,
+        },
+      };
     }
 
     if (data.all) {
@@ -362,11 +378,9 @@ export class OrganizationService {
     }
 
     const whereWithLang: any = {
-      ...(data.status  == 2
-        ? {}
-        : {
-            status: data.status,
-          }),
+      ...{
+        status: data.status,
+      },
       ...where,
     };
 
@@ -418,7 +432,7 @@ export class OrganizationService {
   }
 
   async findMy(
-    data: ListQueryDto
+    data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     const include = buildInclude(includeConfig, data);
     const where = {
@@ -450,11 +464,9 @@ export class OrganizationService {
     }
 
     const whereWithLang: any = {
-      ...(data.status == 2
-        ? {}
-        : {
-            status: data.status,
-          }),
+      ...{
+        status: data.status,
+      },
       ...where,
     };
 
@@ -695,7 +707,6 @@ export class OrganizationService {
 
   async confirmOrg(data: ConfirmDto): Promise<any> {
     if (data.role == CreatedByEnum.Moderator) {
-
       if (data.status == OrganizationStatusEnum.Accepted) {
         const organizationVersion =
           await this.prisma.organizationVersion.findFirst({

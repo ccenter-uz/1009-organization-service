@@ -34,7 +34,7 @@ export class OrganizationController {
   @Get('all-my')
   @MessagePattern({ cmd: Commands.GET_MY_LIST })
   findMy(
-    @Payload() data: ListQueryDto
+    @Payload() data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     return this.organizationService.findMy(data);
   }
