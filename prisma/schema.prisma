@@ -135,9 +135,8 @@ model ProductServiceCategory {
   Product_service_sub_categories     ProductServiceSubCategory[]
   ProductServiceCategoryTranslations ProductServiceCategoryTranslations[]
 
-  ProductServices                   ProductServices[]
-  ProductServicesVersion             ProductServicesVersion[]
-
+  ProductServices        ProductServices[]
+  ProductServicesVersion ProductServicesVersion[]
 
   @@map("product_service_category")
 }
@@ -164,13 +163,11 @@ model ProductServiceSubCategory {
   updatedAt                DateTime? @updatedAt @map("updated_at")
   deletedAt                DateTime? @updatedAt @map("deleted_at")
 
-
   ProductServiceCategory                ProductServiceCategory                  @relation(fields: [productServiceCategoryId], references: [id])
   ProductServiceSubCategoryTranslations ProductServiceSubCategoryTranslations[]
-  ProductServices     ProductServices[]
+  ProductServices                       ProductServices[]
 
-  ProductServicesVersion   ProductServicesVersion[]
-
+  ProductServicesVersion ProductServicesVersion[]
 
   @@map("product_service_sub_category")
 }
@@ -356,12 +353,12 @@ model Nearby {
   updatedAt        DateTime? @updatedAt @map("updated_at")
   deletedAt        DateTime? @updatedAt @map("deleted_at")
 
-  NearbyCategory      NearbyCategory        @relation(fields: [nearbyCategoryId], references: [id])
-  Region              Region                @relation(fields: [regionId], references: [id])
-  City                City                  @relation(fields: [cityId], references: [id])
-  NearbyTranslations  NearbyTranslations[]
-  Nearbees       Nearbees[]
-  NearbeesVersion  NearbeesVersion[]
+  NearbyCategory     NearbyCategory       @relation(fields: [nearbyCategoryId], references: [id])
+  Region             Region               @relation(fields: [regionId], references: [id])
+  City               City                 @relation(fields: [cityId], references: [id])
+  NearbyTranslations NearbyTranslations[]
+  Nearbees           Nearbees[]
+  NearbeesVersion    NearbeesVersion[]
 
   @@map("nearby")
 }
@@ -908,69 +905,69 @@ model PhoneTypesTranslations {
 
   @@map("phone_types_id_translations")
 }
+
 model Organization {
-  id                          Int       @id @default(autoincrement())
-  name                        String    @map("name") @db.VarChar()
-  staffNumber                 String    @map("staff_number") @db.VarChar()
-  legalName                   String    @map("legel_name") @db.VarChar()
-  description                 String    @map("description") @db.VarChar()
-  secret                      String    @map("secret") @db.Text()
-  kvartal                     String    @map("kvartal") @db.VarChar()
-  address                     String    @map("address") @db.VarChar()
-  home                        String    @map("home") @db.VarChar()
-  apartment                   String    @map("apartment")  @db.VarChar()
-  inn                         String    @map("inn") @db.VarChar()
-  bankNumber                  String    @map("bank_number") @db.VarChar()
-  account                     String    @map("account") @db.VarChar()
-  mail                        String    @map("mail") @db.VarChar()
-  clientId                    String    @map("client_id") @db.VarChar()
-  manager                     String    @map("manager") @db.VarChar()
-  index                       Int       @map("index") @db.Integer()
-  workTime                    Json      @map("work_time") @db.Json()
-  transport                   Json      @map("transport") @db.Json()
-  createdBy                   String    @map("created_by") @db.VarChar()
-  mainOrganizationId          Int       @map("main_organization_id")
-  subCategoryId               Int       @map("sub_category_id")
-  regionId                    Int       @map("region_id")
-  cityId                      Int       @map("city_id")
-  districtId                  Int       @map("district_id")
-  villageId                   Int       @map("village_id")
-  avenueId                    Int       @map("avenue_id")
-  residentialId               Int       @map("residential_id")
-  areaId                      Int       @map("area_id")
-  streetId                    Int       @map("street_id")
-  laneId                      Int       @map("lane_id")
-  impasseId                   Int       @map("impasse_id")
-  segmentId                   Int       @map("segment_id")
-  sectionId                   Int       @map("section_id")
-  passageId                   Int       @map("passage_id")
-  status                      Int       @map("status") @db.SmallInt()
-  createdAt                   DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                   DateTime? @updatedAt @map("updated_at")
-  deletedAt                   DateTime? @map("deleted_at")
+  id                 Int       @id @default(autoincrement())
+  name               String    @map("name") @db.VarChar()
+  staffNumber        String    @map("staff_number") @db.VarChar()
+  legalName          String    @map("legel_name") @db.VarChar()
+  description        String    @map("description") @db.VarChar()
+  secret             String    @map("secret") @db.Text()
+  kvartal            String    @map("kvartal") @db.VarChar()
+  address            String    @map("address") @db.VarChar()
+  home               String    @map("home") @db.VarChar()
+  apartment          String    @map("apartment") @db.VarChar()
+  inn                String    @map("inn") @db.VarChar()
+  bankNumber         String    @map("bank_number") @db.VarChar()
+  account            String    @map("account") @db.VarChar()
+  mail               String    @map("mail") @db.VarChar()
+  clientId           String    @map("client_id") @db.VarChar()
+  manager            String    @map("manager") @db.VarChar()
+  index              Int       @map("index") @db.Integer()
+  workTime           Json      @map("work_time") @db.Json()
+  transport          Json      @map("transport") @db.Json()
+  createdBy          String    @map("created_by") @db.VarChar()
+  mainOrganizationId Int       @map("main_organization_id")
+  subCategoryId      Int       @map("sub_category_id")
+  regionId           Int       @map("region_id")
+  cityId             Int       @map("city_id")
+  districtId         Int       @map("district_id")
+  villageId          Int       @map("village_id")
+  avenueId           Int       @map("avenue_id")
+  residentialId      Int       @map("residential_id")
+  areaId             Int       @map("area_id")
+  streetId           Int       @map("street_id")
+  laneId             Int       @map("lane_id")
+  impasseId          Int       @map("impasse_id")
+  segmentId          Int       @map("segment_id")
+  sectionId          Int       @map("section_id")
+  passageId          Int       @map("passage_id")
+  status             Int       @map("status") @db.SmallInt()
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt          DateTime? @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
 
-
-  MainOrganization          MainOrganization          @relation(fields: [mainOrganizationId], references: [id])
-  SubCategory               SubCategory               @relation(fields: [subCategoryId], references: [id])
-  Region                    Region                    @relation(fields: [regionId], references: [id])
-  City                      City                      @relation(fields: [cityId], references: [id])
-  District                  District                  @relation(fields: [districtId], references: [id])
-  Village                   Village                   @relation(fields: [villageId], references: [id])
-  Avenue                    Avenue                    @relation(fields: [avenueId], references: [id])
-  ResidentialArea           ResidentialArea           @relation(fields: [residentialId], references: [id])
-  Area                      Area                      @relation(fields: [areaId], references: [id])
-  Street                    Street                    @relation(fields: [streetId], references: [id])
-  Lane                      Lane                      @relation(fields: [laneId], references: [id])
-  Impasse                   Impasse                   @relation(fields: [impasseId], references: [id])
-  Segment                   Segment                   @relation(fields: [segmentId], references: [id])
-  Section                   Section                   @relation(fields: [sectionId], references: [id])
-  Passage                   Passage                   @relation(fields: [passageId], references: [id])
-  Picture                   Picture[]
-  Phone                     Phone[]
-  PaymentTypes              PaymentTypes[]
-  OrganizationVersion       OrganizationVersion[]
-  ProductServices           ProductServices[]
-  Nearbees                  Nearbees[]
+  MainOrganization    MainOrganization      @relation(fields: [mainOrganizationId], references: [id])
+  SubCategory         SubCategory           @relation(fields: [subCategoryId], references: [id])
+  Region              Region                @relation(fields: [regionId], references: [id])
+  City                City                  @relation(fields: [cityId], references: [id])
+  District            District              @relation(fields: [districtId], references: [id])
+  Village             Village               @relation(fields: [villageId], references: [id])
+  Avenue              Avenue                @relation(fields: [avenueId], references: [id])
+  ResidentialArea     ResidentialArea       @relation(fields: [residentialId], references: [id])
+  Area                Area                  @relation(fields: [areaId], references: [id])
+  Street              Street                @relation(fields: [streetId], references: [id])
+  Lane                Lane                  @relation(fields: [laneId], references: [id])
+  Impasse             Impasse               @relation(fields: [impasseId], references: [id])
+  Segment             Segment               @relation(fields: [segmentId], references: [id])
+  Section             Section               @relation(fields: [sectionId], references: [id])
+  Passage             Passage               @relation(fields: [passageId], references: [id])
+  Picture             Picture[]
+  Phone               Phone[]
+  PaymentTypes        PaymentTypes[]
+  OrganizationVersion OrganizationVersion[]
+  ProductServices     ProductServices[]
+  Nearbees            Nearbees[]
 
   @@map("organization")
 }
@@ -990,8 +987,6 @@ model PaymentTypes {
 
   @@map("payment_types")
 }
-
-
 
 model Picture {
   id             Int          @id @default(autoincrement())
@@ -1016,103 +1011,103 @@ model Phone {
   deletedAt      DateTime?    @map("deleted_at")
   Organization   Organization @relation(fields: [OrganizationId], references: [id])
 
-  PhoneTypes     PhoneTypes   @relation(fields: [PhoneTypeId], references: [id])
+  PhoneTypes PhoneTypes @relation(fields: [PhoneTypeId], references: [id])
 
   @@map("phone")
 }
 
 model ProductServices {
-  id                           Int                     @id @default(autoincrement())
-  ProductServiceCategoryId     Int?                     @map("product_service_category_id")
-  ProductServiceSubCategoryId  Int?                     @map("product_service_sub_category_id")
-  OrganizationId               Int                      @map("organization_id")
-  createdAt                     DateTime                @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                     DateTime?               @updatedAt @map("updated_at")
-  deletedAt                     DateTime?               @map("deleted_at")
-  ProductServiceCategory        ProductServiceCategory?       @relation(fields: [ProductServiceCategoryId], references: [id])
-  ProductServiceSubCategory     ProductServiceSubCategory? @relation(fields: [ProductServiceSubCategoryId], references: [id])
-  Organization     Organization @relation(fields: [OrganizationId], references: [id])
-  
+  id                          Int                        @id @default(autoincrement())
+  ProductServiceCategoryId    Int?                       @map("product_service_category_id")
+  ProductServiceSubCategoryId Int?                       @map("product_service_sub_category_id")
+  OrganizationId              Int                        @map("organization_id")
+  createdAt                   DateTime                   @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                   DateTime?                  @updatedAt @map("updated_at")
+  deletedAt                   DateTime?                  @map("deleted_at")
+  ProductServiceCategory      ProductServiceCategory?    @relation(fields: [ProductServiceCategoryId], references: [id])
+  ProductServiceSubCategory   ProductServiceSubCategory? @relation(fields: [ProductServiceSubCategoryId], references: [id])
+  Organization                Organization               @relation(fields: [OrganizationId], references: [id])
+
   @@map("product_services")
 }
 
 model Nearbees {
-  id                           Int                     @id @default(autoincrement())
-  description                  String                  @map("description") @db.VarChar()
-  NearbyId                     Int                     @map("nearby_id")
-  OrganizationId                Int                      @map("organization_version_id")
-  createdAt                     DateTime                @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                     DateTime?               @updatedAt @map("updated_at")
-  deletedAt                     DateTime?               @map("deleted_at")
-  Nearby                        Nearby                 @relation(fields: [NearbyId], references: [id])
-  Organization           Organization       @relation(fields: [OrganizationId], references: [id])
-  
+  id             Int          @id @default(autoincrement())
+  description    String       @map("description") @db.VarChar()
+  NearbyId       Int          @map("nearby_id")
+  OrganizationId Int          @map("organization_version_id")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamp
+  updatedAt      DateTime?    @updatedAt @map("updated_at")
+  deletedAt      DateTime?    @map("deleted_at")
+  Nearby         Nearby       @relation(fields: [NearbyId], references: [id])
+  Organization   Organization @relation(fields: [OrganizationId], references: [id])
+
   @@map("nearbees")
 }
 
 model OrganizationVersion {
-  id                          Int       @id @default(autoincrement())
-  name                        String    @map("name") @db.VarChar()
-  staffNumber                 String    @map("staff_number") @db.VarChar()
-  legalName                   String    @map("legel_name") @db.VarChar()
-  description                 String    @map("description") @db.VarChar()
-  secret                      String    @map("secret") @db.Text()
-  kvartal                     String    @map("kvartal") @db.VarChar()
-  address                     String    @map("address") @db.VarChar()
-  home                        String       @map("home") @db.VarChar()
-  apartment                   String       @map("apartment") @db.VarChar()
-  inn                         String    @map("inn") @db.VarChar()
-  bankNumber                  String     @map("bank_number") @db.VarChar()
-  account                     String    @map("account") @db.VarChar()
-  mail                        String    @map("mail") @db.VarChar()
-  clientId                    String    @map("client_id") @db.VarChar()
-  manager                     String    @map("manager") @db.VarChar()
-  index                       Int       @map("index") @db.Integer()
-  workTime                    Json      @map("work_time") @db.Json()
-  transport                   Json      @map("transport") @db.Json()
-  createdBy                   String    @map("created_by") @db.VarChar()
-  mainOrganizationId          Int       @map("main_organization_id") @db.Integer()
-  subCategoryId               Int       @map("sub_category_id") @db.Integer()
-  regionId                    Int       @map("region_id") @db.Integer()
-  cityId                      Int       @map("city_id") @db.Integer()
-  districtId                  Int       @map("district_id") @db.Integer()
-  villageId                   Int       @map("village_id") @db.Integer()
-  avenueId                    Int       @map("avenue_id") @db.Integer()
-  residentialId               Int       @map("residential_id") @db.Integer()
-  areaId                      Int       @map("area_id") @db.Integer()
-  streetId                    Int       @map("street_id") @db.Integer()
-  laneId                      Int       @map("lane_id") @db.Integer()
-  impasseId                   Int       @map("impasse_id") @db.Integer()
-  segmentId                   Int       @map("segment_id") @db.Integer()
-  sectionId                   Int       @map("section_id") @db.Integer()
-  passageId                   Int       @map("passage_id") @db.Integer()
-  organizationId              Int       @map("organization_id") @db.Integer()
-  status                      Int       @map("status") @db.SmallInt()
-  createdAt                   DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                   DateTime? @updatedAt @map("updated_at")
-  deletedAt                   DateTime? @map("deleted_at")
+  id                 Int       @id @default(autoincrement())
+  name               String    @map("name") @db.VarChar()
+  staffNumber        String    @map("staff_number") @db.VarChar()
+  legalName          String    @map("legel_name") @db.VarChar()
+  description        String    @map("description") @db.VarChar()
+  secret             String    @map("secret") @db.Text()
+  kvartal            String    @map("kvartal") @db.VarChar()
+  address            String    @map("address") @db.VarChar()
+  home               String    @map("home") @db.VarChar()
+  apartment          String    @map("apartment") @db.VarChar()
+  inn                String    @map("inn") @db.VarChar()
+  bankNumber         String    @map("bank_number") @db.VarChar()
+  account            String    @map("account") @db.VarChar()
+  mail               String    @map("mail") @db.VarChar()
+  clientId           String    @map("client_id") @db.VarChar()
+  manager            String    @map("manager") @db.VarChar()
+  index              Int       @map("index") @db.Integer()
+  workTime           Json      @map("work_time") @db.Json()
+  transport          Json      @map("transport") @db.Json()
+  createdBy          String    @map("created_by") @db.VarChar()
+  mainOrganizationId Int       @map("main_organization_id") @db.Integer()
+  subCategoryId      Int       @map("sub_category_id") @db.Integer()
+  regionId           Int       @map("region_id") @db.Integer()
+  cityId             Int       @map("city_id") @db.Integer()
+  districtId         Int       @map("district_id") @db.Integer()
+  villageId          Int       @map("village_id") @db.Integer()
+  avenueId           Int       @map("avenue_id") @db.Integer()
+  residentialId      Int       @map("residential_id") @db.Integer()
+  areaId             Int       @map("area_id") @db.Integer()
+  streetId           Int       @map("street_id") @db.Integer()
+  laneId             Int       @map("lane_id") @db.Integer()
+  impasseId          Int       @map("impasse_id") @db.Integer()
+  segmentId          Int       @map("segment_id") @db.Integer()
+  sectionId          Int       @map("section_id") @db.Integer()
+  passageId          Int       @map("passage_id") @db.Integer()
+  organizationId     Int       @map("organization_id") @db.Integer()
+  status             Int       @map("status") @db.SmallInt()
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt          DateTime? @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
 
-  MainOrganization          MainOrganization          @relation(fields: [mainOrganizationId], references: [id])
-  SubCategory               SubCategory               @relation(fields: [subCategoryId], references: [id])
-  Region                    Region                    @relation(fields: [regionId], references: [id])
-  City                      City                      @relation(fields: [cityId], references: [id])
-  District                  District                  @relation(fields: [districtId], references: [id])
-  Village                   Village                   @relation(fields: [villageId], references: [id])
-  Avenue                    Avenue                    @relation(fields: [avenueId], references: [id])
-  ResidentialArea           ResidentialArea           @relation(fields: [residentialId], references: [id])
-  Area                      Area                      @relation(fields: [areaId], references: [id])
-  Street                    Street                    @relation(fields: [streetId], references: [id])
-  Lane                      Lane                      @relation(fields: [laneId], references: [id])
-  Impasse                   Impasse                   @relation(fields: [impasseId], references: [id])
-  Segment                   Segment                   @relation(fields: [segmentId], references: [id])
-  Section                   Section                   @relation(fields: [sectionId], references: [id])
-  Organization              Organization              @relation(fields: [organizationId], references: [id])
- 
-  PictureVersion      PictureVersion[]
-  PhoneVersion        PhoneVersion[]
-  PaymentTypesVersion PaymentTypesVersion[]
+  MainOrganization MainOrganization @relation(fields: [mainOrganizationId], references: [id])
+  SubCategory      SubCategory      @relation(fields: [subCategoryId], references: [id])
+  Region           Region           @relation(fields: [regionId], references: [id])
+  City             City             @relation(fields: [cityId], references: [id])
+  District         District         @relation(fields: [districtId], references: [id])
+  Village          Village          @relation(fields: [villageId], references: [id])
+  Avenue           Avenue           @relation(fields: [avenueId], references: [id])
+  ResidentialArea  ResidentialArea  @relation(fields: [residentialId], references: [id])
+  Area             Area             @relation(fields: [areaId], references: [id])
+  Street           Street           @relation(fields: [streetId], references: [id])
+  Lane             Lane             @relation(fields: [laneId], references: [id])
+  Impasse          Impasse          @relation(fields: [impasseId], references: [id])
+  Segment          Segment          @relation(fields: [segmentId], references: [id])
+  Section          Section          @relation(fields: [sectionId], references: [id])
+  Organization     Organization     @relation(fields: [organizationId], references: [id])
+
+  PictureVersion         PictureVersion[]
+  PhoneVersion           PhoneVersion[]
+  PaymentTypesVersion    PaymentTypesVersion[]
   ProductServicesVersion ProductServicesVersion[]
-  NearbeesVersion           NearbeesVersion[]
+  NearbeesVersion        NearbeesVersion[]
 
   @@map("organization_version")
 }
@@ -1160,30 +1155,30 @@ model PaymentTypesVersion {
 }
 
 model ProductServicesVersion {
-  id                           Int                     @id @default(autoincrement())
-  ProductServiceCategoryId     Int?                     @map("product_service_category_id")
-  ProductServiceSubCategoryId  Int?                     @map("product_service_sub_category_id")
-  OrganizationVersionId         Int                      @map("organization_version_id")
-  createdAt                     DateTime                @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                     DateTime?               @updatedAt @map("updated_at")
-  deletedAt                     DateTime?               @map("deleted_at")
-  ProductServiceCategory        ProductServiceCategory?       @relation(fields: [ProductServiceCategoryId], references: [id])
-  ProductServiceSubCategory     ProductServiceSubCategory? @relation(fields: [ProductServiceSubCategoryId], references: [id])
-  OrganizationVersion     OrganizationVersion @relation(fields: [OrganizationVersionId], references: [id])
-  
+  id                          Int                        @id @default(autoincrement())
+  ProductServiceCategoryId    Int?                       @map("product_service_category_id")
+  ProductServiceSubCategoryId Int?                       @map("product_service_sub_category_id")
+  OrganizationVersionId       Int                        @map("organization_version_id")
+  createdAt                   DateTime                   @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                   DateTime?                  @updatedAt @map("updated_at")
+  deletedAt                   DateTime?                  @map("deleted_at")
+  ProductServiceCategory      ProductServiceCategory?    @relation(fields: [ProductServiceCategoryId], references: [id])
+  ProductServiceSubCategory   ProductServiceSubCategory? @relation(fields: [ProductServiceSubCategoryId], references: [id])
+  OrganizationVersion         OrganizationVersion        @relation(fields: [OrganizationVersionId], references: [id])
+
   @@map("product_services_version")
 }
 
 model NearbeesVersion {
-  id                           Int                     @id @default(autoincrement())
-  description                  String                  @map("description") @db.VarChar()
-  NearbyId                     Int                     @map("nearby_id")
-  OrganizationVersionId         Int                      @map("organization_version_id")
-  createdAt                     DateTime                @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                     DateTime?               @updatedAt @map("updated_at")
-  deletedAt                     DateTime?               @map("deleted_at")
-  Nearby                        Nearby?                  @relation(fields: [NearbyId], references: [id])
-  OrganizationVersion           OrganizationVersion       @relation(fields: [OrganizationVersionId], references: [id])
-  
+  id                    Int                 @id @default(autoincrement())
+  description           String              @map("description") @db.VarChar()
+  NearbyId              Int                 @map("nearby_id")
+  OrganizationVersionId Int                 @map("organization_version_id")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamp
+  updatedAt             DateTime?           @updatedAt @map("updated_at")
+  deletedAt             DateTime?           @map("deleted_at")
+  Nearby                Nearby?             @relation(fields: [NearbyId], references: [id])
+  OrganizationVersion   OrganizationVersion @relation(fields: [OrganizationVersionId], references: [id])
+
   @@map("nearbees_version")
 }

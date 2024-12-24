@@ -44,6 +44,7 @@ import buildInclude, {
 } from '@/common/helper/for-Org/build-include-for-org';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 import { ConfirmDto } from 'types/organization/organization/dto/confirm-organization.dto';
+import { MyOrganizationFilterDto } from 'types/organization/organization/dto/filter-my-organization.dto';
 
 @Injectable()
 export class OrganizationService {
@@ -433,7 +434,7 @@ export class OrganizationService {
   }
 
   async findMy(
-    data: OrganizationFilterDto
+    data: MyOrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     const include = buildInclude(includeConfig, data);
     const where = {
