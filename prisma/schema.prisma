@@ -86,18 +86,6 @@ model MainOrganization {
   @@map("main_organization")
 }
 
-model Section {
-  id                  Int                   @id @default(autoincrement())
-  name                String
-  status              Int                   @default(1) @db.SmallInt()
-  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamp
-  updatedAt           DateTime?             @updatedAt @map("updated_at")
-  deletedAt           DateTime?             @updatedAt @map("deleted_at")
-  Organization        Organization[]
-  OrganizationVersion OrganizationVersion[]
-
-  @@map("section")
-}
 
 model Segment {
   id                  Int                   @id @default(autoincrement())
@@ -923,7 +911,7 @@ model Organization {
   bankNumber                  String    @map("bank_number") @db.VarChar()
   account                     String    @map("account") @db.VarChar()
   mail                        String    @map("mail") @db.VarChar()
-  clientId                    String    @map("client_id") @db.VarChar()
+  clientId                    String?   @map("client_id") @db.VarChar()
   manager                     String    @map("manager") @db.VarChar()
   index                       Int       @map("index") @db.Integer()
   workTime                    Json      @map("work_time") @db.Json()
@@ -942,7 +930,6 @@ model Organization {
   laneId                      Int       @map("lane_id")
   impasseId                   Int       @map("impasse_id")
   segmentId                   Int       @map("segment_id")
-  sectionId                   Int       @map("section_id")
   passageId                   Int       @map("passage_id")
   status                      Int       @map("status") @db.SmallInt()
   createdAt                   DateTime  @default(now()) @map("created_at") @db.Timestamp
@@ -963,7 +950,6 @@ model Organization {
   Lane                      Lane                      @relation(fields: [laneId], references: [id])
   Impasse                   Impasse                   @relation(fields: [impasseId], references: [id])
   Segment                   Segment                   @relation(fields: [segmentId], references: [id])
-  Section                   Section                   @relation(fields: [sectionId], references: [id])
   Passage                   Passage                   @relation(fields: [passageId], references: [id])
   Picture                   Picture[]
   Phone                     Phone[]
@@ -1059,13 +1045,13 @@ model OrganizationVersion {
   secret                      String    @map("secret") @db.Text()
   kvartal                     String    @map("kvartal") @db.VarChar()
   address                     String    @map("address") @db.VarChar()
-  home                        String       @map("home") @db.VarChar()
-  apartment                   String       @map("apartment") @db.VarChar()
+  home                        String    @map("home") @db.VarChar()
+  apartment                   String    @map("apartment") @db.VarChar()
   inn                         String    @map("inn") @db.VarChar()
-  bankNumber                  String     @map("bank_number") @db.VarChar()
+  bankNumber                  String    @map("bank_number") @db.VarChar()
   account                     String    @map("account") @db.VarChar()
   mail                        String    @map("mail") @db.VarChar()
-  clientId                    String    @map("client_id") @db.VarChar()
+  clientId                    String?   @map("client_id") @db.VarChar()
   manager                     String    @map("manager") @db.VarChar()
   index                       Int       @map("index") @db.Integer()
   workTime                    Json      @map("work_time") @db.Json()
@@ -1084,9 +1070,9 @@ model OrganizationVersion {
   laneId                      Int       @map("lane_id") @db.Integer()
   impasseId                   Int       @map("impasse_id") @db.Integer()
   segmentId                   Int       @map("segment_id") @db.Integer()
-  sectionId                   Int       @map("section_id") @db.Integer()
   passageId                   Int       @map("passage_id") @db.Integer()
   organizationId              Int       @map("organization_id") @db.Integer()
+  method                      String?   @map("method") @db.VarChar()
   status                      Int       @map("status") @db.SmallInt()
   createdAt                   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                   DateTime? @updatedAt @map("updated_at")
@@ -1105,7 +1091,6 @@ model OrganizationVersion {
   Lane                      Lane                      @relation(fields: [laneId], references: [id])
   Impasse                   Impasse                   @relation(fields: [impasseId], references: [id])
   Segment                   Segment                   @relation(fields: [segmentId], references: [id])
-  Section                   Section                   @relation(fields: [sectionId], references: [id])
   Organization              Organization              @relation(fields: [organizationId], references: [id])
  
   PictureVersion      PictureVersion[]

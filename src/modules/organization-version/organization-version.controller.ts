@@ -11,8 +11,6 @@ import {
 import { OrganizationVersionService } from './organization-version.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
-  // OrganizationCreateDto,
-  // OrganizationUpdateDto,
   OrganizationVersionInterfaces,
   OrganizationVersionServiceCommands as Commands,
   OrganizationVersionUpdateDto,
@@ -63,13 +61,13 @@ export class OrganizationVersionController {
   //   return this.organizationService.findOne(data);
   // }
 
-  // @Put()
-  // @MessagePattern({ cmd: Commands. })
-  // update(
-  //   @Payload() data: OrganizationVersionUpdateDto
-  // ): Promise<OrganizationVersionInterfaces.Update> {
-  //   return this.organizationService.update(data);
-  // }
+  @Put()
+  @MessagePattern({ cmd: Commands.UPDATE })
+  update(
+    @Payload() data: OrganizationVersionUpdateDto
+  ): Promise<OrganizationVersionInterfaces.Update> {
+    return this.organizationService.update(data);
+  }
 
   // @Delete()
   // @MessagePattern({ cmd: Commands.DELETE })

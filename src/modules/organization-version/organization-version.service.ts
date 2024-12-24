@@ -13,6 +13,7 @@ import {
   LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
+  OrganizationMethodEnum,
   OrganizationStatusEnum,
   OrganizationVersionActionsEnum,
 } from 'types/global';
@@ -34,7 +35,6 @@ import { StreetService } from '../street/street.service';
 import { ImpasseService } from '../impasse/impasse.service';
 import { NearbyService } from '../nearby/nearby.service';
 import { SegmentService } from '../segment/segment.service';
-import { SectionService } from '../section/section.service';
 import {
   OrganizationVersionInterfaces,
   OrganizationVersionUpdateDto,
@@ -64,7 +64,6 @@ export class OrganizationVersionService {
     private readonly impasseService: ImpasseService,
     private readonly nearbyService: NearbyService,
     private readonly segmentService: SegmentService,
-    private readonly sectionService: SectionService,
     private readonly phoneTypeService: PhoneTypeService
   ) {}
 
@@ -135,7 +134,6 @@ export class OrganizationVersionService {
         laneId: data.laneId,
         impasseId: data.impasseId,
         segmentId: data.segmentId,
-        sectionId: data.sectionId,
         mainOrganizationId: data.mainOrganizationId,
         subCategoryId: data.subCategoryId,
         account: data.account,
@@ -143,7 +141,6 @@ export class OrganizationVersionService {
         address: data.address,
         apartment: data.apartment,
         home: data.home,
-        clientId: data.clientId,
         inn: data.inn,
         kvartal: data.kvartal,
         legalName: data.legalName,
@@ -159,6 +156,7 @@ export class OrganizationVersionService {
         passageId: data.passageId,
         status: data.status,
         createdBy: data.createdBy,
+        method: OrganizationMethodEnum.Create,
         PaymentTypesVersion: {
           create: PymentTypesVersion,
         },
@@ -483,9 +481,6 @@ export class OrganizationVersionService {
     if (data.segmentId) {
       await this.segmentService.findOne({ id: data.segmentId });
     }
-    if (data.sectionId) {
-      await this.sectionService.findOne({ id: data.sectionId });
-    }
 
     let PhoneCreateVersionArray = [];
     let phones = data.phone['phones'];
@@ -580,7 +575,8 @@ export class OrganizationVersionService {
       PhotoLinkCreateVersionArray.push(...PhotoLinks);
     }
     let status =
-      data.role == CreatedByEnum.Moderator && organizationVersion.staffNumber == data.staffNumber 
+      data.role == CreatedByEnum.Moderator &&
+      organizationVersion.staffNumber == data.staffNumber
         ? OrganizationStatusEnum.Accepted
         : OrganizationStatusEnum.Check;
 
@@ -602,7 +598,6 @@ export class OrganizationVersionService {
           laneId: data.laneId || organizationVersion.laneId,
           impasseId: data.impasseId || organizationVersion.impasseId,
           segmentId: data.segmentId || organizationVersion.segmentId,
-          sectionId: data.sectionId || organizationVersion.sectionId,
           mainOrganizationId:
             data.mainOrganizationId || organizationVersion.mainOrganizationId,
           subCategoryId:
@@ -612,7 +607,6 @@ export class OrganizationVersionService {
           address: data.address || organizationVersion.address,
           apartment: data.apartment || organizationVersion.apartment,
           home: data.home || organizationVersion.home,
-          clientId: data.clientId || organizationVersion.clientId,
           inn: data.inn || organizationVersion.inn,
           kvartal: data.kvartal || organizationVersion.kvartal,
           legalName: data.legalName || organizationVersion.legalName,
@@ -627,6 +621,7 @@ export class OrganizationVersionService {
           description: data.description || organizationVersion.description,
           passageId: data.passageId || organizationVersion.passageId,
           status: status,
+          method: OrganizationMethodEnum.Update,
           createdBy: organizationVersion.createdBy,
           PaymentTypesVersion: {
             create: PaymentTypesVersionCreateArray,

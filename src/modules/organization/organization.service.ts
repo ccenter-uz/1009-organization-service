@@ -7,8 +7,10 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreatedByEnum,
+  DeleteDto,
   GetOneDto,
   ListQueryDto,
+  OrganizationMethodEnum,
   OrganizationStatusEnum,
 } from 'types/global';
 import { createPagination } from '@/common/helper/pagination.helper';
@@ -32,7 +34,6 @@ import { StreetService } from '../street/street.service';
 import { ImpasseService } from '../impasse/impasse.service';
 import { NearbyService } from '../nearby/nearby.service';
 import { SegmentService } from '../segment/segment.service';
-import { SectionService } from '../section/section.service';
 import { OrganizationVersionService } from '../organization-version/organization-version.service';
 import { PhoneTypeService } from '../phone-type/phone-type.service';
 import formatOrganizationResponse, {
@@ -43,6 +44,8 @@ import buildInclude, {
 } from '@/common/helper/for-Org/build-include-for-org';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 import { ConfirmDto } from 'types/organization/organization/dto/confirm-organization.dto';
+import { OrganizationDeleteDto } from 'types/organization/organization/dto/delete-organization.dto';
+import { OrganizationRestoreDto } from 'types/organization/organization/dto/get-restore-organization.dto';
 
 @Injectable()
 export class OrganizationService {
@@ -66,7 +69,6 @@ export class OrganizationService {
     private readonly ImpasseService: ImpasseService,
     private readonly NearbyService: NearbyService,
     private readonly SegmentService: SegmentService,
-    private readonly SectionService: SectionService,
     private readonly PhoneTypeService: PhoneTypeService
   ) {}
 
@@ -116,10 +118,6 @@ export class OrganizationService {
 
     const segment = await this.SegmentService.findOne({
       id: data.segmentId,
-    });
-
-    const section = await this.SectionService.findOne({
-      id: data.sectionId,
     });
 
     let phoneCreateArray = [];
@@ -181,7 +179,6 @@ export class OrganizationService {
         laneId: lane.id,
         impasseId: impasse.id,
         segmentId: segment.id,
-        sectionId: section.id,
         mainOrganizationId: mainOrganization.id,
         subCategoryId: subCategory.id,
         description: data.description,
@@ -190,7 +187,6 @@ export class OrganizationService {
         address: data.address,
         apartment: data.apartment,
         home: data.home,
-        clientId: data.clientId,
         inn: data.inn,
         kvartal: data.kvartal,
         legalName: data.legalName,
@@ -526,7 +522,7 @@ export class OrganizationService {
       delete organization?.[idNameOfModules];
     }
     if (!organization) {
-      throw new NotFoundException('Street is not found');
+      throw new NotFoundException('Organization is not found');
     }
 
     let formattedOrganization = formatOrganizationResponse(
@@ -537,7 +533,7 @@ export class OrganizationService {
     return formattedOrganization;
   }
 
-  async update(id: number): Promise<any> {
+  async update(id: number): Promise<OrganizationInterfaces.Response> {
     const organizationVersion = await this.prisma.organizationVersion.findFirst(
       {
         where: {
@@ -642,7 +638,6 @@ export class OrganizationService {
         laneId: organizationVersion.laneId,
         impasseId: organizationVersion.impasseId,
         segmentId: organizationVersion.segmentId,
-        sectionId: organizationVersion.sectionId,
         mainOrganizationId: organizationVersion.mainOrganizationId,
         subCategoryId: organizationVersion.subCategoryId,
         account: organizationVersion.account,
@@ -650,7 +645,6 @@ export class OrganizationService {
         address: organizationVersion.address,
         apartment: organizationVersion.apartment,
         home: organizationVersion.home,
-        clientId: organizationVersion.clientId,
         inn: organizationVersion.inn,
         kvartal: organizationVersion.kvartal,
         legalName: organizationVersion.legalName,
@@ -695,7 +689,6 @@ export class OrganizationService {
 
   async confirmOrg(data: ConfirmDto): Promise<any> {
     if (data.role == CreatedByEnum.Moderator) {
-
       if (data.status == OrganizationStatusEnum.Accepted) {
         const organizationVersion =
           await this.prisma.organizationVersion.findFirst({
@@ -703,16 +696,59 @@ export class OrganizationService {
               organizationId: data.id,
             },
           });
-        await this.prisma.organizationVersion.update({
-          where: {
-            id: organizationVersion.id,
-          },
-          data: {
-            status: OrganizationStatusEnum.Accepted,
-          },
-        });
+        if (!organizationVersion) {
+          throw new NotFoundException('Orgnization  is not found');
+        }
+        if (organizationVersion.method == OrganizationMethodEnum.Update) {
+          await this.prisma.organizationVersion.update({
+            where: {
+              id: organizationVersion.id,
+            },
+            data: {
+              status: OrganizationStatusEnum.Accepted,
+            },
+          });
 
-        return await this.update(data.id);
+          return await this.update(data.id);
+        } else if (
+          organizationVersion.method == OrganizationMethodEnum.Delete
+        ) {
+          await this.prisma.organizationVersion.update({
+            where: {
+              id: organizationVersion.id,
+            },
+            data: {
+              status: OrganizationStatusEnum.Deleted,
+            },
+          });
+          return await this.prisma.organization.update({
+            where: {
+              id: organizationVersion.organizationId,
+            },
+            data: {
+              status: OrganizationStatusEnum.Deleted,
+            },
+          });
+        } else if (
+          organizationVersion.method == OrganizationMethodEnum.Restore
+        ) {
+          await this.prisma.organizationVersion.update({
+            where: {
+              id: organizationVersion.id,
+            },
+            data: {
+              status: OrganizationStatusEnum.Accepted,
+            },
+          });
+          return await this.prisma.organization.update({
+            where: {
+              id: organizationVersion.organizationId,
+            },
+            data: {
+              status: OrganizationStatusEnum.Accepted,
+            },
+          });
+        }
       } else if (data.status == OrganizationStatusEnum.Rejected) {
         const organizationVersion =
           await this.prisma.organizationVersion.findFirst({
@@ -720,7 +756,11 @@ export class OrganizationService {
               organizationId: data.id,
             },
           });
-        await this.prisma.organizationVersion.update({
+        if (!organizationVersion) {
+          throw new NotFoundException('Orgnization  is not found');
+        }
+
+        return await this.prisma.organizationVersion.update({
           where: {
             id: organizationVersion.id,
           },
@@ -729,91 +769,108 @@ export class OrganizationService {
           },
         });
 
-        // return await this.update(data.id);
       }
     }
   }
 
-  // async remove(data: DeleteDto): Promise<OrganizationInterfaces.Response> {
-  //   if (data.delete) {
-  //     return await this.prisma.street.delete({
-  //       where: { id: data.id },
-  //       include: {
-  //         StreetTranslations: {
-  //           select: {
-  //             languageCode: true,
-  //             name: true,
-  //           },
-  //         },
-  //         StreetNewNameTranslations: {
-  //           select: {
-  //             languageCode: true,
-  //             name: true,
-  //           },
-  //         },
-  //         StreetOldNameTranslations: {
-  //           select: {
-  //             languageCode: true,
-  //             name: true,
-  //           },
-  //         },
-  //       },
-  //     });
-  //   }
+  async remove(
+    data: OrganizationDeleteDto
+  ): Promise<OrganizationInterfaces.Response> {
+    if (data.delete) {
+      const organizationVersion =
+        await this.prisma.organizationVersion.findFirst({
+          where: {
+            organizationId: data.id,
+          },
+        });
+      if (!organizationVersion) {
+        throw new NotFoundException('Orgnization  is not found');
+      }
+      if (data.role == CreatedByEnum.Moderator) {
+        return await this.prisma.organizationVersion.update({
+          where: {
+            id: organizationVersion.id,
+          },
+          data: {
+            status: OrganizationStatusEnum.Deleted,
+            method: OrganizationMethodEnum.Delete,
+          },
+          include: {
+            PaymentTypesVersion: true,
+            PhoneVersion: true,
+            PictureVersion: true,
+            ProductServicesVersion: true,
+            NearbeesVersion: true,
+          },
+        });
+      } else {
+        return await this.prisma.organizationVersion.update({
+          where: {
+            id: organizationVersion.id,
+          },
+          data: {
+            status: OrganizationStatusEnum.Check,
+            method: OrganizationMethodEnum.Delete,
+          },
+          include: {
+            PaymentTypesVersion: true,
+            PhoneVersion: true,
+            PictureVersion: true,
+            ProductServicesVersion: true,
+            NearbeesVersion: true,
+          },
+        });
+      }
+    }
+  }
 
-  //   return await this.prisma.street.update({
-  //     where: { id: data.id, status: DefaultStatus.ACTIVE },
-  //     data: { status: DefaultStatus.INACTIVE },
-  //     include: {
-  //       StreetTranslations: {
-  //         select: {
-  //           languageCode: true,
-  //           name: true,
-  //         },
-  //       },
-  //       StreetNewNameTranslations: {
-  //         select: {
-  //           languageCode: true,
-  //           name: true,
-  //         },
-  //       },
-  //       StreetOldNameTranslations: {
-  //         select: {
-  //           languageCode: true,
-  //           name: true,
-  //         },
-  //       },
-  //     },
-  //   });
-  // }
-
-  // async restore(data: GetOneDto): Promise<OrganizationInterfaces.Response> {
-  //   return this.prisma.street.update({
-  //     where: {
-  //       id: data.id,
-  //       status: DefaultStatus.INACTIVE,
-  //     },
-  //     data: { status: DefaultStatus.ACTIVE },
-  //     include: {
-  //       StreetTranslations: {
-  //         select: {
-  //           languageCode: true,
-  //           name: true,
-  //         },
-  //       },
-  //       StreetNewNameTranslations: {
-  //         select: {
-  //           languageCode: true,
-  //           name: true,
-  //         },
-  //       },
-  //       StreetOldNameTranslations: {
-  //         select: {
-  //           languageCode: true,
-  //           name: true,
-  //         },
-  //       },
-  //     },
-  //   });
-  // }
+  async restore(
+    data: OrganizationRestoreDto
+  ): Promise<OrganizationInterfaces.Response> {
+    const organizationVersion = await this.prisma.organizationVersion.findFirst(
+      {
+        where: {
+          organizationId: data.id,
+        },
+      }
+    );
+    if (!organizationVersion) {
+      throw new NotFoundException('Orgnization  is not found');
+    }
+    if (data.role == CreatedByEnum.Moderator) {
+      return await this.prisma.organizationVersion.update({
+        where: {
+          id: organizationVersion.id,
+        },
+        data: {
+          status: OrganizationStatusEnum.Accepted,
+          method: OrganizationMethodEnum.Restore,
+        },
+        include: {
+          PaymentTypesVersion: true,
+          PhoneVersion: true,
+          PictureVersion: true,
+          ProductServicesVersion: true,
+          NearbeesVersion: true,
+        },
+      });
+    } else {
+      return await this.prisma.organizationVersion.update({
+        where: {
+          id: organizationVersion.id,
+        },
+        data: {
+          status: OrganizationStatusEnum.Check,
+          method: OrganizationMethodEnum.Restore,
+        },
+        include: {
+          PaymentTypesVersion: true,
+          PhoneVersion: true,
+          PictureVersion: true,
+          ProductServicesVersion: true,
+          NearbeesVersion: true,
+        },
+      });
+    }
+  }
 }

@@ -17,7 +17,6 @@ import { LaneModule } from '../lane/lane.module';
 import { ImpasseModule } from '../impasse/impasse.module';
 import { NearbyModule } from '../nearby/nearby.module';
 import { SegmentModule } from '../segment/segment.module';
-import { SectionModule } from '../section/section.module';
 import { PhoneTypeModule } from '../phone-type/phone-type.module';
 import { OrganizationModule } from '../organization/organization.module';
 
@@ -41,7 +40,6 @@ import { OrganizationModule } from '../organization/organization.module';
     ImpasseModule,
     NearbyModule,
     SegmentModule,
-    SectionModule,
     PhoneTypeModule,
   ],
   controllers: [OrganizationVersionController],
