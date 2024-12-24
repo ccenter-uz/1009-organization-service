@@ -151,6 +151,36 @@ export class PassageService {
               name: true,
             },
           },
+          region: {
+            include: {
+              RegionTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          city: {
+            include: {
+              CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -168,11 +198,24 @@ export class PassageService {
         delete passageData.PassageNewNameTranslations;
         delete passageData.PassageOldNameTranslations;
 
+        const regionTranslations = passageData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete passageData.region.RegionTranslations;
+        const region = { ...passageData.region, name: regionName };
+        delete passageData.region;
+
+        const cityTranslations = passageData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete passageData.city.CityTranslations;
+        const city = { ...passageData.city, name: cityName };
+        delete passageData.city;
         formattedPassage.push({
           ...passageData,
           name,
           newName: nameNew,
           oldName: nameOld,
+          region,
+          city,
         });
       }
 
@@ -196,6 +239,7 @@ export class PassageService {
           languageCode: data.langCode,
           name: {
             contains: data.search,
+            mode: 'insensitive',
           },
         },
       };
@@ -247,6 +291,36 @@ export class PassageService {
             languageCode: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -267,11 +341,25 @@ export class PassageService {
       delete passageData.PassageNewNameTranslations;
       delete passageData.PassageOldNameTranslations;
 
+      const regionTranslations = passageData.region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+      delete passageData.region.RegionTranslations;
+      const region = { ...passageData.region, name: regionName };
+      delete passageData.region;
+
+      const cityTranslations = passageData.city.CityTranslations;
+      const cityName = formatLanguageResponse(cityTranslations);
+      delete passageData.city.CityTranslations;
+      const city = { ...passageData.city, name: cityName };
+      delete passageData.city;
+
       formattedPassage.push({
         ...passageData,
         name,
         newName: nameNew,
         oldName: nameOld,
+        region,
+        city,
       });
     }
 
@@ -322,6 +410,36 @@ export class PassageService {
             name: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
     if (!passage) {
@@ -333,7 +451,27 @@ export class PassageService {
     delete passage.PassageNewNameTranslations;
     delete passage.PassageOldNameTranslations;
     delete passage.PassageTranslations;
-    return { ...passage, name, newName: nameNew, oldName: nameOld };
+
+    const regionTranslations = passage.region.RegionTranslations;
+    const regionName = formatLanguageResponse(regionTranslations);
+    delete passage.region.RegionTranslations;
+    const region = { ...passage.region, name: regionName };
+    delete passage.region;
+
+    const cityTranslations = passage.city.CityTranslations;
+    const cityName = formatLanguageResponse(cityTranslations);
+    delete passage.city.CityTranslations;
+    const city = { ...passage.city, name: cityName };
+    delete passage.city;
+
+    return {
+      ...passage,
+      name,
+      newName: nameNew,
+      oldName: nameOld,
+      region,
+      city,
+    };
   }
 
   async update(data: PassageUpdateDto): Promise<PassageInterfaces.Response> {
@@ -426,6 +564,7 @@ export class PassageService {
         cityId: data.cityId || passage.cityId,
         districtId: data.districtId || passage.districtId,
         staffNumber: data.staffNumber || passage.staffNumber,
+        index: data.index || passage.index,
         PassageTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

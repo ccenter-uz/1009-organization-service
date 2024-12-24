@@ -151,6 +151,36 @@ export class LaneService {
               name: true,
             },
           },
+          region: {
+            include: {
+              RegionTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          city: {
+            include: {
+              CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -168,11 +198,25 @@ export class LaneService {
         delete laneData.LaneNewNameTranslations;
         delete laneData.LaneOldNameTranslations;
 
+        const regionTranslations = laneData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete laneData.region.RegionTranslations;
+        const region = { ...laneData.region, name: regionName };
+        delete laneData.region;
+
+        const cityTranslations = laneData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete laneData.city.CityTranslations;
+        const city = { ...laneData.city, name: cityName };
+        delete laneData.city;
+
         formattedLane.push({
           ...laneData,
           name,
           newName: nameNew,
           oldName: nameOld,
+          region,
+          city
         });
       }
 
@@ -196,6 +240,7 @@ export class LaneService {
           languageCode: data.langCode,
           name: {
             contains: data.search,
+            mode: 'insensitive',
           },
         },
       };
@@ -247,6 +292,36 @@ export class LaneService {
             languageCode: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -267,11 +342,26 @@ export class LaneService {
       delete laneData.LaneNewNameTranslations;
       delete laneData.LaneOldNameTranslations;
 
+      const regionTranslations = laneData.region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+      delete laneData.region.RegionTranslations;
+      const region = { ...laneData.region, name: regionName };
+      delete laneData.region;
+
+      const cityTranslations = laneData.city.CityTranslations;
+      const cityName = formatLanguageResponse(cityTranslations);
+      delete laneData.city.CityTranslations;
+      const city = { ...laneData.city, name: cityName };
+      delete laneData.city;
+
       formattedLane.push({
         ...laneData,
         name,
         newName: nameNew,
         oldName: nameOld,
+        
+        region,
+        city
       });
     }
 
@@ -322,6 +412,36 @@ export class LaneService {
             name: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
     if (!lane) {
@@ -333,7 +453,21 @@ export class LaneService {
     delete lane.LaneNewNameTranslations;
     delete lane.LaneOldNameTranslations;
     delete lane.LaneTranslations;
-    return { ...lane, name, newName: nameNew, oldName: nameOld };
+    
+    const regionTranslations = lane.region.RegionTranslations;
+    const regionName = formatLanguageResponse(regionTranslations);
+    delete lane.region.RegionTranslations;
+    const region = { ...lane.region, name: regionName };
+    delete lane.region;
+
+    const cityTranslations = lane.city.CityTranslations;
+    const cityName = formatLanguageResponse(cityTranslations);
+    delete lane.city.CityTranslations;
+    const city = { ...lane.city, name: cityName };
+    delete lane.city;
+    return { ...lane, name, newName: nameNew, oldName: nameOld,
+      region,
+      city };
   }
 
   async update(data: LaneUpdateDto): Promise<LaneInterfaces.Response> {
@@ -427,6 +561,7 @@ export class LaneService {
         cityId: data.cityId || lane.cityId,
         districtId: data.districtId || lane.districtId,
         staffNumber: data.staffNumber || lane.staffNumber,
+        index: data.index || lane.index,
         LaneTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

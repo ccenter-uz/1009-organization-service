@@ -9,35 +9,32 @@ import {
   LanguageRequestDto,
   ListQueryDto,
 } from 'types/global';
+
 import {
-  MainOrganizationCreateDto,
-  MainOrganizationInterfaces,
-  MainOrganizationUpdateDto,
-} from 'types/organization/main-organization';
+  SectionCreateDto,
+  SectionInterfaces,
+  SectionUpdateDto,
+} from 'types/organization/section';
 
 @Injectable()
-export class MainOrganizationService {
+export class SectionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    data: MainOrganizationCreateDto
-  ): Promise<MainOrganizationInterfaces.Response> {
+  async create(data: SectionCreateDto): Promise<SectionInterfaces.Response> {
     // const mainOrganization = await this.prisma.mainOrganization
-    const mainOrganization = await this.prisma.mainOrganization.create({
+    const section = await this.prisma.section.create({
       data: {
-        staffNumber: data.staffNumber,
         name: data.name,
       },
     });
-
-    return mainOrganization;
+    return section;
   }
 
   async findAll(
     data: ListQueryDto
-  ): Promise<MainOrganizationInterfaces.ResponseWithPagination> {
+  ): Promise<SectionInterfaces.ResponseWithPagination> {
     if (data.all) {
-      const mainOrganization = await this.prisma.mainOrganization.findMany({
+      const section = await this.prisma.section.findMany({
         where: {
           ...(data.status !== 2
             ? {
@@ -49,12 +46,11 @@ export class MainOrganizationService {
       });
 
       return {
-        data: mainOrganization,
-        totalDocs: mainOrganization.length,
+        data: section,
+        totalDocs: section.length,
         totalPage: 1,
       };
     }
-
     const where: any = {
       ...(data.status == 2
         ? {}
@@ -69,7 +65,7 @@ export class MainOrganizationService {
         mode: 'insensitive',
       };
     }
-    const count = await this.prisma.mainOrganization.count({
+    const count = await this.prisma.section.count({
       where,
     });
 
@@ -79,7 +75,7 @@ export class MainOrganizationService {
       perPage: data.limit,
     });
 
-    const mainOrganization = await this.prisma.mainOrganization.findMany({
+    const section = await this.prisma.section.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       take: pagination.take,
@@ -87,58 +83,55 @@ export class MainOrganizationService {
     });
 
     return {
-      data: mainOrganization,
+      data: section,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
   }
 
-  async findOne(data: GetOneDto): Promise<MainOrganizationInterfaces.Response> {
-    const mainOrganization = await this.prisma.mainOrganization.findFirst({
+  async findOne(data: GetOneDto): Promise<SectionInterfaces.Response> {
+    const section = await this.prisma.section.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
     });
 
-    if (!mainOrganization) {
-      throw new NotFoundException('Main Organization is not found');
+    if (!section) {
+      throw new NotFoundException('Section is not found');
     }
 
-    return mainOrganization;
+    return section;
   }
 
-  async update(
-    data: MainOrganizationUpdateDto
-  ): Promise<MainOrganizationInterfaces.Response> {
-    const mainOrganization = await this.findOne({ id: data.id });
+  async update(data: SectionUpdateDto): Promise<SectionInterfaces.Response> {
+    const section = await this.findOne({ id: data.id });
 
-    return await this.prisma.mainOrganization.update({
+    return await this.prisma.section.update({
       where: {
-        id: mainOrganization.id,
+        id: section.id,
       },
       data: {
-        staffNumber: data.staffNumber,
-        name: data.name,
+        name: data.name || section.name,
       },
     });
   }
 
-  async remove(data: DeleteDto): Promise<MainOrganizationInterfaces.Response> {
+  async remove(data: DeleteDto): Promise<SectionInterfaces.Response> {
     if (data.delete) {
-      return await this.prisma.mainOrganization.delete({
+      return await this.prisma.section.delete({
         where: { id: data.id },
       });
     }
 
-    return await this.prisma.mainOrganization.update({
+    return await this.prisma.section.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
     });
   }
 
-  async restore(data: GetOneDto): Promise<MainOrganizationInterfaces.Response> {
-    return this.prisma.mainOrganization.update({
+  async restore(data: GetOneDto): Promise<SectionInterfaces.Response> {
+    return this.prisma.section.update({
       where: { id: data.id, status: DefaultStatus.INACTIVE },
       data: { status: DefaultStatus.ACTIVE },
     });

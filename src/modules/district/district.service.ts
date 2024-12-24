@@ -248,6 +248,7 @@ export class DistrictService {
           languageCode: data.langCode,
           name: {
             contains: data.search,
+            mode: 'insensitive',
           },
         },
       };
@@ -573,6 +574,7 @@ export class DistrictService {
         regionId: data.regionId || district.regionId,
         cityId: data.cityId || district.cityId,
         staffNumber: data.staffNumber || district.staffNumber,
+        index: data.index || district.index,
         DistrictTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

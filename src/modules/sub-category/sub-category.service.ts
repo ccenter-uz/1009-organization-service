@@ -61,7 +61,6 @@ export class SubCategoryService {
     data: SubCategoryFilterDto
   ): Promise<SubCategoryInterfaces.ResponseWithPagination> {
     if (data.all) {
-
       const subCategories = await this.prisma.subCategory.findMany({
         orderBy: { createdAt: 'desc' },
         where: {
@@ -121,10 +120,12 @@ export class SubCategoryService {
           languageCode: data.langCode,
           name: {
             contains: data.search,
+            mode: 'insensitive',
           },
         },
       };
     }
+
     const count = await this.prisma.subCategory.count({
       where,
     });
@@ -179,7 +180,7 @@ export class SubCategoryService {
     const subCategory = await this.prisma.subCategory.findFirst({
       where: {
         id: data.id,
-        status: DefaultStatus.ACTIVE
+        status: DefaultStatus.ACTIVE,
       },
       include: {
         category: true,
@@ -199,7 +200,7 @@ export class SubCategoryService {
     if (!subCategory) {
       throw new NotFoundException('SubCategory is not found');
     }
-    
+
     const name = formatLanguageResponse(subCategory.SubCategoryTranslations);
 
     delete subCategory.SubCategoryTranslations;

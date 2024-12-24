@@ -151,6 +151,36 @@ export class StreetService {
               name: true,
             },
           },
+          region: {
+            include: {
+              RegionTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          city: {
+            include: {
+              CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -164,15 +194,30 @@ export class StreetService {
         const nameNew = formatLanguageResponse(translationsNew);
         const translationsOld = streetData.StreetOldNameTranslations;
         const nameOld = formatLanguageResponse(translationsOld);
+
         delete streetData.StreetTranslations;
         delete streetData.StreetNewNameTranslations;
         delete streetData.StreetOldNameTranslations;
+
+        const regionTranslations = streetData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete streetData.region.RegionTranslations;
+        const region = { ...streetData.region, name: regionName };
+        delete streetData.region;
+
+        const cityTranslations = streetData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete streetData.city.CityTranslations;
+        const city = { ...streetData.city, name: cityName };
+        delete streetData.city;
 
         formattedStreet.push({
           ...streetData,
           name,
           newName: nameNew,
           oldName: nameOld,
+          region,
+          city,
         });
       }
 
@@ -195,6 +240,7 @@ export class StreetService {
           languageCode: data.langCode,
           name: {
             contains: data.search,
+            mode: 'insensitive',
           },
         },
       };
@@ -246,6 +292,36 @@ export class StreetService {
             languageCode: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -266,11 +342,25 @@ export class StreetService {
       delete streetData.StreetNewNameTranslations;
       delete streetData.StreetOldNameTranslations;
 
+      const regionTranslations = streetData.region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+      delete streetData.region.RegionTranslations;
+      const region = { ...streetData.region, name: regionName };
+      delete streetData.region;
+
+      const cityTranslations = streetData.city.CityTranslations;
+      const cityName = formatLanguageResponse(cityTranslations);
+      delete streetData.city.CityTranslations;
+      const city = { ...streetData.city, name: cityName };
+      delete streetData.city;
+
       formattedStreet.push({
         ...streetData,
         name,
         newName: nameNew,
         oldName: nameOld,
+        region,
+        city,
       });
     }
 
@@ -321,6 +411,36 @@ export class StreetService {
             name: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
     if (!street) {
@@ -329,10 +449,31 @@ export class StreetService {
     const name = formatLanguageResponse(street.StreetTranslations);
     const nameNew = formatLanguageResponse(street.StreetNewNameTranslations);
     const nameOld = formatLanguageResponse(street.StreetOldNameTranslations);
+
     delete street.StreetNewNameTranslations;
     delete street.StreetOldNameTranslations;
     delete street.StreetTranslations;
-    return { ...street, name, newName: nameNew, oldName: nameOld };
+
+    const regionTranslations = street.region.RegionTranslations;
+    const regionName = formatLanguageResponse(regionTranslations);
+    delete street.region.RegionTranslations;
+    const region = { ...street.region, name: regionName };
+    delete street.region;
+
+    const cityTranslations = street.city.CityTranslations;
+    const cityName = formatLanguageResponse(cityTranslations);
+    delete street.city.CityTranslations;
+    const city = { ...street.city, name: cityName };
+    delete street.city;
+
+    return {
+      ...street,
+      name,
+      newName: nameNew,
+      oldName: nameOld,
+      region,
+      city,
+    };
   }
 
   async update(data: StreetUpdateDto): Promise<StreetInterfaces.Response> {
@@ -425,6 +566,7 @@ export class StreetService {
         cityId: data.cityId || street.cityId,
         districtId: data.districtId || street.districtId,
         staffNumber: data.staffNumber || street.staffNumber,
+        index: data.index || street.index,
         StreetTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

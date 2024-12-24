@@ -151,6 +151,37 @@ export class AreaService {
               name: true,
             },
           },
+
+          region: {
+            include: {
+              RegionTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          city: {
+            include: {
+              CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -168,11 +199,25 @@ export class AreaService {
         delete areaData.AreaNewNameTranslations;
         delete areaData.AreaOldNameTranslations;
 
+        const regionTranslations = areaData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete areaData.region.RegionTranslations;
+        const region = { ...areaData.region, name: regionName };
+        delete areaData.region;
+
+        const cityTranslations = areaData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete areaData.city.CityTranslations;
+        const city = { ...areaData.city, name: cityName };
+        delete areaData.city;
+
         formattedArea.push({
           ...areaData,
           name,
           newName: nameNew,
           oldName: nameOld,
+          region,
+          city,
         });
       }
 
@@ -196,6 +241,7 @@ export class AreaService {
           languageCode: data.langCode,
           name: {
             contains: data.search,
+            mode: 'insensitive',
           },
         },
       };
@@ -247,6 +293,37 @@ export class AreaService {
             languageCode: true,
           },
         },
+
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -267,11 +344,25 @@ export class AreaService {
       delete areaData.AreaNewNameTranslations;
       delete areaData.AreaOldNameTranslations;
 
+      const regionTranslations = areaData.region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+      delete areaData.region.RegionTranslations;
+      const region = { ...areaData.region, name: regionName };
+      delete areaData.region;
+
+      const cityTranslations = areaData.city.CityTranslations;
+      const cityName = formatLanguageResponse(cityTranslations);
+      delete areaData.city.CityTranslations;
+      const city = { ...areaData.city, name: cityName };
+      delete areaData.city;
+
       formattedArea.push({
         ...areaData,
         name,
         newName: nameNew,
         oldName: nameOld,
+        region,
+        city,
       });
     }
 
@@ -322,6 +413,36 @@ export class AreaService {
             name: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
     if (!area) {
@@ -333,7 +454,20 @@ export class AreaService {
     delete area.AreaNewNameTranslations;
     delete area.AreaOldNameTranslations;
     delete area.AreaTranslations;
-    return { ...area, name, newName: nameNew, oldName: nameOld };
+
+    const regionTranslations = area.region.RegionTranslations;
+    const regionName = formatLanguageResponse(regionTranslations);
+    delete area.region.RegionTranslations;
+    const region = { ...area.region, name: regionName };
+    delete area.region;
+
+    const cityTranslations = area.city.CityTranslations;
+    const cityName = formatLanguageResponse(cityTranslations);
+    delete area.city.CityTranslations;
+    const city = { ...area.city, name: cityName };
+    delete area.city;
+
+    return { ...area, name, newName: nameNew, oldName: nameOld, region, city };
   }
 
   async update(data: AreaUpdateDto): Promise<AreaInterfaces.Response> {
@@ -426,6 +560,7 @@ export class AreaService {
         cityId: data.cityId || area.cityId,
         districtId: data.districtId || area.districtId,
         staffNumber: data.staffNumber || area.staffNumber,
+        index: data.index || area.index,
         AreaTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

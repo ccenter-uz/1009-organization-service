@@ -153,6 +153,36 @@ export class ResidentialAreaService {
               name: true,
             },
           },
+          region: {
+            include: {
+              RegionTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          city: {
+            include: {
+              CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -172,11 +202,26 @@ export class ResidentialAreaService {
         delete residentialAreaData.ResidentialAreaNewNameTranslations;
         delete residentialAreaData.ResidentialAreaOldNameTranslations;
 
+        const regionTranslations = residentialAreaData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete residentialAreaData.region.RegionTranslations;
+        const region = { ...residentialAreaData.region, name: regionName };
+        delete residentialAreaData.region;
+
+        const cityTranslations = residentialAreaData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete residentialAreaData.city.CityTranslations;
+        const city = { ...residentialAreaData.city, name: cityName };
+        delete residentialAreaData.city;
+
         formattedResidentialArea.push({
           ...residentialAreaData,
           name,
           newName: nameNew,
           oldName: nameOld,
+          
+          region,
+          city
         });
       }
 
@@ -199,6 +244,7 @@ export class ResidentialAreaService {
           languageCode: data.langCode,
           name: {
             contains: data.search,
+            mode: 'insensitive',
           },
         },
       };
@@ -250,6 +296,36 @@ export class ResidentialAreaService {
             languageCode: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -272,11 +348,25 @@ export class ResidentialAreaService {
       delete residentialAreaData.ResidentialAreaNewNameTranslations;
       delete residentialAreaData.ResidentialAreaOldNameTranslations;
 
+      const regionTranslations = residentialAreaData.region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+      delete residentialAreaData.region.RegionTranslations;
+      const region = { ...residentialAreaData.region, name: regionName };
+      delete residentialAreaData.region;
+
+      const cityTranslations = residentialAreaData.city.CityTranslations;
+      const cityName = formatLanguageResponse(cityTranslations);
+      delete residentialAreaData.city.CityTranslations;
+      const city = { ...residentialAreaData.city, name: cityName };
+      delete residentialAreaData.city;
+
       formattedResidentialArea.push({
         ...residentialAreaData,
         name,
         newName: nameNew,
         oldName: nameOld,
+        region,
+        city
       });
     }
 
@@ -327,6 +417,36 @@ export class ResidentialAreaService {
             name: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
     if (!residentialArea) {
@@ -344,7 +464,20 @@ export class ResidentialAreaService {
     delete residentialArea.ResidentialAreaNewNameTranslations;
     delete residentialArea.ResidentialAreaOldNameTranslations;
     delete residentialArea.ResidentialAreaTranslations;
-    return { ...residentialArea, name, newName: nameNew, oldName: nameOld };
+    const regionTranslations = residentialArea.region.RegionTranslations;
+    const regionName = formatLanguageResponse(regionTranslations);
+    delete residentialArea.region.RegionTranslations;
+    const region = { ...residentialArea.region, name: regionName };
+    delete residentialArea.region;
+
+    const cityTranslations = residentialArea.city.CityTranslations;
+    const cityName = formatLanguageResponse(cityTranslations);
+    delete residentialArea.city.CityTranslations;
+    const city = { ...residentialArea.city, name: cityName };
+    delete residentialArea.city;
+    return { ...residentialArea, name, newName: nameNew, oldName: nameOld,
+      region,
+      city };
   }
 
   async update(
@@ -439,6 +572,7 @@ export class ResidentialAreaService {
         cityId: data.cityId || residentialArea.cityId,
         districtId: data.districtId || residentialArea.districtId,
         staffNumber: data.staffNumber || residentialArea.staffNumber,
+        index: data.index || residentialArea.index,
         ResidentialAreaTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

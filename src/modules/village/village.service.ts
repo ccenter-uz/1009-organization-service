@@ -152,6 +152,36 @@ export class VillageService {
               name: true,
             },
           },
+          region: {
+            include: {
+              RegionTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          city: {
+            include: {
+              CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -169,11 +199,25 @@ export class VillageService {
         delete villageData.VillageNewNameTranslations;
         delete villageData.VillageOldNameTranslations;
 
+        const regionTranslations = villageData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete villageData.region.RegionTranslations;
+        const region = { ...villageData.region, name: regionName };
+        delete villageData.region;
+
+        const cityTranslations = villageData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete villageData.city.CityTranslations;
+        const city = { ...villageData.city, name: cityName };
+        delete villageData.city;
+
         formattedVillage.push({
           ...villageData,
           name,
           newName: nameNew,
           oldName: nameOld,
+          region,
+          city,
         });
       }
       return {
@@ -196,6 +240,7 @@ export class VillageService {
           languageCode: data.langCode,
           name: {
             contains: data.search,
+            mode: 'insensitive',
           },
         },
       };
@@ -248,6 +293,36 @@ export class VillageService {
             languageCode: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -268,11 +343,25 @@ export class VillageService {
       delete villageData.VillageNewNameTranslations;
       delete villageData.VillageOldNameTranslations;
 
+      const regionTranslations = villageData.region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+      delete villageData.region.RegionTranslations;
+      const region = { ...villageData.region, name: regionName };
+      delete villageData.region;
+
+      const cityTranslations = villageData.city.CityTranslations;
+      const cityName = formatLanguageResponse(cityTranslations);
+      delete villageData.city.CityTranslations;
+      const city = { ...villageData.city, name: cityName };
+      delete villageData.city;
+
       formattedVillage.push({
         ...villageData,
         name,
         newName: nameNew,
         oldName: nameOld,
+        region,
+        city,
       });
     }
 
@@ -323,6 +412,36 @@ export class VillageService {
             name: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -335,7 +454,27 @@ export class VillageService {
     delete village.VillageNewNameTranslations;
     delete village.VillageOldNameTranslations;
     delete village.VillageTranslations;
-    return { ...village, name, newName: nameNew, oldName: nameOld };
+
+    const regionTranslations = village.region.RegionTranslations;
+    const regionName = formatLanguageResponse(regionTranslations);
+    delete village.region.RegionTranslations;
+    const region = { ...village.region, name: regionName };
+    delete village.region;
+
+    const cityTranslations = village.city.CityTranslations;
+    const cityName = formatLanguageResponse(cityTranslations);
+    delete village.city.CityTranslations;
+    const city = { ...village.city, name: cityName };
+    delete village.city;
+
+    return {
+      ...village,
+      name,
+      newName: nameNew,
+      oldName: nameOld,
+      region,
+      city,
+    };
   }
 
   async update(data: VillageUpdateDto): Promise<VillageInterfaces.Response> {
@@ -429,6 +568,7 @@ export class VillageService {
         cityId: data.cityId || village.cityId,
         districtId: data.districtId || village.districtId,
         staffNumber: data.staffNumber || village.staffNumber,
+        index: data.index || village.index,
         VillageTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
