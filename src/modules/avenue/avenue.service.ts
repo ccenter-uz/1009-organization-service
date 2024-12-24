@@ -152,6 +152,36 @@ export class AvenueService {
               name: true,
             },
           },
+          region: {
+            include: {
+              RegionTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          city: {
+            include: {
+              CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -169,11 +199,24 @@ export class AvenueService {
         delete avenueData.AvenueNewNameTranslations;
         delete avenueData.AvenueOldNameTranslations;
 
+        const regionTranslations = avenueData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete avenueData.region.RegionTranslations;
+        const region = { ...avenueData.region, name: regionName };
+        delete avenueData.region;
+
+        const cityTranslations = avenueData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete avenueData.city.CityTranslations;
+        const city = { ...avenueData.city, name: cityName };
+        delete avenueData.city;
         formattedAvenue.push({
           ...avenueData,
           name,
           newName: nameNew,
           oldName: nameOld,
+          region,
+          city
         });
       }
 
@@ -249,6 +292,36 @@ export class AvenueService {
             languageCode: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -269,11 +342,25 @@ export class AvenueService {
       delete avenueData.AvenueNewNameTranslations;
       delete avenueData.AvenueOldNameTranslations;
 
+      const regionTranslations = avenueData.region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+      delete avenueData.region.RegionTranslations;
+      const region = { ...avenueData.region, name: regionName };
+      delete avenueData.region;
+
+      const cityTranslations = avenueData.city.CityTranslations;
+      const cityName = formatLanguageResponse(cityTranslations);
+      delete avenueData.city.CityTranslations;
+      const city = { ...avenueData.city, name: cityName };
+      delete avenueData.city;
+
       formattedAvenue.push({
         ...avenueData,
         name,
         newName: nameNew,
         oldName: nameOld,
+        region,
+        city
       });
     }
 
@@ -324,6 +411,36 @@ export class AvenueService {
             name: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
     if (!avenue) {
@@ -335,7 +452,21 @@ export class AvenueService {
     delete avenue.AvenueNewNameTranslations;
     delete avenue.AvenueOldNameTranslations;
     delete avenue.AvenueTranslations;
-    return { ...avenue, name, newName: nameNew, oldName: nameOld };
+
+    const regionTranslations = avenue.region.RegionTranslations;
+    const regionName = formatLanguageResponse(regionTranslations);
+    delete avenue.region.RegionTranslations;
+    const region = { ...avenue.region, name: regionName };
+    delete avenue.region;
+
+    const cityTranslations = avenue.city.CityTranslations;
+    const cityName = formatLanguageResponse(cityTranslations);
+    delete avenue.city.CityTranslations;
+    const city = { ...avenue.city, name: cityName };
+    delete avenue.city;
+    return { ...avenue, name, newName: nameNew, oldName: nameOld,
+      region,
+      city };
   }
 
   async update(data: AvenueUpdateDto): Promise<AvenueInterfaces.Response> {

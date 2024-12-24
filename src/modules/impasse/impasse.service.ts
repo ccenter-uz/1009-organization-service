@@ -151,6 +151,36 @@ export class ImpasseService {
               name: true,
             },
           },
+          region: {
+            include: {
+              RegionTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          city: {
+            include: {
+              CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -168,11 +198,25 @@ export class ImpasseService {
         delete impasseData.ImpasseNewNameTranslations;
         delete impasseData.ImpasseOldNameTranslations;
 
+        const regionTranslations = impasseData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete impasseData.region.RegionTranslations;
+        const region = { ...impasseData.region, name: regionName };
+        delete impasseData.region;
+
+        const cityTranslations = impasseData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete impasseData.city.CityTranslations;
+        const city = { ...impasseData.city, name: cityName };
+        delete impasseData.city;
+
         formattedImpasse.push({
           ...impasseData,
           name,
           newName: nameNew,
           oldName: nameOld,
+          region,
+          city,
         });
       }
 
@@ -247,6 +291,36 @@ export class ImpasseService {
             languageCode: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -267,11 +341,25 @@ export class ImpasseService {
       delete impasseData.ImpasseNewNameTranslations;
       delete impasseData.ImpasseOldNameTranslations;
 
+      const regionTranslations = impasseData.region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+      delete impasseData.region.RegionTranslations;
+      const region = { ...impasseData.region, name: regionName };
+      delete impasseData.region;
+
+      const cityTranslations = impasseData.city.CityTranslations;
+      const cityName = formatLanguageResponse(cityTranslations);
+      delete impasseData.city.CityTranslations;
+      const city = { ...impasseData.city, name: cityName };
+      delete impasseData.city;
+
       formattedImpasse.push({
         ...impasseData,
         name,
         newName: nameNew,
         oldName: nameOld,
+        region,
+        city,
       });
     }
 
@@ -322,6 +410,36 @@ export class ImpasseService {
             name: true,
           },
         },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        city: {
+          include: {
+            CityTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
     if (!impasse) {
@@ -333,7 +451,27 @@ export class ImpasseService {
     delete impasse.ImpasseNewNameTranslations;
     delete impasse.ImpasseOldNameTranslations;
     delete impasse.ImpasseTranslations;
-    return { ...impasse, name, newName: nameNew, oldName: nameOld };
+
+    const regionTranslations = impasse.region.RegionTranslations;
+    const regionName = formatLanguageResponse(regionTranslations);
+    delete impasse.region.RegionTranslations;
+    const region = { ...impasse.region, name: regionName };
+    delete impasse.region;
+
+    const cityTranslations = impasse.city.CityTranslations;
+    const cityName = formatLanguageResponse(cityTranslations);
+    delete impasse.city.CityTranslations;
+    const city = { ...impasse.city, name: cityName };
+    delete impasse.city;
+
+    return {
+      ...impasse,
+      name,
+      newName: nameNew,
+      oldName: nameOld,
+      region,
+      city,
+    };
   }
 
   async update(data: ImpasseUpdateDto): Promise<ImpasseInterfaces.Response> {
