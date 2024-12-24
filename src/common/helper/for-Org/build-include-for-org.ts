@@ -1,3 +1,4 @@
+import { SubCategory } from './../../../../node_modules/.prisma/client/index.d';
 interface IncludeConfig {
   [key: string]: string[];
 }
@@ -72,12 +73,9 @@ export default function buildInclude(
     },
   };
   include.Nearbees = {
-    select: {
+    include: {
       Nearby: {
-        select: {
-          id: true,
-          createdAt: true,
-          updatedAt: true,
+        include: {
           NearbyTranslations: {
             where: data.allLang
               ? {}
@@ -89,6 +87,7 @@ export default function buildInclude(
               name: true,
             },
           },
+          NearbyCategory: true,
         },
       },
     },
@@ -127,13 +126,21 @@ export default function buildInclude(
       },
     },
   };
-
+  include.SubCategory = {
+    include: {
+      SubCategoryTranslations: true,
+      category: {
+        include: {
+          CategoryTranslations: true,
+        },
+      },
+    },
+  };
   return include;
 }
 
 export const includeConfig = {
   MainOrganization: [],
-  SubCategory: ['SubCategoryTranslations'],
   Region: ['RegionTranslations'],
   City: ['CityTranslations'],
   District: [

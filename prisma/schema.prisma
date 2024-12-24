@@ -123,9 +123,8 @@ model ProductServiceCategory {
   Product_service_sub_categories     ProductServiceSubCategory[]
   ProductServiceCategoryTranslations ProductServiceCategoryTranslations[]
 
-  ProductServices                   ProductServices[]
-  ProductServicesVersion             ProductServicesVersion[]
-
+  ProductServices        ProductServices[]
+  ProductServicesVersion ProductServicesVersion[]
 
   @@map("product_service_category")
 }
@@ -152,13 +151,11 @@ model ProductServiceSubCategory {
   updatedAt                DateTime? @updatedAt @map("updated_at")
   deletedAt                DateTime? @updatedAt @map("deleted_at")
 
-
   ProductServiceCategory                ProductServiceCategory                  @relation(fields: [productServiceCategoryId], references: [id])
   ProductServiceSubCategoryTranslations ProductServiceSubCategoryTranslations[]
-  ProductServices     ProductServices[]
+  ProductServices                       ProductServices[]
 
-  ProductServicesVersion   ProductServicesVersion[]
-
+  ProductServicesVersion ProductServicesVersion[]
 
   @@map("product_service_sub_category")
 }
@@ -344,12 +341,12 @@ model Nearby {
   updatedAt        DateTime? @updatedAt @map("updated_at")
   deletedAt        DateTime? @updatedAt @map("deleted_at")
 
-  NearbyCategory      NearbyCategory        @relation(fields: [nearbyCategoryId], references: [id])
-  Region              Region                @relation(fields: [regionId], references: [id])
-  City                City                  @relation(fields: [cityId], references: [id])
-  NearbyTranslations  NearbyTranslations[]
-  Nearbees       Nearbees[]
-  NearbeesVersion  NearbeesVersion[]
+  NearbyCategory     NearbyCategory       @relation(fields: [nearbyCategoryId], references: [id])
+  Region             Region               @relation(fields: [regionId], references: [id])
+  City               City                 @relation(fields: [cityId], references: [id])
+  NearbyTranslations NearbyTranslations[]
+  Nearbees           Nearbees[]
+  NearbeesVersion    NearbeesVersion[]
 
   @@map("nearby")
 }
@@ -896,6 +893,7 @@ model PhoneTypesTranslations {
 
   @@map("phone_types_id_translations")
 }
+
 model Organization {
   id                          Int       @id @default(autoincrement())
   name                        String    @map("name") @db.VarChar()
@@ -977,8 +975,6 @@ model PaymentTypes {
   @@map("payment_types")
 }
 
-
-
 model Picture {
   id             Int          @id @default(autoincrement())
   link           String       @map("link") @db.VarChar()
@@ -1002,37 +998,37 @@ model Phone {
   deletedAt      DateTime?    @map("deleted_at")
   Organization   Organization @relation(fields: [OrganizationId], references: [id])
 
-  PhoneTypes     PhoneTypes   @relation(fields: [PhoneTypeId], references: [id])
+  PhoneTypes PhoneTypes @relation(fields: [PhoneTypeId], references: [id])
 
   @@map("phone")
 }
 
 model ProductServices {
-  id                           Int                     @id @default(autoincrement())
-  ProductServiceCategoryId     Int?                     @map("product_service_category_id")
-  ProductServiceSubCategoryId  Int?                     @map("product_service_sub_category_id")
-  OrganizationId               Int                      @map("organization_id")
-  createdAt                     DateTime                @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                     DateTime?               @updatedAt @map("updated_at")
-  deletedAt                     DateTime?               @map("deleted_at")
-  ProductServiceCategory        ProductServiceCategory?       @relation(fields: [ProductServiceCategoryId], references: [id])
-  ProductServiceSubCategory     ProductServiceSubCategory? @relation(fields: [ProductServiceSubCategoryId], references: [id])
-  Organization     Organization @relation(fields: [OrganizationId], references: [id])
-  
+  id                          Int                        @id @default(autoincrement())
+  ProductServiceCategoryId    Int?                       @map("product_service_category_id")
+  ProductServiceSubCategoryId Int?                       @map("product_service_sub_category_id")
+  OrganizationId              Int                        @map("organization_id")
+  createdAt                   DateTime                   @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                   DateTime?                  @updatedAt @map("updated_at")
+  deletedAt                   DateTime?                  @map("deleted_at")
+  ProductServiceCategory      ProductServiceCategory?    @relation(fields: [ProductServiceCategoryId], references: [id])
+  ProductServiceSubCategory   ProductServiceSubCategory? @relation(fields: [ProductServiceSubCategoryId], references: [id])
+  Organization                Organization               @relation(fields: [OrganizationId], references: [id])
+
   @@map("product_services")
 }
 
 model Nearbees {
-  id                           Int                     @id @default(autoincrement())
-  description                  String                  @map("description") @db.VarChar()
-  NearbyId                     Int                     @map("nearby_id")
-  OrganizationId                Int                      @map("organization_version_id")
-  createdAt                     DateTime                @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                     DateTime?               @updatedAt @map("updated_at")
-  deletedAt                     DateTime?               @map("deleted_at")
-  Nearby                        Nearby                 @relation(fields: [NearbyId], references: [id])
-  Organization           Organization       @relation(fields: [OrganizationId], references: [id])
-  
+  id             Int          @id @default(autoincrement())
+  description    String       @map("description") @db.VarChar()
+  NearbyId       Int          @map("nearby_id")
+  OrganizationId Int          @map("organization_version_id")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamp
+  updatedAt      DateTime?    @updatedAt @map("updated_at")
+  deletedAt      DateTime?    @map("deleted_at")
+  Nearby         Nearby       @relation(fields: [NearbyId], references: [id])
+  Organization   Organization @relation(fields: [OrganizationId], references: [id])
+
   @@map("nearbees")
 }
 
@@ -1097,7 +1093,7 @@ model OrganizationVersion {
   PhoneVersion        PhoneVersion[]
   PaymentTypesVersion PaymentTypesVersion[]
   ProductServicesVersion ProductServicesVersion[]
-  NearbeesVersion           NearbeesVersion[]
+  NearbeesVersion        NearbeesVersion[]
 
   @@map("organization_version")
 }
@@ -1145,30 +1141,30 @@ model PaymentTypesVersion {
 }
 
 model ProductServicesVersion {
-  id                           Int                     @id @default(autoincrement())
-  ProductServiceCategoryId     Int?                     @map("product_service_category_id")
-  ProductServiceSubCategoryId  Int?                     @map("product_service_sub_category_id")
-  OrganizationVersionId         Int                      @map("organization_version_id")
-  createdAt                     DateTime                @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                     DateTime?               @updatedAt @map("updated_at")
-  deletedAt                     DateTime?               @map("deleted_at")
-  ProductServiceCategory        ProductServiceCategory?       @relation(fields: [ProductServiceCategoryId], references: [id])
-  ProductServiceSubCategory     ProductServiceSubCategory? @relation(fields: [ProductServiceSubCategoryId], references: [id])
-  OrganizationVersion     OrganizationVersion @relation(fields: [OrganizationVersionId], references: [id])
-  
+  id                          Int                        @id @default(autoincrement())
+  ProductServiceCategoryId    Int?                       @map("product_service_category_id")
+  ProductServiceSubCategoryId Int?                       @map("product_service_sub_category_id")
+  OrganizationVersionId       Int                        @map("organization_version_id")
+  createdAt                   DateTime                   @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                   DateTime?                  @updatedAt @map("updated_at")
+  deletedAt                   DateTime?                  @map("deleted_at")
+  ProductServiceCategory      ProductServiceCategory?    @relation(fields: [ProductServiceCategoryId], references: [id])
+  ProductServiceSubCategory   ProductServiceSubCategory? @relation(fields: [ProductServiceSubCategoryId], references: [id])
+  OrganizationVersion         OrganizationVersion        @relation(fields: [OrganizationVersionId], references: [id])
+
   @@map("product_services_version")
 }
 
 model NearbeesVersion {
-  id                           Int                     @id @default(autoincrement())
-  description                  String                  @map("description") @db.VarChar()
-  NearbyId                     Int                     @map("nearby_id")
-  OrganizationVersionId         Int                      @map("organization_version_id")
-  createdAt                     DateTime                @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                     DateTime?               @updatedAt @map("updated_at")
-  deletedAt                     DateTime?               @map("deleted_at")
-  Nearby                        Nearby?                  @relation(fields: [NearbyId], references: [id])
-  OrganizationVersion           OrganizationVersion       @relation(fields: [OrganizationVersionId], references: [id])
-  
+  id                    Int                 @id @default(autoincrement())
+  description           String              @map("description") @db.VarChar()
+  NearbyId              Int                 @map("nearby_id")
+  OrganizationVersionId Int                 @map("organization_version_id")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamp
+  updatedAt             DateTime?           @updatedAt @map("updated_at")
+  deletedAt             DateTime?           @map("deleted_at")
+  Nearby                Nearby?             @relation(fields: [NearbyId], references: [id])
+  OrganizationVersion   OrganizationVersion @relation(fields: [OrganizationVersionId], references: [id])
+
   @@map("nearbees_version")
 }

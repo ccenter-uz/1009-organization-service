@@ -9,8 +9,12 @@ import {
 import { DeleteDto, GetOneDto, ListQueryDto } from 'types/global';
 import * as Multer from 'multer';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
+
+import { MyOrganizationFilterDto } from 'types/organization/organization/dto/filter-my-organization.dto';
+
 import { OrganizationDeleteDto } from 'types/organization/organization/dto/delete-organization.dto';
 import { OrganizationRestoreDto } from 'types/organization/organization/dto/get-restore-organization.dto';
+
 @Controller('organization')
 export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
@@ -36,7 +40,7 @@ export class OrganizationController {
   @Get('all-my')
   @MessagePattern({ cmd: Commands.GET_MY_LIST })
   findMy(
-    @Payload() data: OrganizationFilterDto
+    @Payload() data: MyOrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     return this.organizationService.findMy(data);
   }

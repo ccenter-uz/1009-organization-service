@@ -1,3 +1,7 @@
+import {
+  Category,
+  SubCategory,
+} from './../../../../node_modules/.prisma/client/index.d';
 import { formatLanguageResponse } from '../format-language.helper';
 
 interface Translations {
@@ -69,6 +73,10 @@ export default function formatOrganizationResponse(
   for (let [index, el] of Object.entries(organization['Nearbees'])) {
     const name = formatLanguageResponse(el['Nearby'].NearbyTranslations);
 
+    formattedOrganization['Nearbees'][index]['NearbyCategory'] = {...el['Nearby'].NearbyCategory};
+
+    delete formattedOrganization['Nearbees'][index]['Nearby'].NearbyCategory;
+
     formattedOrganization['Nearbees'][index]['Nearby'].name = name;
     delete formattedOrganization['Nearbees'][index]['Nearby']
       .NearbyTranslations;
@@ -96,7 +104,27 @@ export default function formatOrganizationResponse(
       'ProductServiceCategory'
     ]['ProductServiceCategoryTranslations'];
   }
-  return formattedOrganization;
+
+  const subCategoryTranslation =
+    organization.SubCategory.SubCategoryTranslations;
+  const categoryTranslation =
+    organization.SubCategory.category.CategoryTranslations;
+
+  const subCategoryName = formatLanguageResponse(subCategoryTranslation);
+  const categoryName = formatLanguageResponse(categoryTranslation);
+
+  formattedOrganization.SubCategory.category.name = categoryName;
+  formattedOrganization.SubCategory.name = subCategoryName;
+  formattedOrganization.subcategory = organization.SubCategory;
+
+  formattedOrganization.category = formattedOrganization.SubCategory.category;
+
+  delete formattedOrganization.SubCategory.SubCategoryTranslations;
+  delete formattedOrganization.SubCategory.category.CategoryTranslations;
+  delete formattedOrganization.SubCategory;
+  delete formattedOrganization.subcategory.category;
+
+  return { ...formattedOrganization };
 }
 
 export const modulesConfig = [
@@ -111,10 +139,6 @@ export const modulesConfig = [
   {
     nameKey: 'MainOrganization',
     includeKeys: [],
-  },
-  {
-    nameKey: 'SubCategory',
-    includeKeys: ['SubCategoryTranslations'],
   },
   {
     nameKey: 'ProductServiceCategory',
