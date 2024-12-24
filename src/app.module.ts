@@ -10,7 +10,6 @@ import { AllExceptionFilter } from './common/filter/all-exception.filter';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { CategoryModule } from './modules/category/category.module';
 import { SubCategoryModule } from './modules/sub-category/sub-category.module';
-import { SectionModule } from './modules/section/section.module';
 import { SegmentModule } from './modules/segment/segment.module';
 import { ProductServiceCategoryModule } from './modules/product-servise-category/product-service-category.module';
 import { ProductServiceSubCategoryModule } from './modules/product-service-sub-category/product-service-sub-category.module';
@@ -42,7 +41,6 @@ import { PhoneTypeModule } from './modules/phone-type/phone-type.module';
     CategoryModule,
     SubCategoryModule,
     MainOrganizationModule,
-    SectionModule,
     SegmentModule,
     ProductServiceCategoryModule,
     ProductServiceSubCategoryModule,

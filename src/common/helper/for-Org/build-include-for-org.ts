@@ -177,6 +177,4 @@ export const includeConfig = {
     'ImpasseOldNameTranslations',
   ],
   Segment: ['SegmentTranslations'],
-
-  Section: [],
 };
