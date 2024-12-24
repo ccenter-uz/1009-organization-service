@@ -4,6 +4,7 @@ import {
   NearbyCreateDto,
   NearbyUpdateDto,
   NearbyInterfaces,
+  NearbyFilterDto,
 } from 'types/organization/nearby';
 import {
   DefaultStatus,
@@ -68,12 +69,13 @@ export class NearbyService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: NearbyFilterDto
   ): Promise<NearbyInterfaces.ResponseWithPagination> {
     if (data.all) {
       const nearby = await this.prisma.nearby.findMany({
         orderBy: { createdAt: 'desc' },
         where: {
+          nearbyCategoryId: data.nearbyCategoryId,
           ...(data.status !== 2
             ? {
                 status: data.status,
@@ -166,7 +168,9 @@ export class NearbyService {
         : {
             status: data.status,
           }),
+      nearbyCategoryId: data.nearbyCategoryId,
     };
+
     if (data.search) {
       where.NearbyTranslations = {
         some: {
@@ -177,6 +181,7 @@ export class NearbyService {
         },
       };
     }
+
     const count = await this.prisma.nearby.count({
       where,
     });

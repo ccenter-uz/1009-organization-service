@@ -6,13 +6,9 @@ import {
   NearbyCreateDto,
   NearbyUpdateDto,
   NearbyInterfaces,
+  NearbyFilterDto,
 } from 'types/organization/nearby';
-import {
-  DeleteDto,
-  GetOneDto,
-  LanguageRequestDto,
-  ListQueryDto,
-} from 'types/global';
+import { DeleteDto, GetOneDto } from 'types/global';
 
 @Controller('nearby')
 export class NearbyController {
@@ -27,7 +23,7 @@ export class NearbyController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: NearbyFilterDto
   ): Promise<NearbyInterfaces.ResponseWithoutPagination> {
     return this.subCategoryService.findAll(data);
   }
