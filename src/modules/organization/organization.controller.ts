@@ -1,4 +1,4 @@
-import { Controller, Post, Get, UploadedFiles, Put } from '@nestjs/common';
+import { Controller, Post, Get, UploadedFiles, Put, Delete, Patch } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
@@ -6,10 +6,15 @@ import {
   OrganizationInterfaces,
   OrganizationServiceCommands as Commands,
 } from 'types/organization/organization';
-import { GetOneDto, ListQueryDto } from 'types/global';
+import { DeleteDto, GetOneDto, ListQueryDto } from 'types/global';
 import * as Multer from 'multer';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
+
 import { MyOrganizationFilterDto } from 'types/organization/organization/dto/filter-my-organization.dto';
+
+import { OrganizationDeleteDto } from 'types/organization/organization/dto/delete-organization.dto';
+import { OrganizationRestoreDto } from 'types/organization/organization/dto/get-restore-organization.dto';
+
 @Controller('organization')
 export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
@@ -56,15 +61,19 @@ export class OrganizationController {
     return this.organizationService.confirmOrg(data);
   }
 
-  // @Delete()
-  // @MessagePattern({ cmd: Commands.DELETE })
-  // remove(@Payload() data: DeleteDto): Promise<OrganizationInterfaces.Response> {
-  //   return this.organizationService.remove(data);
-  // }
+  @Delete()
+  @MessagePattern({ cmd: Commands.DELETE })
+  remove(
+    @Payload() data: OrganizationDeleteDto
+  ): Promise<OrganizationInterfaces.Response> {
+    return this.organizationService.remove(data);
+  }
 
-  // @Patch()
-  // @MessagePattern({ cmd: Commands.RESTORE })
-  // restore(@Payload() data: GetOneDto): Promise<OrganizationInterfaces.Response> {
-  //   return this.organizationService.restore(data);
-  // }
+  @Patch()
+  @MessagePattern({ cmd: Commands.RESTORE })
+  restore(
+    @Payload() data: OrganizationRestoreDto
+  ): Promise<OrganizationInterfaces.Response> {
+    return this.organizationService.restore(data);
+  }
 }
