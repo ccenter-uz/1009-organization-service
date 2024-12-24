@@ -49,12 +49,7 @@ export default function buildInclude(
     },
   };
   include.Phone = {
-    select: {
-      id: true,
-      phone: true,
-      PhoneTypeId: true,
-      createdAt: true,
-      updatedAt: true,
+    include: {
       PhoneTypes: {
         select: {
           id: true,
