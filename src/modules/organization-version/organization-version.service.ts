@@ -253,6 +253,7 @@ export class OrganizationVersionService {
           languageCode: data.langCode,
           name: {
             contains: data.search,
+            mode: 'insensitive',
           },
         },
       };
