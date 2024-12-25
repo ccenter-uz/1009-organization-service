@@ -48,6 +48,14 @@ import { ConfirmDto } from 'types/organization/organization/dto/confirm-organiza
 import { MyOrganizationFilterDto } from 'types/organization/organization/dto/filter-my-organization.dto';
 import { OrganizationDeleteDto } from 'types/organization/organization/dto/delete-organization.dto';
 import { OrganizationRestoreDto } from 'types/organization/organization/dto/get-restore-organization.dto';
+import { OrganizationVersionInterfaces } from 'types/organization/organization-version';
+import buildIncludeVersion, {
+  includeConfigVersion,
+} from '@/common/helper/for-Org-version/build-include-for-org';
+import formatOrganizationResponseVersion, {
+  modulesConfigVersion,
+} from '@/common/helper/for-Org-version/format-module-for-org';
+import { UnconfirmOrganizationFilterDto } from 'types/organization/organization/dto/filter-unconfirm-organization.dto';
 
 @Injectable()
 export class OrganizationService {
@@ -428,13 +436,13 @@ export class OrganizationService {
 
   async findMy(
     data: MyOrganizationFilterDto
-  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
-    const include = buildInclude(includeConfig, data);
+  ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
+    const include = buildIncludeVersion(includeConfigVersion, data);
     const where = {
       staffNumber: data.staffNumber,
     };
     if (data.all) {
-      const organizations = await this.prisma.organization.findMany({
+      const organizations = await this.prisma.organizationVersion.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         include,
@@ -445,9 +453,9 @@ export class OrganizationService {
           let idNameOfModules = key.toLocaleLowerCase() + 'Id';
           delete org?.[idNameOfModules];
         }
-        const formattedOrganization = formatOrganizationResponse(
+        const formattedOrganization = formatOrganizationResponseVersion(
           org,
-          modulesConfig
+          modulesConfigVersion
         );
         result.push(formattedOrganization);
       }
@@ -465,19 +473,7 @@ export class OrganizationService {
       ...where,
     };
 
-    if (data.search) {
-      whereWithLang.StreetTranslations = {
-        some: {
-          languageCode: data.langCode,
-          name: {
-            contains: data.search,
-            mode: 'insensitive',
-          },
-        },
-      };
-    }
-
-    const count = await this.prisma.organization.count({
+    const count = await this.prisma.organizationVersion.count({
       where: whereWithLang,
     });
 
@@ -487,7 +483,7 @@ export class OrganizationService {
       perPage: data.limit,
     });
 
-    const organization = await this.prisma.organization.findMany({
+    const organization = await this.prisma.organizationVersion.findMany({
       where: whereWithLang,
       orderBy: { createdAt: 'desc' },
       include,
@@ -503,13 +499,92 @@ export class OrganizationService {
         delete org?.[idNameOfModules];
       }
 
-      const formattedOrganization = formatOrganizationResponse(
+      const formattedOrganization = formatOrganizationResponseVersion(
         org,
-        modulesConfig
+        modulesConfigVersion
       );
 
       result.push(formattedOrganization);
     }
+
+    return {
+      data: result,
+      totalPage: pagination.totalPage,
+      totalDocs: count,
+    };
+  }
+
+  async findUnconfirm(
+    data: UnconfirmOrganizationFilterDto
+  ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
+    const include = buildIncludeVersion(includeConfigVersion, data);
+    const where = {
+      status: 0,
+      createdBy: data.createdBy,
+    };
+    if (data.all) {
+      const organizations = await this.prisma.organizationVersion.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include,
+      });
+      const result = [];
+      for (let [index, org] of Object.entries(organizations)) {
+        for (let [key, prop] of Object.entries(includeConfig)) {
+          let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+          delete org?.[idNameOfModules];
+        }
+        const formattedOrganization = formatOrganizationResponseVersion(
+          org,
+          modulesConfigVersion
+        );
+        result.push(formattedOrganization);
+      }
+      return {
+        data: result,
+        totalPage: 1,
+        totalDocs: organizations.length,
+      };
+    }
+
+    const whereWithLang: any = {
+      ...where,
+    };
+
+    const count = await this.prisma.organizationVersion.count({
+      where: whereWithLang,
+    });
+
+    const pagination = createPagination({
+      count,
+      page: data.page,
+      perPage: data.limit,
+    });
+
+    const organization = await this.prisma.organizationVersion.findMany({
+      where: whereWithLang,
+      orderBy: { createdAt: 'desc' },
+      include,
+      take: pagination.take,
+      skip: pagination.skip,
+    });
+
+    const result = [];
+
+    for (let [index, org] of Object.entries(organization)) {
+      for (let [key, prop] of Object.entries(includeConfig)) {
+        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+        delete org?.[idNameOfModules];
+      }
+
+      const formattedOrganization = formatOrganizationResponseVersion(
+        org,
+        modulesConfigVersion
+      );
+
+      result.push(formattedOrganization);
+    }
+
     return {
       data: result,
       totalPage: pagination.totalPage,

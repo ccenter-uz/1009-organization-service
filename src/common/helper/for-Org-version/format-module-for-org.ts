@@ -1,7 +1,3 @@
-import {
-  Category,
-  SubCategory,
-} from './../../../../node_modules/.prisma/client/index.d';
 import { formatLanguageResponse } from '../format-language.helper';
 
 interface Translations {
@@ -14,7 +10,10 @@ interface FormatOptions {
   includeKeys?: string[]; // Ключи, которые нужно включать, например: ["NewNameTranslations", "OldNameTranslations"]
 }
 
-function formatModuleTranslations(module: any, options: FormatOptions): any {
+function formatModuleTranslationsVersion(
+  module: any,
+  options: FormatOptions
+): any {
   const { nameKey, includeKeys = [] } = options;
   const result: any = { ...module };
 
@@ -43,7 +42,7 @@ function formatModuleTranslations(module: any, options: FormatOptions): any {
   return result;
 }
 
-export default function formatOrganizationResponse(
+export default function formatOrganizationResponseVersion(
   organization: any,
   modulesConfig: FormatOptions[]
 ): any {
@@ -52,39 +51,43 @@ export default function formatOrganizationResponse(
   for (const config of modulesConfig) {
     const moduleKey = config.nameKey;
     if (formattedOrganization[moduleKey]) {
-      formattedOrganization[moduleKey.toLowerCase()] = formatModuleTranslations(
-        formattedOrganization[moduleKey],
-        config
-      );
+      formattedOrganization[moduleKey.toLowerCase()] =
+        formatModuleTranslationsVersion(
+          formattedOrganization[moduleKey],
+          config
+        );
       delete formattedOrganization[moduleKey];
     }
   }
 
-  for (let [index, el] of Object.entries(organization['Phone'])) {
+  for (let [index, el] of Object.entries(organization['PhoneVersion'])) {
     const name = formatLanguageResponse(
       el['PhoneTypes'].PhoneTypesTranslations
     );
 
-    formattedOrganization['Phone'][index]['PhoneTypes'].name = name;
-    delete formattedOrganization['Phone'][index]['PhoneTypes']
+    formattedOrganization['PhoneVersion'][index]['PhoneTypes'].name = name;
+    delete formattedOrganization['PhoneVersion'][index]['PhoneTypes']
       .PhoneTypesTranslations;
   }
 
-  for (let [index, el] of Object.entries(organization['Nearbees'])) {
+  for (let [index, el] of Object.entries(organization['NearbeesVersion'])) {
     const name = formatLanguageResponse(el['Nearby'].NearbyTranslations);
 
-    formattedOrganization['Nearbees'][index]['NearbyCategory'] = {
+    formattedOrganization['NearbeesVersion'][index]['NearbyCategory'] = {
       ...el['Nearby'].NearbyCategory,
     };
 
-    delete formattedOrganization['Nearbees'][index]['Nearby'].NearbyCategory;
+    delete formattedOrganization['NearbeesVersion'][index]['Nearby']
+      .NearbyCategory;
 
-    formattedOrganization['Nearbees'][index]['Nearby'].name = name;
-    delete formattedOrganization['Nearbees'][index]['Nearby']
+    formattedOrganization['NearbeesVersion'][index]['Nearby'].name = name;
+    delete formattedOrganization['NearbeesVersion'][index]['Nearby']
       .NearbyTranslations;
   }
 
-  for (let [index, el] of Object.entries(organization['ProductServices'])) {
+  for (let [index, el] of Object.entries(
+    organization['ProductServicesVersion']
+  )) {
     const nameOfProductServiceCategory = formatLanguageResponse(
       el['ProductServiceCategory']['ProductServiceCategoryTranslations']
     );
@@ -92,17 +95,17 @@ export default function formatOrganizationResponse(
       el['ProductServiceSubCategory']['ProductServiceSubCategoryTranslations']
     );
 
-    formattedOrganization['ProductServices'][index][
+    formattedOrganization['ProductServicesVersion'][index][
       'ProductServiceSubCategory'
     ].name = nameOfProductServiceSubCategory;
-    formattedOrganization['ProductServices'][index][
+    formattedOrganization['ProductServicesVersion'][index][
       'ProductServiceCategory'
     ].name = nameOfProductServiceCategory;
 
-    delete formattedOrganization['ProductServices'][index][
+    delete formattedOrganization['ProductServicesVersion'][index][
       'ProductServiceSubCategory'
     ]['ProductServiceSubCategoryTranslations'];
-    delete formattedOrganization['ProductServices'][index][
+    delete formattedOrganization['ProductServicesVersion'][index][
       'ProductServiceCategory'
     ]['ProductServiceCategoryTranslations'];
   }
@@ -129,7 +132,7 @@ export default function formatOrganizationResponse(
   return { ...formattedOrganization };
 }
 
-export const modulesConfig = [
+export const modulesConfigVersion = [
   {
     nameKey: 'Area',
     includeKeys: ['NewNameTranslations', 'OldNameTranslations'],
