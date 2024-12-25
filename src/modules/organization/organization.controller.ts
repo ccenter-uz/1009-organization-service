@@ -1,4 +1,12 @@
-import { Controller, Post, Get, UploadedFiles, Put, Delete, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  UploadedFiles,
+  Put,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
@@ -15,6 +23,7 @@ import { MyOrganizationFilterDto } from 'types/organization/organization/dto/fil
 import { OrganizationDeleteDto } from 'types/organization/organization/dto/delete-organization.dto';
 import { OrganizationRestoreDto } from 'types/organization/organization/dto/get-restore-organization.dto';
 import { OrganizationVersionInterfaces } from 'types/organization/organization-version';
+import { UnconfirmOrganizationFilterDto } from 'types/organization/organization/dto/filter-unconfirm-organization.dto';
 
 @Controller('organization')
 export class OrganizationController {
@@ -44,6 +53,14 @@ export class OrganizationController {
     @Payload() data: MyOrganizationFilterDto
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
     return this.organizationService.findMy(data);
+  }
+
+  @Get('unconfirm')
+  @MessagePattern({ cmd: Commands.GET_UNCONFIRM_LIST })
+  findUnconfirm(
+    @Payload() data: UnconfirmOrganizationFilterDto
+  ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
+    return this.organizationService.findUnconfirm(data);
   }
 
   @Get('by-id')
