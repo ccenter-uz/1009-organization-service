@@ -794,7 +794,7 @@ export class OrganizationService {
         throw new NotFoundException('Orgnization  is not found');
       }
       if (data.role == CreatedByEnum.Moderator) {
-        return await this.prisma.organizationVersion.update({
+        await this.prisma.organizationVersion.update({
           where: {
             id: organizationVersion.id,
           },
@@ -808,6 +808,21 @@ export class OrganizationService {
             PictureVersion: true,
             ProductServicesVersion: true,
             NearbeesVersion: true,
+          },
+        });
+        return await this.prisma.organization.update({
+          where: {
+            id: organizationVersion.id,
+          },
+          data: {
+            status: OrganizationStatusEnum.Deleted,
+          },
+          include: {
+            PaymentTypes: true,
+            Phone: true,
+            Picture: true,
+            ProductServices: true,
+            Nearbees: true,
           },
         });
       } else {
@@ -845,7 +860,7 @@ export class OrganizationService {
       throw new NotFoundException('Orgnization  is not found');
     }
     if (data.role == CreatedByEnum.Moderator) {
-      return await this.prisma.organizationVersion.update({
+      await this.prisma.organizationVersion.update({
         where: {
           id: organizationVersion.id,
         },
@@ -859,6 +874,21 @@ export class OrganizationService {
           PictureVersion: true,
           ProductServicesVersion: true,
           NearbeesVersion: true,
+        },
+      });
+      return await this.prisma.organization.update({
+        where: {
+          id: organizationVersion.id,
+        },
+        data: {
+          status: OrganizationStatusEnum.Accepted,
+        },
+        include: {
+          PaymentTypes: true,
+          Phone: true,
+          Picture: true,
+          ProductServices: true,
+          Nearbees: true,
         },
       });
     } else {

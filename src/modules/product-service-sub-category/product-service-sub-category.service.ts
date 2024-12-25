@@ -226,7 +226,7 @@ export class ProductServiceSubCategoryService {
         },
       });
     if (!ProductServiceSubCategory) {
-      throw new NotFoundException('SubCategory is not found');
+      throw new NotFoundException('Product Service Sub Category is not found');
     }
     const name = formatLanguageResponse(
       ProductServiceSubCategory.ProductServiceSubCategoryTranslations
