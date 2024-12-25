@@ -1,4 +1,12 @@
-import { Controller, Post, Get, UploadedFiles, Put, Delete, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  UploadedFiles,
+  Put,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
@@ -21,7 +29,6 @@ export class OrganizationController {
 
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
-  // @UseInterceptors(FilesInterceptor('photos'))
   create(
     @Payload() data: OrganizationCreateDto,
     @UploadedFiles() files: Array<Multer.File>
