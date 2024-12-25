@@ -14,6 +14,7 @@ import { MyOrganizationFilterDto } from 'types/organization/organization/dto/fil
 
 import { OrganizationDeleteDto } from 'types/organization/organization/dto/delete-organization.dto';
 import { OrganizationRestoreDto } from 'types/organization/organization/dto/get-restore-organization.dto';
+import { OrganizationVersionInterfaces } from 'types/organization/organization-version';
 
 @Controller('organization')
 export class OrganizationController {
@@ -41,7 +42,7 @@ export class OrganizationController {
   @MessagePattern({ cmd: Commands.GET_MY_LIST })
   findMy(
     @Payload() data: MyOrganizationFilterDto
-  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
+  ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
     return this.organizationService.findMy(data);
   }
 
