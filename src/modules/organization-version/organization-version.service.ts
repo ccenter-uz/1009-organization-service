@@ -174,6 +174,7 @@ export class OrganizationVersionService {
         },
       },
       include: {
+        MainOrganization: true,
         PaymentTypesVersion: true,
         PhoneVersion: true,
         PictureVersion: true,

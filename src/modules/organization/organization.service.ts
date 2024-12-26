@@ -280,12 +280,12 @@ export class OrganizationService {
         },
       },
       include: {
+        MainOrganization: true,
         PaymentTypes: true,
         Phone: true,
         Picture: true,
         Nearbees: true,
         ProductServices: true,
-        MainOrganization: true,
       },
     });
 
