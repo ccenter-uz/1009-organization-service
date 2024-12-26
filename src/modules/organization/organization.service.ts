@@ -88,6 +88,7 @@ export class OrganizationService {
     const mainOrganization = await this.mainOrganizationService.findOne({
       id: data.mainOrganizationId,
     });
+
     const subCategory = await this.subCategoryService.findOne({
       id: data.subCategoryId,
     });
@@ -95,12 +96,17 @@ export class OrganizationService {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
+
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
-    const district = await this.districtService.findOne({
-      id: data.districtId,
-    });
+
+    let district;
+    if (data.districtId && data.districtId === 0) {
+      district = await this.districtService.findOne({
+        id: data.districtId,
+      });
+    }
 
     const village = await this.VillageService.findOne({
       id: data.villageId,
@@ -180,7 +186,7 @@ export class OrganizationService {
       data: {
         regionId: region.id,
         cityId: city.id,
-        districtId: district.id,
+        districtId: district?.id ? district?.id : null,
         villageId: village.id,
         avenueId: avenue.id,
         residentialId: residential.id,
