@@ -1020,7 +1020,7 @@ model ProductServices {
 
 model Nearbees {
   id             Int          @id @default(autoincrement())
-  description    String?      @map("description") @db.VarChar()
+  description    String       @map("description") @db.VarChar()
   NearbyId       Int          @map("nearby_id")
   OrganizationId Int          @map("organization_version_id")
   createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamp
@@ -1157,7 +1157,7 @@ model ProductServicesVersion {
 
 model NearbeesVersion {
   id                    Int                 @id @default(autoincrement())
-  description           String?             @map("description") @db.VarChar()
+  description           String              @map("description") @db.VarChar()
   NearbyId              Int                 @map("nearby_id")
   OrganizationVersionId Int                 @map("organization_version_id")
   createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamp
