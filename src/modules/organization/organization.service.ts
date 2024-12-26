@@ -56,6 +56,7 @@ import formatOrganizationResponseVersion, {
   modulesConfigVersion,
 } from '@/common/helper/for-Org-version/format-module-for-org';
 import { UnconfirmOrganizationFilterDto } from 'types/organization/organization/dto/filter-unconfirm-organization.dto';
+import { PassageService } from '../passage/passage.service';
 
 @Injectable()
 export class OrganizationService {
@@ -79,7 +80,8 @@ export class OrganizationService {
     private readonly ImpasseService: ImpasseService,
     private readonly NearbyService: NearbyService,
     private readonly SegmentService: SegmentService,
-    private readonly PhoneTypeService: PhoneTypeService
+    private readonly PhoneTypeService: PhoneTypeService,
+    private readonly PassageService: PassageService
   ) {}
 
   async create(
@@ -108,29 +110,61 @@ export class OrganizationService {
       });
     }
 
-    const village = await this.VillageService.findOne({
-      id: data.villageId,
-    });
-    const avenue = await this.AvenueService.findOne({
-      id: data.avenueId,
-    });
-    const residential = await this.ResidentialAreaService.findOne({
-      id: data.residentialId,
-    });
+    let village;
+    if (data.villageId) {
+      village = await this.VillageService.findOne({
+        id: data.villageId,
+      });
+    }
 
-    const area = await this.AreaService.findOne({
-      id: data.areaId,
-    });
-    const street = await this.StreetService.findOne({
-      id: data.streetId,
-    });
-    const lane = await this.LaneService.findOne({
-      id: data.laneId,
-    });
+    let avenue;
+    if (data.avenueId) {
+      avenue = await this.AvenueService.findOne({
+        id: data.avenueId,
+      });
+    }
 
-    const impasse = await this.ImpasseService.findOne({
-      id: data.impasseId,
-    });
+    let residential;
+    if (data.residentialId) {
+      residential = await this.ResidentialAreaService.findOne({
+        id: data.residentialId,
+      });
+    }
+
+    let area;
+    if (data.areaId) {
+      area = await this.AreaService.findOne({
+        id: data.areaId,
+      });
+    }
+
+    let street;
+    if (data.streetId) {
+      street = await this.StreetService.findOne({
+        id: data.streetId,
+      });
+    }
+
+    let lane;
+    if (data.laneId) {
+      lane = await this.LaneService.findOne({
+        id: data.laneId,
+      });
+    }
+
+    let impasse;
+    if (data.impasseId) {
+      impasse = await this.ImpasseService.findOne({
+        id: data.impasseId,
+      });
+    }
+
+    let passage;
+    if (data.passageId) {
+      passage = await this.PassageService.findOne({
+        id: data.impasseId,
+      });
+    }
 
     const segment = await this.SegmentService.findOne({
       id: data.segmentId,
@@ -156,7 +190,7 @@ export class OrganizationService {
         id: nearbees[i].nearbyId,
       });
       nearbeesCreateArray.push({
-        description: nearbees[i].description,
+        description: nearbees[i]?.description,
         NearbyId: nearby.id,
       });
     }
@@ -187,13 +221,13 @@ export class OrganizationService {
         regionId: region.id,
         cityId: city.id,
         districtId: district?.id,
-        villageId: village.id,
-        avenueId: avenue.id,
-        residentialId: residential.id,
-        areaId: area.id,
-        streetId: street.id,
-        laneId: lane.id,
-        impasseId: impasse.id,
+        villageId: village?.id,
+        avenueId: avenue?.id,
+        residentialId: residential?.id,
+        areaId: area?.id,
+        streetId: street?.id,
+        laneId: lane?.id,
+        impasseId: impasse?.id,
         segmentId: segment.id,
         mainOrganizationId: mainOrganization.id,
         subCategoryId: subCategory.id,
@@ -214,7 +248,7 @@ export class OrganizationService {
         transport: data.transport,
         workTime: data.workTime,
         staffNumber: data.staffNumber,
-        passageId: data.passageId,
+        passageId: data?.passageId,
         status:
           data.role == CreatedByEnum.Moderator
             ? OrganizationStatusEnum.Accepted

@@ -98,7 +98,7 @@ export class OrganizationVersionService {
       //    id: nearbees[i].nearbyId,
       //  });
       nearbeesCreateVersionArray.push({
-        description: nearbees[i].description,
+        description: nearbees[i]?.description,
         NearbyId: nearbees[i].NearbyId,
       });
     }
