@@ -285,6 +285,7 @@ export class OrganizationService {
         Picture: true,
         Nearbees: true,
         ProductServices: true,
+        MainOrganization: true,
       },
     });
 
