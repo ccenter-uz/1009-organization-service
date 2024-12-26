@@ -34,6 +34,47 @@ export class DistrictService {
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
+
+    const names: any = {};
+
+    if (data.newName) {
+      names.DistrictNewNameTranslations = {
+        create: [
+          {
+            languageCode: LanguageRequestEnum.RU,
+            name: data.newName[LanguageRequestEnum.RU],
+          },
+          {
+            languageCode: LanguageRequestEnum.UZ,
+            name: data.newName[LanguageRequestEnum.UZ],
+          },
+          {
+            languageCode: LanguageRequestEnum.CY,
+            name: data.newName[LanguageRequestEnum.CY],
+          },
+        ],
+      };
+    }
+
+    if (data.oldName) {
+      names.DistrictOldNameTranslations = {
+        create: [
+          {
+            languageCode: LanguageRequestEnum.RU,
+            name: data.oldName[LanguageRequestEnum.RU],
+          },
+          {
+            languageCode: LanguageRequestEnum.UZ,
+            name: data.oldName[LanguageRequestEnum.UZ],
+          },
+          {
+            languageCode: LanguageRequestEnum.CY,
+            name: data.oldName[LanguageRequestEnum.CY],
+          },
+        ],
+      };
+    }
+
     const district = await this.prisma.district.create({
       data: {
         regionId: region.id,
@@ -56,38 +97,7 @@ export class DistrictService {
             },
           ],
         },
-        DistrictNewNameTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.newName[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.newName[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.newName[LanguageRequestEnum.CY],
-            },
-          ],
-        },
-        DistrictOldNameTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.oldName[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.oldName[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.oldName[LanguageRequestEnum.CY],
-            },
-          ],
-        },
+        ...names
       },
       include: {
         DistrictTranslations: true,
@@ -209,18 +219,18 @@ export class DistrictService {
         delete districtData.Region.RegionTranslations;
         const region = { ...districtData.Region, name: regionName };
         delete districtData.Region;
-  
+
         const cityTranslations = districtData.City.CityTranslations;
         const cityName = formatLanguageResponse(cityTranslations);
         delete districtData.City.CityTranslations;
         const city = { ...districtData.City, name: cityName };
         delete districtData.City;
-        
+
         formattedDistrict.push({
           ...districtData,
           name,
           newName: nameNew,
-          oldName: nameOld, 
+          oldName: nameOld,
           region,
           city,
         });

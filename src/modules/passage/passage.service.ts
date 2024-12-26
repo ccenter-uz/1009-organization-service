@@ -39,6 +39,46 @@ export class PassageService {
         id: data.districtId,
       });
     }
+    const names: any = {};
+
+    if (data.newName) {
+      names.PassageNewNameTranslations = {
+        create: [
+          {
+            languageCode: LanguageRequestEnum.RU,
+            name: data.newName[LanguageRequestEnum.RU],
+          },
+          {
+            languageCode: LanguageRequestEnum.UZ,
+            name: data.newName[LanguageRequestEnum.UZ],
+          },
+          {
+            languageCode: LanguageRequestEnum.CY,
+            name: data.newName[LanguageRequestEnum.CY],
+          },
+        ],
+      };
+    }
+
+    if (data.oldName) {
+      names.PassageOldNameTranslations = {
+        create: [
+          {
+            languageCode: LanguageRequestEnum.RU,
+            name: data.oldName[LanguageRequestEnum.RU],
+          },
+          {
+            languageCode: LanguageRequestEnum.UZ,
+            name: data.oldName[LanguageRequestEnum.UZ],
+          },
+          {
+            languageCode: LanguageRequestEnum.CY,
+            name: data.oldName[LanguageRequestEnum.CY],
+          },
+        ],
+      };
+    }
+
     const passage = await this.prisma.passage.create({
       data: {
         regionId: region.id,
@@ -62,38 +102,7 @@ export class PassageService {
             },
           ],
         },
-        PassageNewNameTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.newName[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.newName[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.newName[LanguageRequestEnum.CY],
-            },
-          ],
-        },
-        PassageOldNameTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.oldName[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.oldName[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.oldName[LanguageRequestEnum.CY],
-            },
-          ],
-        },
+        ...names,
       },
       include: {
         PassageTranslations: true,
@@ -236,7 +245,7 @@ export class PassageService {
     if (data.search) {
       where.PassageTranslations = {
         some: {
-          languageCode: data.langCode,    
+          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',

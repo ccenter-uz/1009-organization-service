@@ -32,15 +32,59 @@ export class ResidentialAreaService {
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
+
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
+
     let district;
+
     if (data.districtId) {
       district = await this.districtService.findOne({
         id: data.districtId,
       });
     }
+
+    const names: any = {};
+
+    if (data.newName) {
+      names.ResidentialAreaNewNameTranslations = {
+        create: [
+          {
+            languageCode: LanguageRequestEnum.RU,
+            name: data.newName[LanguageRequestEnum.RU],
+          },
+          {
+            languageCode: LanguageRequestEnum.UZ,
+            name: data.newName[LanguageRequestEnum.UZ],
+          },
+          {
+            languageCode: LanguageRequestEnum.CY,
+            name: data.newName[LanguageRequestEnum.CY],
+          },
+        ],
+      };
+    }
+
+    if (data.oldName) {
+      names.ResidentialAreaOldNameTranslations = {
+        create: [
+          {
+            languageCode: LanguageRequestEnum.RU,
+            name: data.oldName[LanguageRequestEnum.RU],
+          },
+          {
+            languageCode: LanguageRequestEnum.UZ,
+            name: data.oldName[LanguageRequestEnum.UZ],
+          },
+          {
+            languageCode: LanguageRequestEnum.CY,
+            name: data.oldName[LanguageRequestEnum.CY],
+          },
+        ],
+      };
+    }
+
     const residentialArea = await this.prisma.residentialArea.create({
       data: {
         regionId: region.id,
@@ -64,38 +108,7 @@ export class ResidentialAreaService {
             },
           ],
         },
-        ResidentialAreaNewNameTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.newName[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.newName[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.newName[LanguageRequestEnum.CY],
-            },
-          ],
-        },
-        ResidentialAreaOldNameTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.oldName[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.oldName[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.oldName[LanguageRequestEnum.CY],
-            },
-          ],
-        },
+        ...names,
       },
       include: {
         ResidentialAreaTranslations: true,
@@ -202,7 +215,8 @@ export class ResidentialAreaService {
         delete residentialAreaData.ResidentialAreaNewNameTranslations;
         delete residentialAreaData.ResidentialAreaOldNameTranslations;
 
-        const regionTranslations = residentialAreaData.region.RegionTranslations;
+        const regionTranslations =
+          residentialAreaData.region.RegionTranslations;
         const regionName = formatLanguageResponse(regionTranslations);
         delete residentialAreaData.region.RegionTranslations;
         const region = { ...residentialAreaData.region, name: regionName };
@@ -219,9 +233,9 @@ export class ResidentialAreaService {
           name,
           newName: nameNew,
           oldName: nameOld,
-          
+
           region,
-          city
+          city,
         });
       }
 
@@ -366,7 +380,7 @@ export class ResidentialAreaService {
         newName: nameNew,
         oldName: nameOld,
         region,
-        city
+        city,
       });
     }
 
@@ -475,9 +489,14 @@ export class ResidentialAreaService {
     delete residentialArea.city.CityTranslations;
     const city = { ...residentialArea.city, name: cityName };
     delete residentialArea.city;
-    return { ...residentialArea, name, newName: nameNew, oldName: nameOld,
+    return {
+      ...residentialArea,
+      name,
+      newName: nameNew,
+      oldName: nameOld,
       region,
-      city };
+      city,
+    };
   }
 
   async update(

@@ -39,6 +39,46 @@ export class AvenueService {
         id: data.districtId,
       });
     }
+
+    const names: any = {};
+
+    if (data.newName) {
+      names.AvenueNewNameTranslations = {
+        create: [
+          {
+            languageCode: LanguageRequestEnum.RU,
+            name: data.newName[LanguageRequestEnum.RU],
+          },
+          {
+            languageCode: LanguageRequestEnum.UZ,
+            name: data.newName[LanguageRequestEnum.UZ],
+          },
+          {
+            languageCode: LanguageRequestEnum.CY,
+            name: data.newName[LanguageRequestEnum.CY],
+          },
+        ],
+      };
+    }
+
+    if (data.oldName) {
+      names.AvenueOldNameTranslations = {
+        create: [
+          {
+            languageCode: LanguageRequestEnum.RU,
+            name: data.oldName[LanguageRequestEnum.RU],
+          },
+          {
+            languageCode: LanguageRequestEnum.UZ,
+            name: data.oldName[LanguageRequestEnum.UZ],
+          },
+          {
+            languageCode: LanguageRequestEnum.CY,
+            name: data.oldName[LanguageRequestEnum.CY],
+          },
+        ],
+      };
+    }
     const avenue = await this.prisma.avenue.create({
       data: {
         regionId: region.id,
@@ -62,38 +102,7 @@ export class AvenueService {
             },
           ],
         },
-        AvenueNewNameTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.newName[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.newName[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.newName[LanguageRequestEnum.CY],
-            },
-          ],
-        },
-        AvenueOldNameTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.oldName[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.oldName[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.oldName[LanguageRequestEnum.CY],
-            },
-          ],
-        },
+        ...names,
       },
       include: {
         AvenueTranslations: true,
@@ -216,7 +225,7 @@ export class AvenueService {
           newName: nameNew,
           oldName: nameOld,
           region,
-          city
+          city,
         });
       }
 
@@ -361,7 +370,7 @@ export class AvenueService {
         newName: nameNew,
         oldName: nameOld,
         region,
-        city
+        city,
       });
     }
 
@@ -465,9 +474,14 @@ export class AvenueService {
     delete avenue.city.CityTranslations;
     const city = { ...avenue.city, name: cityName };
     delete avenue.city;
-    return { ...avenue, name, newName: nameNew, oldName: nameOld,
+    return {
+      ...avenue,
+      name,
+      newName: nameNew,
+      oldName: nameOld,
       region,
-      city };
+      city,
+    };
   }
 
   async update(data: AvenueUpdateDto): Promise<AvenueInterfaces.Response> {
