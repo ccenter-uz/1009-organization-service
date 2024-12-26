@@ -102,7 +102,7 @@ export class OrganizationService {
     });
 
     let district;
-    if (data.districtId && data.districtId === 0) {
+    if (data.districtId) {
       district = await this.districtService.findOne({
         id: data.districtId,
       });
@@ -186,7 +186,7 @@ export class OrganizationService {
       data: {
         regionId: region.id,
         cityId: city.id,
-        districtId: district?.id ? district?.id : null,
+        districtId: district?.id,
         villageId: village.id,
         avenueId: avenue.id,
         residentialId: residential.id,
