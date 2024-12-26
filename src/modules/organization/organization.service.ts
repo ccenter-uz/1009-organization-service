@@ -804,6 +804,25 @@ export class OrganizationService {
 
           return await this.update(data.id);
         } else if (
+          organizationVersion.method == OrganizationMethodEnum.Create
+        ) {
+          await this.prisma.organizationVersion.update({
+            where: {
+              id: organizationVersion.id,
+            },
+            data: {
+              status: OrganizationStatusEnum.Accepted,
+            },
+          });
+          return await this.prisma.organization.update({
+            where: {
+              id: organizationVersion.organizationId,
+            },
+            data: {
+              status: OrganizationStatusEnum.Accepted,
+            },
+          });
+        } else if (
           organizationVersion.method == OrganizationMethodEnum.Delete
         ) {
           await this.prisma.organizationVersion.update({
