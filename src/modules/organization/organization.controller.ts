@@ -14,7 +14,7 @@ import {
   OrganizationInterfaces,
   OrganizationServiceCommands as Commands,
 } from 'types/organization/organization';
-import { DeleteDto, GetOneDto, ListQueryDto } from 'types/global';
+import { GetOneDto } from 'types/global';
 import * as Multer from 'multer';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 

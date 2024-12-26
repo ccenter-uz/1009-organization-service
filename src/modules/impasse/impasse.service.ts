@@ -39,6 +39,45 @@ export class ImpasseService {
         id: data.districtId,
       });
     }
+    const names: any = {};
+
+    if (data.newName) {
+      names.ImpasseNewNameTranslations = {
+        create: [
+          {
+            languageCode: LanguageRequestEnum.RU,
+            name: data.newName[LanguageRequestEnum.RU],
+          },
+          {
+            languageCode: LanguageRequestEnum.UZ,
+            name: data.newName[LanguageRequestEnum.UZ],
+          },
+          {
+            languageCode: LanguageRequestEnum.CY,
+            name: data.newName[LanguageRequestEnum.CY],
+          },
+        ],
+      };
+    }
+
+    if (data.oldName) {
+      names.ImpasseOldNameTranslations = {
+        create: [
+          {
+            languageCode: LanguageRequestEnum.RU,
+            name: data.oldName[LanguageRequestEnum.RU],
+          },
+          {
+            languageCode: LanguageRequestEnum.UZ,
+            name: data.oldName[LanguageRequestEnum.UZ],
+          },
+          {
+            languageCode: LanguageRequestEnum.CY,
+            name: data.oldName[LanguageRequestEnum.CY],
+          },
+        ],
+      };
+    }
     const impasse = await this.prisma.impasse.create({
       data: {
         regionId: region.id,
@@ -62,38 +101,7 @@ export class ImpasseService {
             },
           ],
         },
-        ImpasseNewNameTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.newName[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.newName[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.newName[LanguageRequestEnum.CY],
-            },
-          ],
-        },
-        ImpasseOldNameTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.oldName[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.oldName[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.oldName[LanguageRequestEnum.CY],
-            },
-          ],
-        },
+        ...names,
       },
       include: {
         ImpasseTranslations: true,

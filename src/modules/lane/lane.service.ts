@@ -39,6 +39,47 @@ export class LaneService {
         id: data.districtId,
       });
     }
+
+    const names: any = {};
+
+    if (data.newName) {
+      names.LaneNewNameTranslations = {
+        create: [
+          {
+            languageCode: LanguageRequestEnum.RU,
+            name: data.newName[LanguageRequestEnum.RU],
+          },
+          {
+            languageCode: LanguageRequestEnum.UZ,
+            name: data.newName[LanguageRequestEnum.UZ],
+          },
+          {
+            languageCode: LanguageRequestEnum.CY,
+            name: data.newName[LanguageRequestEnum.CY],
+          },
+        ],
+      };
+    }
+
+    if (data.oldName) {
+      names.LaneOldNameTranslations = {
+        create: [
+          {
+            languageCode: LanguageRequestEnum.RU,
+            name: data.oldName[LanguageRequestEnum.RU],
+          },
+          {
+            languageCode: LanguageRequestEnum.UZ,
+            name: data.oldName[LanguageRequestEnum.UZ],
+          },
+          {
+            languageCode: LanguageRequestEnum.CY,
+            name: data.oldName[LanguageRequestEnum.CY],
+          },
+        ],
+      };
+    }
+
     const lane = await this.prisma.lane.create({
       data: {
         regionId: region.id,
@@ -62,38 +103,7 @@ export class LaneService {
             },
           ],
         },
-        LaneNewNameTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.newName[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.newName[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.newName[LanguageRequestEnum.CY],
-            },
-          ],
-        },
-        LaneOldNameTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.oldName[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.oldName[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.oldName[LanguageRequestEnum.CY],
-            },
-          ],
-        },
+        ...names,
       },
       include: {
         LaneTranslations: true,
@@ -216,7 +226,7 @@ export class LaneService {
           newName: nameNew,
           oldName: nameOld,
           region,
-          city
+          city,
         });
       }
 
@@ -359,9 +369,9 @@ export class LaneService {
         name,
         newName: nameNew,
         oldName: nameOld,
-        
+
         region,
-        city
+        city,
       });
     }
 
@@ -453,7 +463,7 @@ export class LaneService {
     delete lane.LaneNewNameTranslations;
     delete lane.LaneOldNameTranslations;
     delete lane.LaneTranslations;
-    
+
     const regionTranslations = lane.region.RegionTranslations;
     const regionName = formatLanguageResponse(regionTranslations);
     delete lane.region.RegionTranslations;
@@ -465,9 +475,7 @@ export class LaneService {
     delete lane.city.CityTranslations;
     const city = { ...lane.city, name: cityName };
     delete lane.city;
-    return { ...lane, name, newName: nameNew, oldName: nameOld,
-      region,
-      city };
+    return { ...lane, name, newName: nameNew, oldName: nameOld, region, city };
   }
 
   async update(data: LaneUpdateDto): Promise<LaneInterfaces.Response> {
