@@ -124,13 +124,24 @@ export class NearbyService {
               },
             },
           },
+          NearbyCategory: {
+            select: {
+              id: true,
+              name: true,
+              staffNumber: true,
+              status: true,
+              createdAt: true,
+              updatedAt: true,
+              deletedAt: true,
+            },
+          },
         },
       });
 
       const formattedDistrict = [];
 
       for (let i = 0; i < nearby.length; i++) {
-        const nearbyData = nearby[i];
+        const nearbyData: any = nearby[i];
         const translations = nearbyData.NearbyTranslations;
         const name = formatLanguageResponse(translations);
         delete nearbyData.NearbyTranslations;
@@ -147,6 +158,8 @@ export class NearbyService {
         const city = { ...nearbyData.City, name: cityName };
         delete nearbyData.City;
 
+        nearbyData.category = nearbyData.NearbyCategory;
+        delete nearbyData.NearbyCategory;
         formattedDistrict.push({
           ...nearbyData,
           name,
@@ -233,6 +246,17 @@ export class NearbyService {
             },
           },
         },
+        NearbyCategory: {
+          select: {
+            id: true,
+            name: true,
+            staffNumber: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+            deletedAt: true,
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -241,7 +265,7 @@ export class NearbyService {
     const formattedNearby = [];
 
     for (let i = 0; i < nearby.length; i++) {
-      const nearbyData = nearby[i];
+      const nearbyData: any = nearby[i];
       const translations = nearbyData.NearbyTranslations;
       const name = formatLanguageResponse(translations);
 
@@ -259,6 +283,9 @@ export class NearbyService {
       const city = { ...nearbyData.City, name: cityName };
       delete nearbyData.City;
 
+      nearbyData.category = nearbyData.NearbyCategory;
+      delete nearbyData.NearbyCategory;
+
       formattedNearby.push({
         ...nearbyData,
         name,
@@ -275,7 +302,7 @@ export class NearbyService {
   }
 
   async findOne(data: GetOneDto): Promise<NearbyInterfaces.Response> {
-    const nearby = await this.prisma.nearby.findFirst({
+    const nearby: any = await this.prisma.nearby.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
@@ -322,6 +349,17 @@ export class NearbyService {
             },
           },
         },
+        NearbyCategory: {
+          select: {
+            id: true,
+            name: true,
+            staffNumber: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+            deletedAt: true,
+          },
+        },
       },
     });
 
@@ -342,6 +380,9 @@ export class NearbyService {
     delete nearby.City.CityTranslations;
     const city = { ...nearby.City, name: cityName };
     delete nearby.City;
+
+    nearby.category = nearby.NearbyCategory;
+    delete nearby.NearbyCategory;
 
     return { ...nearby, name, region, city };
   }
