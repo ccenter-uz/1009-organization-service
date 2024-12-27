@@ -98,7 +98,7 @@ export class OrganizationVersionService {
       //    id: nearbees[i].nearbyId,
       //  });
       nearbeesCreateVersionArray.push({
-        description: nearbees[i].description,
+        description: nearbees[i]?.description,
         NearbyId: nearbees[i].NearbyId,
       });
     }
@@ -174,6 +174,7 @@ export class OrganizationVersionService {
         },
       },
       include: {
+        MainOrganization: true,
         PaymentTypesVersion: true,
         PhoneVersion: true,
         PictureVersion: true,
@@ -516,7 +517,10 @@ export class OrganizationVersionService {
           id: nearbees[i].nearbyId,
         });
         nearbeesCreateVersionArray.push({
-          description: nearbees[i].description,
+          description:
+            nearbees[i]?.description == 'undefined'
+              ? null
+              : nearbees[i]?.description,
           NearbyId: nearby.id,
         });
       }
@@ -589,27 +593,26 @@ export class OrganizationVersionService {
         data: {
           regionId: data.regionId || organizationVersion.regionId,
           cityId: data.cityId || organizationVersion.cityId,
-          districtId: data.districtId || organizationVersion.districtId,
-          villageId: data.villageId || organizationVersion.villageId,
-          avenueId: data.avenueId || organizationVersion.avenueId,
-          residentialId:
-            data.residentialId || organizationVersion.residentialId,
-          areaId: data.areaId || organizationVersion.areaId,
-          streetId: data.streetId || organizationVersion.streetId,
-          laneId: data.laneId || organizationVersion.laneId,
-          impasseId: data.impasseId || organizationVersion.impasseId,
+          districtId: data.districtId || null,
+          villageId: data.villageId || null,
+          avenueId: data.avenueId || null,
+          residentialId: data.residentialId || null,
+          areaId: data.areaId || null,
+          streetId: data.streetId || null,
+          laneId: data.laneId || null,
+          impasseId: data.impasseId || null,
           segmentId: data.segmentId || organizationVersion.segmentId,
           mainOrganizationId:
             data.mainOrganizationId || organizationVersion.mainOrganizationId,
           subCategoryId:
             data.subCategoryId || organizationVersion.subCategoryId,
-          account: data.account || organizationVersion.account,
+          account: data.account || null,
           bankNumber: data.bankNumber || organizationVersion.bankNumber,
           address: data.address || organizationVersion.address,
           apartment: data.apartment || organizationVersion.apartment,
-          home: data.home || organizationVersion.home,
+          home: data.home || null,
           inn: data.inn || organizationVersion.inn,
-          kvartal: data.kvartal || organizationVersion.kvartal,
+          kvartal: data.kvartal || null,
           legalName: data.legalName || organizationVersion.legalName,
           mail: data.mail || organizationVersion.mail,
           name: data.name || organizationVersion.name,
@@ -620,7 +623,7 @@ export class OrganizationVersionService {
           workTime: data.workTime || organizationVersion.workTime,
           staffNumber: data.staffNumber || organizationVersion.staffNumber,
           description: data.description || organizationVersion.description,
-          passageId: data.passageId || organizationVersion.passageId,
+          passageId: data.passageId || null,
           status: status,
           method: OrganizationMethodEnum.Update,
           createdBy: organizationVersion.createdBy,
