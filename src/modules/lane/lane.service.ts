@@ -191,6 +191,43 @@ export class LaneService {
               },
             },
           },
+          district: {
+            include: {
+              DistrictTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+              DistrictNewNameTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+              DistrictOldNameTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -220,6 +257,25 @@ export class LaneService {
         const city = { ...laneData.city, name: cityName };
         delete laneData.city;
 
+        const districtData = laneData.district;
+        const districtTranslations = districtData.DistrictTranslations;
+        const districtName = formatLanguageResponse(districtTranslations);
+        const districtTranslationsNew =
+          districtData.DistrictNewNameTranslations;
+        const districtNameNew = formatLanguageResponse(districtTranslationsNew);
+        const districtTranslationsOld =
+          districtData.DistrictOldNameTranslations;
+        const districtNameOld = formatLanguageResponse(districtTranslationsOld);
+        delete districtData.DistrictTranslations;
+        delete districtData.DistrictNewNameTranslations;
+        delete districtData.DistrictOldNameTranslations;
+
+        const district = {
+          ...districtData,
+          name: districtName,
+          newName: districtNameNew,
+          oldName: districtNameOld,
+        };
         formattedLane.push({
           ...laneData,
           name,
@@ -227,6 +283,7 @@ export class LaneService {
           oldName: nameOld,
           region,
           city,
+          district,
         });
       }
 
@@ -332,6 +389,43 @@ export class LaneService {
             },
           },
         },
+        district: {
+          include: {
+            DistrictTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictNewNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -364,6 +458,24 @@ export class LaneService {
       const city = { ...laneData.city, name: cityName };
       delete laneData.city;
 
+      const districtData = laneData.district;
+      const districtTranslations = districtData.DistrictTranslations;
+      const districtName = formatLanguageResponse(districtTranslations);
+      const districtTranslationsNew = districtData.DistrictNewNameTranslations;
+      const districtNameNew = formatLanguageResponse(districtTranslationsNew);
+      const districtTranslationsOld = districtData.DistrictOldNameTranslations;
+      const districtNameOld = formatLanguageResponse(districtTranslationsOld);
+      delete districtData.DistrictTranslations;
+      delete districtData.DistrictNewNameTranslations;
+      delete districtData.DistrictOldNameTranslations;
+
+      const district = {
+        ...districtData,
+        name: districtName,
+        newName: districtNameNew,
+        oldName: districtNameOld,
+      };
+
       formattedLane.push({
         ...laneData,
         name,
@@ -372,6 +484,7 @@ export class LaneService {
 
         region,
         city,
+        district,
       });
     }
 
@@ -452,6 +565,43 @@ export class LaneService {
             },
           },
         },
+        district: {
+          include: {
+            DistrictTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictNewNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
     if (!lane) {
@@ -475,7 +625,33 @@ export class LaneService {
     delete lane.city.CityTranslations;
     const city = { ...lane.city, name: cityName };
     delete lane.city;
-    return { ...lane, name, newName: nameNew, oldName: nameOld, region, city };
+
+    const districtData = lane.district;
+    const districtTranslations = districtData.DistrictTranslations;
+    const districtName = formatLanguageResponse(districtTranslations);
+    const districtTranslationsNew = districtData.DistrictNewNameTranslations;
+    const districtNameNew = formatLanguageResponse(districtTranslationsNew);
+    const districtTranslationsOld = districtData.DistrictOldNameTranslations;
+    const districtNameOld = formatLanguageResponse(districtTranslationsOld);
+    delete districtData.DistrictTranslations;
+    delete districtData.DistrictNewNameTranslations;
+    delete districtData.DistrictOldNameTranslations;
+
+    const district = {
+      ...districtData,
+      name: districtName,
+      newName: districtNameNew,
+      oldName: districtNameOld,
+    };
+    return {
+      ...lane,
+      name,
+      newName: nameNew,
+      oldName: nameOld,
+      region,
+      city,
+      district,
+    };
   }
 
   async update(data: LaneUpdateDto): Promise<LaneInterfaces.Response> {
