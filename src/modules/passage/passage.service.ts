@@ -190,6 +190,43 @@ export class PassageService {
               },
             },
           },
+          district: {
+            include: {
+              DistrictTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+              DistrictNewNameTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+              DistrictOldNameTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -218,6 +255,29 @@ export class PassageService {
         delete passageData.city.CityTranslations;
         const city = { ...passageData.city, name: cityName };
         delete passageData.city;
+
+        const districtTranslations = passageData.district;
+        const districtName = formatLanguageResponse(
+          districtTranslations.DistrictTranslations
+        );
+        const newName = formatLanguageResponse(
+          districtTranslations.DistrictNewNameTranslations
+        );
+        const oldName = formatLanguageResponse(
+          districtTranslations.DistrictOldNameTranslations
+        );
+        delete passageData.district.DistrictTranslations;
+        delete passageData.district.DistrictNewNameTranslations;
+        delete passageData.district.DistrictOldNameTranslations;
+
+        const district = {
+          ...passageData.district,
+          name: districtName,
+          newName,
+          oldName,
+        };
+        delete passageData.district;
+
         formattedPassage.push({
           ...passageData,
           name,
@@ -225,6 +285,7 @@ export class PassageService {
           oldName: nameOld,
           region,
           city,
+          district,
         });
       }
 
@@ -330,6 +391,43 @@ export class PassageService {
             },
           },
         },
+        district: {
+          include: {
+            DistrictTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictNewNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -362,6 +460,28 @@ export class PassageService {
       const city = { ...passageData.city, name: cityName };
       delete passageData.city;
 
+      const districtTranslations = passageData.district;
+      const districtName = formatLanguageResponse(
+        districtTranslations.DistrictTranslations
+      );
+      const newName = formatLanguageResponse(
+        districtTranslations.DistrictNewNameTranslations
+      );
+      const oldName = formatLanguageResponse(
+        districtTranslations.DistrictOldNameTranslations
+      );
+      delete passageData.district.DistrictTranslations;
+      delete passageData.district.DistrictNewNameTranslations;
+      delete passageData.district.DistrictOldNameTranslations;
+
+      const district = {
+        ...passageData.district,
+        name: districtName,
+        newName,
+        oldName,
+      };
+      delete passageData.district;
+
       formattedPassage.push({
         ...passageData,
         name,
@@ -369,6 +489,7 @@ export class PassageService {
         oldName: nameOld,
         region,
         city,
+        district,
       });
     }
 
@@ -449,6 +570,43 @@ export class PassageService {
             },
           },
         },
+        district: {
+          include: {
+            DistrictTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictNewNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
     if (!passage) {
@@ -473,6 +631,28 @@ export class PassageService {
     const city = { ...passage.city, name: cityName };
     delete passage.city;
 
+    const districtTranslations = passage.district;
+    const districtName = formatLanguageResponse(
+      districtTranslations.DistrictTranslations
+    );
+    const newName = formatLanguageResponse(
+      districtTranslations.DistrictNewNameTranslations
+    );
+    const oldName = formatLanguageResponse(
+      districtTranslations.DistrictOldNameTranslations
+    );
+    delete passage.district.DistrictTranslations;
+    delete passage.district.DistrictNewNameTranslations;
+    delete passage.district.DistrictOldNameTranslations;
+
+    const district = {
+      ...passage.district,
+      name: districtName,
+      newName,
+      oldName,
+    };
+    delete passage.district;
+
     return {
       ...passage,
       name,
@@ -480,6 +660,7 @@ export class PassageService {
       oldName: nameOld,
       region,
       city,
+      district,
     };
   }
 

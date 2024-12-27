@@ -193,6 +193,43 @@ export class VillageService {
               },
             },
           },
+          district: {
+            include: {
+              DistrictTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+              DistrictNewNameTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+              DistrictOldNameTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -222,6 +259,28 @@ export class VillageService {
         const city = { ...villageData.city, name: cityName };
         delete villageData.city;
 
+        const districtTranslations = villageData.district;
+        const districtName = formatLanguageResponse(
+          districtTranslations.DistrictTranslations
+        );
+        const newName = formatLanguageResponse(
+          districtTranslations.DistrictNewNameTranslations
+        );
+        const oldName = formatLanguageResponse(
+          districtTranslations.DistrictOldNameTranslations
+        );
+        delete villageData.district.DistrictTranslations;
+        delete villageData.district.DistrictNewNameTranslations;
+        delete villageData.district.DistrictOldNameTranslations;
+
+        const district = {
+          ...villageData.district,
+          name: districtName,
+          newName,
+          oldName,
+        };
+        delete villageData.district;
+
         formattedVillage.push({
           ...villageData,
           name,
@@ -229,6 +288,7 @@ export class VillageService {
           oldName: nameOld,
           region,
           city,
+          district,
         });
       }
       return {
@@ -334,6 +394,43 @@ export class VillageService {
             },
           },
         },
+        district: {
+          include: {
+            DistrictTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictNewNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: pagination.take,
       skip: pagination.skip,
@@ -366,6 +463,28 @@ export class VillageService {
       const city = { ...villageData.city, name: cityName };
       delete villageData.city;
 
+      const districtTranslations = villageData.district;
+      const districtName = formatLanguageResponse(
+        districtTranslations.DistrictTranslations
+      );
+      const newName = formatLanguageResponse(
+        districtTranslations.DistrictNewNameTranslations
+      );
+      const oldName = formatLanguageResponse(
+        districtTranslations.DistrictOldNameTranslations
+      );
+      delete villageData.district.DistrictTranslations;
+      delete villageData.district.DistrictNewNameTranslations;
+      delete villageData.district.DistrictOldNameTranslations;
+
+      const district = {
+        ...villageData.district,
+        name: districtName,
+        newName,
+        oldName,
+      };
+      delete villageData.district;
+
       formattedVillage.push({
         ...villageData,
         name,
@@ -373,6 +492,7 @@ export class VillageService {
         oldName: nameOld,
         region,
         city,
+        district,
       });
     }
 
@@ -453,6 +573,43 @@ export class VillageService {
             },
           },
         },
+        district: {
+          include: {
+            DistrictTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictNewNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -478,6 +635,28 @@ export class VillageService {
     const city = { ...village.city, name: cityName };
     delete village.city;
 
+    const districtTranslations = village.district;
+    const districtName = formatLanguageResponse(
+      districtTranslations.DistrictTranslations
+    );
+    const newName = formatLanguageResponse(
+      districtTranslations.DistrictNewNameTranslations
+    );
+    const oldName = formatLanguageResponse(
+      districtTranslations.DistrictOldNameTranslations
+    );
+    delete village.district.DistrictTranslations;
+    delete village.district.DistrictNewNameTranslations;
+    delete village.district.DistrictOldNameTranslations;
+
+    const district = {
+      ...village.district,
+      name: districtName,
+      newName,
+      oldName,
+    };
+    delete village.district;
+
     return {
       ...village,
       name,
@@ -485,6 +664,7 @@ export class VillageService {
       oldName: nameOld,
       region,
       city,
+      district,
     };
   }
 
