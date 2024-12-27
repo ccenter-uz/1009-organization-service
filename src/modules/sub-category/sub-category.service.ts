@@ -72,7 +72,21 @@ export class SubCategoryService {
             : {}),
         },
         include: {
-          category: true,
+          category: {
+            include: {
+              CategoryTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
           SubCategoryTranslations: {
             where: data.allLang
               ? {}
@@ -96,7 +110,16 @@ export class SubCategoryService {
 
         delete subCategory.SubCategoryTranslations;
 
-        formattedSubCategories.push({ ...subCategory, name });
+        const category: any = subCategories[i].category;
+        const categorytTranslations = category.CategoryTranslations;
+        const categoryName = formatLanguageResponse(categorytTranslations);
+
+        category.name = categoryName;
+        delete category.CategoryTranslations;
+
+        delete subCategory.SubCategoryTranslations;
+
+        formattedSubCategories.push({ ...subCategory, name, category });
       }
 
       return {
@@ -140,7 +163,21 @@ export class SubCategoryService {
       where,
       orderBy: { createdAt: 'desc' },
       include: {
-        category: true,
+        category: {
+          include: {
+            CategoryTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
         SubCategoryTranslations: {
           where: data.allLang
             ? {}
@@ -164,9 +201,17 @@ export class SubCategoryService {
       const translations = subCategory.SubCategoryTranslations;
       const name = formatLanguageResponse(translations);
 
+      const category: any = subCategories[i].category;
+      const categorytTranslations = category.CategoryTranslations;
+      const categoryName = formatLanguageResponse(categorytTranslations);
+
+      category.name = categoryName;
+
+      delete category.CategoryTranslations;
+      delete subCategory.SubCategoryTranslations;
       delete subCategory.SubCategoryTranslations;
 
-      formattedSubCategories.push({ ...subCategory, name });
+      formattedSubCategories.push({ ...subCategory, name, category });
     }
 
     return {
@@ -183,7 +228,21 @@ export class SubCategoryService {
         status: DefaultStatus.ACTIVE,
       },
       include: {
-        category: true,
+        category: {
+          include: {
+            CategoryTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
         SubCategoryTranslations: {
           where: data.allLang
             ? {}
@@ -203,9 +262,17 @@ export class SubCategoryService {
 
     const name = formatLanguageResponse(subCategory.SubCategoryTranslations);
 
+    const category: any = subCategory.category;
+    const categorytTranslations = category.CategoryTranslations;
+    const categoryName = formatLanguageResponse(categorytTranslations);
+
+    category.name = categoryName;
+    delete category.CategoryTranslations;
+
+    delete subCategory.SubCategoryTranslations;
     delete subCategory.SubCategoryTranslations;
 
-    return { ...subCategory, name };
+    return { ...subCategory, name, category };
   }
 
   async update(
