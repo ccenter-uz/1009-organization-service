@@ -190,7 +190,10 @@ export class OrganizationService {
         id: nearbees[i].nearbyId,
       });
       nearbeesCreateArray.push({
-        description: nearbees[i]?.description,
+        description:
+          nearbees[i]?.description == 'undefined'
+            ? null
+            : nearbees[i]?.description,
         NearbyId: nearby.id,
       });
     }
@@ -248,7 +251,7 @@ export class OrganizationService {
         transport: data.transport,
         workTime: data.workTime,
         staffNumber: data.staffNumber,
-        passageId: data?.passageId,
+        passageId: passage?.id,
         status:
           data.role == CreatedByEnum.Moderator
             ? OrganizationStatusEnum.Accepted
