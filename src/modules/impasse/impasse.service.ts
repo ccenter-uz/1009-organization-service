@@ -255,25 +255,30 @@ export class ImpasseService {
         const city = { ...impasseData.city, name: cityName };
         delete impasseData.city;
 
-        const districtTranslations = impasseData.district;
-        const districtName = formatLanguageResponse(
-          districtTranslations.DistrictTranslations
-        );
-        const newName = formatLanguageResponse(
-          districtTranslations.DistrictNewNameTranslations
-        );
-        const oldName = formatLanguageResponse(
-          districtTranslations.DistrictOldNameTranslations
-        );
-        delete impasseData.district.DistrictTranslations;
-        delete impasseData.district.DistrictNewNameTranslations;
-        delete impasseData.district.DistrictOldNameTranslations;
+        const districtData = impasseData?.district;
+        let districtName: string | object;
+        let districtNameNew: string | object;
+        let districtNameOld: string | object;
+
+        if (districtData) {
+          const districtTranslations = districtData.DistrictTranslations;
+          districtName = formatLanguageResponse(districtTranslations);
+          const districtTranslationsNew =
+            districtData.DistrictNewNameTranslations;
+          districtNameNew = formatLanguageResponse(districtTranslationsNew);
+          const districtTranslationsOld =
+            districtData.DistrictOldNameTranslations;
+          districtNameOld = formatLanguageResponse(districtTranslationsOld);
+          delete districtData.DistrictTranslations;
+          delete districtData.DistrictNewNameTranslations;
+          delete districtData.DistrictOldNameTranslations;
+        }
 
         const district = {
           ...impasseData.district,
           name: districtName,
-          newName,
-          oldName,
+          districtNameNew,
+          districtNameOld,
         };
         delete impasseData.district;
 
@@ -459,25 +464,30 @@ export class ImpasseService {
       const city = { ...impasseData.city, name: cityName };
       delete impasseData.city;
 
-      const districtTranslations = impasseData.district;
-      const districtName = formatLanguageResponse(
-        districtTranslations.DistrictTranslations
-      );
-      const newName = formatLanguageResponse(
-        districtTranslations.DistrictNewNameTranslations
-      );
-      const oldName = formatLanguageResponse(
-        districtTranslations.DistrictOldNameTranslations
-      );
-      delete impasseData.district.DistrictTranslations;
-      delete impasseData.district.DistrictNewNameTranslations;
-      delete impasseData.district.DistrictOldNameTranslations;
+      const districtData = impasseData?.district;
+      let districtName: string | object;
+      let districtNameNew: string | object;
+      let districtNameOld: string | object;
+
+      if (districtData) {
+        const districtTranslations = districtData.DistrictTranslations;
+        districtName = formatLanguageResponse(districtTranslations);
+        const districtTranslationsNew =
+          districtData.DistrictNewNameTranslations;
+        districtNameNew = formatLanguageResponse(districtTranslationsNew);
+        const districtTranslationsOld =
+          districtData.DistrictOldNameTranslations;
+        districtNameOld = formatLanguageResponse(districtTranslationsOld);
+        delete districtData.DistrictTranslations;
+        delete districtData.DistrictNewNameTranslations;
+        delete districtData.DistrictOldNameTranslations;
+      }
 
       const district = {
         ...impasseData.district,
         name: districtName,
-        newName,
-        oldName,
+        districtNameNew,
+        districtNameOld,
       };
       delete impasseData.district;
 
@@ -630,25 +640,28 @@ export class ImpasseService {
     const city = { ...impasse.city, name: cityName };
     delete impasse.city;
 
-    const districtTranslations = impasse.district;
-    const districtName = formatLanguageResponse(
-      districtTranslations.DistrictTranslations
-    );
-    const newName = formatLanguageResponse(
-      districtTranslations.DistrictNewNameTranslations
-    );
-    const oldName = formatLanguageResponse(
-      districtTranslations.DistrictOldNameTranslations
-    );
-    delete impasse.district.DistrictTranslations;
-    delete impasse.district.DistrictNewNameTranslations;
-    delete impasse.district.DistrictOldNameTranslations;
+    const districtData = impasse?.district;
+    let districtName: string | object;
+    let districtNameNew: string | object;
+    let districtNameOld: string | object;
+
+    if (districtData) {
+      const districtTranslations = districtData.DistrictTranslations;
+      districtName = formatLanguageResponse(districtTranslations);
+      const districtTranslationsNew = districtData.DistrictNewNameTranslations;
+      districtNameNew = formatLanguageResponse(districtTranslationsNew);
+      const districtTranslationsOld = districtData.DistrictOldNameTranslations;
+      districtNameOld = formatLanguageResponse(districtTranslationsOld);
+      delete districtData.DistrictTranslations;
+      delete districtData.DistrictNewNameTranslations;
+      delete districtData.DistrictOldNameTranslations;
+    }
 
     const district = {
       ...impasse.district,
       name: districtName,
-      newName,
-      oldName,
+      districtNameNew,
+      districtNameOld,
     };
     delete impasse.district;
 
