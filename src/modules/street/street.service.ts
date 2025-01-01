@@ -763,7 +763,7 @@ export class StreetService {
       data: {
         regionId: data.regionId || street.regionId,
         cityId: data.cityId || street.cityId,
-        districtId: data.districtId || street.districtId,
+        districtId: data.districtId || null,
         staffNumber: data.staffNumber || street.staffNumber,
         index: data.index || street.index,
         StreetTranslations: {

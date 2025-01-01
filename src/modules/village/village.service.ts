@@ -770,7 +770,7 @@ export class VillageService {
       data: {
         regionId: data.regionId || village.regionId,
         cityId: data.cityId || village.cityId,
-        districtId: data.districtId || village.districtId,
+        districtId: data.districtId || null,
         staffNumber: data.staffNumber || village.staffNumber,
         index: data.index || village.index,
         VillageTranslations: {

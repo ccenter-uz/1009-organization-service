@@ -763,7 +763,7 @@ export class LaneService {
       data: {
         regionId: data.regionId || lane.regionId,
         cityId: data.cityId || lane.cityId,
-        districtId: data.districtId || lane.districtId,
+        districtId: data.districtId || null,
         staffNumber: data.staffNumber || lane.staffNumber,
         index: data.index || lane.index,
         LaneTranslations: {

@@ -767,7 +767,7 @@ export class AvenueService {
       data: {
         regionId: data.regionId || avenue.regionId,
         cityId: data.cityId || avenue.cityId,
-        districtId: data.districtId || avenue.districtId,
+        districtId: data.districtId || null,
         staffNumber: data.staffNumber || avenue.staffNumber,
         index: data.index || avenue.index,
         AvenueTranslations: {

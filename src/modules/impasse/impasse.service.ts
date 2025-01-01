@@ -764,7 +764,7 @@ export class ImpasseService {
       data: {
         regionId: data.regionId || impasse.regionId,
         cityId: data.cityId || impasse.cityId,
-        districtId: data.districtId || impasse.districtId,
+        districtId: data.districtId || null,
         staffNumber: data.staffNumber || impasse.staffNumber,
         index: data.index || impasse.index,
         ImpasseTranslations: {

@@ -765,7 +765,7 @@ export class PassageService {
       data: {
         regionId: data.regionId || passage.regionId,
         cityId: data.cityId || passage.cityId,
-        districtId: data.districtId || passage.districtId,
+        districtId: data.districtId || null,
         staffNumber: data.staffNumber || passage.staffNumber,
         index: data.index || passage.index,
         PassageTranslations: {

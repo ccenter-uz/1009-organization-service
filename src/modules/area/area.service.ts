@@ -765,7 +765,7 @@ export class AreaService {
       data: {
         regionId: data.regionId || area.regionId,
         cityId: data.cityId || area.cityId,
-        districtId: data.districtId || area.districtId,
+        districtId: data.districtId || null,
         staffNumber: data.staffNumber || area.staffNumber,
         index: data.index || area.index,
         AreaTranslations: {

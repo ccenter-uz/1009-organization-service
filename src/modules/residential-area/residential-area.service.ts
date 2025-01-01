@@ -778,7 +778,7 @@ export class ResidentialAreaService {
       data: {
         regionId: data.regionId || residentialArea.regionId,
         cityId: data.cityId || residentialArea.cityId,
-        districtId: data.districtId || residentialArea.districtId,
+        districtId: data.districtId || null,
         staffNumber: data.staffNumber || residentialArea.staffNumber,
         index: data.index || residentialArea.index,
         ResidentialAreaTranslations: {
