@@ -253,7 +253,7 @@ model District {
   regionId                    Int                           @map("region_id")
   cityId                      Int                           @map("city_id")
   status                      Int                           @default(1) @db.SmallInt()
-  index                       Int                           @default(1) @db.SmallInt()
+  index                       Int                           @db.Integer()
   staffNumber                 String                        @map("staff_number") @db.VarChar(40)
   createdAt                   DateTime                      @default(now()) @map("created_at") @db.Timestamp
   updatedAt                   DateTime?                     @updatedAt @map("upd ated_at")
@@ -369,7 +369,7 @@ model Passage {
   id          Int       @id @default(autoincrement())
   regionId    Int       @map("region_id")
   cityId      Int       @map("city_id")
-  index       Int
+  index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
@@ -431,7 +431,7 @@ model Area {
   id          Int       @id @default(autoincrement())
   regionId    Int       @map("region_id")
   cityId      Int       @map("city_id")
-  index       Int
+  index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
@@ -494,7 +494,7 @@ model Avenue {
   id          Int       @id @default(autoincrement())
   regionId    Int       @map("region_id")
   cityId      Int       @map("city_id")
-  index       Int
+  index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
@@ -557,7 +557,7 @@ model ResidentialArea {
   id          Int       @id @default(autoincrement())
   regionId    Int       @map("region_id")
   cityId      Int       @map("city_id")
-  index       Int
+  index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
@@ -620,7 +620,7 @@ model Impasse {
   id          Int       @id @default(autoincrement())
   regionId    Int       @map("region_id")
   cityId      Int       @map("city_id")
-  index       Int
+  index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
@@ -683,7 +683,7 @@ model Village {
   id          Int       @id @default(autoincrement())
   regionId    Int       @map("region_id")
   cityId      Int       @map("city_id")
-  index       Int
+  index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
@@ -746,7 +746,7 @@ model Lane {
   id          Int       @id @default(autoincrement())
   regionId    Int       @map("region_id")
   cityId      Int       @map("city_id")
-  index       Int
+  index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
@@ -810,7 +810,7 @@ model Street {
   regionId    Int       @map("region_id")
   cityId      Int       @map("city_id")
   districtId  Int?      @map("district_id")
-  index       Int
+  index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
   staffNumber String    @map("staff_number") @db.VarChar(40)
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp

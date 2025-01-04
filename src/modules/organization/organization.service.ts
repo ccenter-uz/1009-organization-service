@@ -925,7 +925,7 @@ export class OrganizationService {
   async remove(
     data: OrganizationDeleteDto
   ): Promise<OrganizationInterfaces.Response> {
-    if (data.delete) {
+    if (!data.delete) {
       const organizationVersion =
         await this.prisma.organizationVersion.findFirst({
           where: {

@@ -259,25 +259,30 @@ export class VillageService {
         const city = { ...villageData.city, name: cityName };
         delete villageData.city;
 
-        const districtTranslations = villageData.district;
-        const districtName = formatLanguageResponse(
-          districtTranslations.DistrictTranslations
-        );
-        const newName = formatLanguageResponse(
-          districtTranslations.DistrictNewNameTranslations
-        );
-        const oldName = formatLanguageResponse(
-          districtTranslations.DistrictOldNameTranslations
-        );
-        delete villageData.district.DistrictTranslations;
-        delete villageData.district.DistrictNewNameTranslations;
-        delete villageData.district.DistrictOldNameTranslations;
+        const districtData = villageData?.district;
+        let districtName: string | object;
+        let districtNameNew: string | object;
+        let districtNameOld: string | object;
+
+        if (districtData) {
+          const districtTranslations = districtData.DistrictTranslations;
+          districtName = formatLanguageResponse(districtTranslations);
+          const districtTranslationsNew =
+            districtData.DistrictNewNameTranslations;
+          districtNameNew = formatLanguageResponse(districtTranslationsNew);
+          const districtTranslationsOld =
+            districtData.DistrictOldNameTranslations;
+          districtNameOld = formatLanguageResponse(districtTranslationsOld);
+          delete districtData.DistrictTranslations;
+          delete districtData.DistrictNewNameTranslations;
+          delete districtData.DistrictOldNameTranslations;
+        }
 
         const district = {
           ...villageData.district,
           name: districtName,
-          newName,
-          oldName,
+          districtNameNew,
+          districtNameOld,
         };
         delete villageData.district;
 
@@ -463,25 +468,30 @@ export class VillageService {
       const city = { ...villageData.city, name: cityName };
       delete villageData.city;
 
-      const districtTranslations = villageData.district;
-      const districtName = formatLanguageResponse(
-        districtTranslations.DistrictTranslations
-      );
-      const newName = formatLanguageResponse(
-        districtTranslations.DistrictNewNameTranslations
-      );
-      const oldName = formatLanguageResponse(
-        districtTranslations.DistrictOldNameTranslations
-      );
-      delete villageData.district.DistrictTranslations;
-      delete villageData.district.DistrictNewNameTranslations;
-      delete villageData.district.DistrictOldNameTranslations;
+      const districtData = villageData?.district;
+      let districtName: string | object;
+      let districtNameNew: string | object;
+      let districtNameOld: string | object;
+
+      if (districtData) {
+        const districtTranslations = districtData.DistrictTranslations;
+        districtName = formatLanguageResponse(districtTranslations);
+        const districtTranslationsNew =
+          districtData.DistrictNewNameTranslations;
+        districtNameNew = formatLanguageResponse(districtTranslationsNew);
+        const districtTranslationsOld =
+          districtData.DistrictOldNameTranslations;
+        districtNameOld = formatLanguageResponse(districtTranslationsOld);
+        delete districtData.DistrictTranslations;
+        delete districtData.DistrictNewNameTranslations;
+        delete districtData.DistrictOldNameTranslations;
+      }
 
       const district = {
         ...villageData.district,
         name: districtName,
-        newName,
-        oldName,
+        districtNameNew,
+        districtNameOld,
       };
       delete villageData.district;
 
@@ -635,25 +645,28 @@ export class VillageService {
     const city = { ...village.city, name: cityName };
     delete village.city;
 
-    const districtTranslations = village.district;
-    const districtName = formatLanguageResponse(
-      districtTranslations.DistrictTranslations
-    );
-    const newName = formatLanguageResponse(
-      districtTranslations.DistrictNewNameTranslations
-    );
-    const oldName = formatLanguageResponse(
-      districtTranslations.DistrictOldNameTranslations
-    );
-    delete village.district.DistrictTranslations;
-    delete village.district.DistrictNewNameTranslations;
-    delete village.district.DistrictOldNameTranslations;
+    const districtData = village?.district;
+    let districtName: string | object;
+    let districtNameNew: string | object;
+    let districtNameOld: string | object;
+
+    if (districtData) {
+      const districtTranslations = districtData.DistrictTranslations;
+      districtName = formatLanguageResponse(districtTranslations);
+      const districtTranslationsNew = districtData.DistrictNewNameTranslations;
+      districtNameNew = formatLanguageResponse(districtTranslationsNew);
+      const districtTranslationsOld = districtData.DistrictOldNameTranslations;
+      districtNameOld = formatLanguageResponse(districtTranslationsOld);
+      delete districtData.DistrictTranslations;
+      delete districtData.DistrictNewNameTranslations;
+      delete districtData.DistrictOldNameTranslations;
+    }
 
     const district = {
       ...village.district,
       name: districtName,
-      newName,
-      oldName,
+      districtNameNew,
+      districtNameOld,
     };
     delete village.district;
 
@@ -757,7 +770,7 @@ export class VillageService {
       data: {
         regionId: data.regionId || village.regionId,
         cityId: data.cityId || village.cityId,
-        districtId: data.districtId || village.districtId,
+        districtId: data.districtId || null,
         staffNumber: data.staffNumber || village.staffNumber,
         index: data.index || village.index,
         VillageTranslations: {
