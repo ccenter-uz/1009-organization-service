@@ -30,6 +30,7 @@ import { StreetModule } from './modules/street/street.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { OrganizationVersionModule } from './modules/organization-version/organization-version.module';
 import { PhoneTypeModule } from './modules/phone-type/phone-type.module';
+import { FtpModule } from './modules/ftp/ftp.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { PhoneTypeModule } from './modules/phone-type/phone-type.module';
     OrganizationModule,
     OrganizationVersionModule,
     PhoneTypeModule,
+    FtpModule,
   ],
   controllers: [],
   providers: [
