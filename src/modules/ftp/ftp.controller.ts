@@ -1,20 +1,26 @@
-import { Controller, Logger } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
+import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
 import { FtpService } from './ftp.service';
-import { FtpServiceCommands as Commands } from 'types/organization/ftp';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { MessagePattern } from '@nestjs/microservices';
+import { FtpServiceCommands } from 'types/organization/ftp';
 
-@Controller()
+@ApiBearerAuth()
+@ApiTags('ftp')
+@Controller('ftp')
 export class FtpController {
-  private readonly logger = new Logger(FtpController.name);
-
   constructor(private readonly ftpService: FtpService) {}
 
-  @MessagePattern({ cmd: Commands.READ_FILES })
-  async handleReadFiles(data: { remoteFilePath: string; localFilePath: string }): Promise<any[]> {
-    this.logger.debug(`Received READ_FILES command with data:`, data);
-
-    const { remoteFilePath, localFilePath } = data;
-
-    return await this.ftpService.readExcelFileFromFTP(remoteFilePath);
+  @Get('process-files')
+  @HttpCode(HttpStatus.OK)
+  @MessagePattern({ cmd: FtpServiceCommands.READ_FILES })
+  async processFiles(): Promise<string[]> {
+    let objects = [];
+    let res = await this.ftpService.processCsvFilesToJSON();
+    objects = res;
+    while (res.length > 0) {
+      res = await this.ftpService.processCsvFilesToJSON();
+      objects.concat(res);
+    } 
+    return objects;
   }
 }

@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import * as ftp from 'basic-ftp';
-import * as XLSX from 'xlsx';
-import * as stream from 'stream';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import * as xlsx from 'xlsx';
 
 @Injectable()
 export class FtpService {
@@ -18,50 +20,109 @@ export class FtpService {
         host: process.env.FTP_HOST,
         user: process.env.FTP_USER,
         password: process.env.FTP_PASSWORD,
-        secure: false,
+        port: 21,
+        secure: true,
+        secureOptions: {
+          rejectUnauthorized: false,
+        },
       });
-      console.log('Connected to FTP server');
     } catch (error) {
       console.error('Failed to connect to FTP server:', error.message);
       throw error;
     }
   }
 
-  async readExcelFileFromFTP(remoteFilePath: string): Promise<any[]> {
+  async processCsvFilesToJSON(): Promise<any[]> {
+    const combinedData: any[] = [];
+    const tempDir = path.join(os.tmpdir(), 'ftp_temp');
+    let processedFilesCount = 0; // Счётчик обработанных файлов
+
     try {
       await this.connect();
 
-      // Создаем поток для получения данных
-      const fileStream = new stream.PassThrough();
-      // Скачиваем файл в поток
-      await this.client.downloadTo(fileStream, remoteFilePath);
+      // Создаём временную директорию, если её нет
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir);
+      }
 
-      // Преобразуем поток в буфер
-      const fileBuffer = await this.streamToBuffer(fileStream);
+      const fileList = await this.client.list();
 
-      // Обработка Excel файла из буфера
-      const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(sheet);
+      // Фильтруем список файлов для исключения директорий и уже обработанных
+      const csvFiles = fileList.filter(
+        (file) =>
+          !file.isDirectory &&
+          !file.name.endsWith('_edited.csv') &&
+          file.name.endsWith('.csv')
+      );
 
-      console.log('Excel data:', data);
-      return data;
+      const batchSize = 50; // Количество файлов в одном пакете
+
+      // Обрабатываем файлы пакетами
+      for (
+        let batchIndex = 0;
+        batchIndex < csvFiles.length;
+        batchIndex += batchSize
+      ) {
+        const batch = csvFiles.slice(batchIndex, batchIndex + batchSize);
+
+        for (const file of batch) {
+          if (processedFilesCount >= 110) {
+            break; // Прерываем обработку, если достигли лимита
+          }
+
+          processedFilesCount++; // Увеличиваем счётчик обработанных файлов
+
+          const remoteFilePath = `/${file.name}`;
+          const localTempFilePath = path.join(tempDir, file.name);
+
+          await this.client.downloadTo(localTempFilePath, remoteFilePath);
+
+          // Читаем CSV файл и преобразуем его в JSON
+          const workbook = xlsx.read(
+            fs.readFileSync(localTempFilePath, 'utf8'),
+            {
+              type: 'string',
+              raw: false,
+            }
+          );
+
+          const sheetName = workbook.SheetNames[0];
+          const rows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], {
+            defval: null,
+          });
+
+          combinedData.push(...rows);
+
+          // Удаляем локальный файл после обработки
+          fs.unlinkSync(localTempFilePath);
+
+          // Переименовываем файл на FTP-сервере, добавляя суффикс "_edited"
+          const renamedFilePath = `/${path.basename(file.name, '.csv')}_edited.csv`;
+          await this.client.rename(remoteFilePath, renamedFilePath);
+        }
+
+        // Если достигнут лимит обработанных файлов, выходим из цикла обработки пакетов
+        if (processedFilesCount >= 110) {
+          break;
+        }
+      }
     } catch (error) {
-      console.error('Error reading Excel file:', error.message);
+      console.error('Error processing CSV files:', error.message);
+
       throw error;
     } finally {
       this.client.close();
-      console.log('FTP connection closed');
     }
+
+    return combinedData;
   }
 
-  private streamToBuffer(fileStream: stream.PassThrough): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      fileStream.on('data', (chunk) => chunks.push(chunk));
-      fileStream.on('end', () => resolve(Buffer.concat(chunks)));
-      fileStream.on('error', reject);
-    });
+  async saveAsJSON(data: any[], outputFilePath: string): Promise<void> {
+    try {
+      fs.writeFileSync(outputFilePath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+      console.error('Error saving JSON file:', error.message);
+      throw error;
+    }
   }
 }
