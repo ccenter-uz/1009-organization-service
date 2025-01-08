@@ -818,7 +818,9 @@ export class OrganizationService {
     return UpdateOrganization;
   }
 
-  async confirmOrg(data: ConfirmDto): Promise<any> {
+  async updateCheck(data: ConfirmDto): Promise<any> {
+    console.log(data);
+
     if (data.role == CreatedByEnum.Moderator) {
       if (data.status == OrganizationStatusEnum.Accepted) {
         const organizationVersion =
@@ -837,6 +839,7 @@ export class OrganizationService {
             },
             data: {
               status: OrganizationStatusEnum.Accepted,
+              descrioption: data.descrioption,
             },
           });
 
@@ -850,6 +853,7 @@ export class OrganizationService {
             },
             data: {
               status: OrganizationStatusEnum.Accepted,
+              descrioption: data.descrioption,
             },
           });
           return await this.prisma.organization.update({
@@ -869,6 +873,7 @@ export class OrganizationService {
             },
             data: {
               status: OrganizationStatusEnum.Deleted,
+              descrioption: data.descrioption,
             },
           });
           return await this.prisma.organization.update({
@@ -888,6 +893,7 @@ export class OrganizationService {
             },
             data: {
               status: OrganizationStatusEnum.Accepted,
+              descrioption: data.descrioption,
             },
           });
           return await this.prisma.organization.update({
@@ -916,6 +922,7 @@ export class OrganizationService {
           },
           data: {
             status: OrganizationStatusEnum.Rejected,
+            descrioption: data.descrioption,
           },
         });
       }
