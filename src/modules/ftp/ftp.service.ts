@@ -1,15 +1,25 @@
+import { SegmentService } from './../segment/segment.service';
 import { Injectable } from '@nestjs/common';
 import * as ftp from 'basic-ftp';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as xlsx from 'xlsx';
+import {
+  CreateExelData,
+  PhoneDtoExel,
+} from 'types/organization/organization/dto/create-exel.dto';
+import excelDateToDateTime from '@/common/helper/excelDateConverter';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class FtpService {
   private client: ftp.Client;
 
-  constructor() {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly segment: SegmentService
+  ) {
     this.client = new ftp.Client();
     this.client.ftp.verbose = true;
   }
@@ -34,6 +44,7 @@ export class FtpService {
 
   async processCsvFilesToJSON(): Promise<any[]> {
     const combinedData: any[] = [];
+
     const tempDir = path.join(os.tmpdir(), 'ftp_temp');
     let processedFilesCount = 0; // Счётчик обработанных файлов
 
@@ -69,7 +80,6 @@ export class FtpService {
           if (processedFilesCount >= 110) {
             break; // Прерываем обработку, если достигли лимита
           }
-
           processedFilesCount++; // Увеличиваем счётчик обработанных файлов
 
           const remoteFilePath = `/${file.name}`;
@@ -91,7 +101,50 @@ export class FtpService {
             defval: null,
           });
 
-          combinedData.push(...rows);
+          const formattedRows = await Promise.all(
+            rows.map(async (row: any) => {
+              const foundSegment = await this.prisma.segment.findFirst({
+                where: {
+                  name: row['SEGMENT'] + '',
+                },
+              });
+              let segment: any;
+              if (!foundSegment) {
+                segment = await this.segment.create({
+                  name: row['SEGMENT'] + '',
+                });
+              } else {
+                segment = await foundSegment;
+              }
+
+              return {
+                clientId: row['CLNT_ID'] + '' || '',
+                createdAt: row['START']
+                  ? excelDateToDateTime(row['START'])
+                  : '',
+                deletedAt: row['STOP']
+                  ? excelDateToDateTime(row['STOP'])
+                  : null,
+                name: row['NAME'] + '' || '',
+                // Phone: {
+                //   create: {
+                //     phone: row['PHONE'] || '',
+                //     PhoneTypeId: null, // PhoneTypeId добавляем только если он указан
+                //     isSecret: true, // Всегда true
+                //   },
+                // }, // Передаём массив объектов PhoneDto
+                segmentId: segment.id || 0,
+                account: row['ACCOUNT'] + '' || '',
+                inn: row['INN'] + '' || '',
+                bankNumber: row['BANK'] + '' || '',
+                address: row['ADDRESS'] + '' || '',
+                mail: row['MAIL'] || '',
+                createdBy: 'billing',
+              } as CreateExelData;
+            })
+          );
+
+          combinedData.push(...formattedRows);
 
           // Удаляем локальный файл после обработки
           fs.unlinkSync(localTempFilePath);
@@ -112,6 +165,17 @@ export class FtpService {
       throw error;
     } finally {
       this.client.close();
+    }
+
+    try {
+
+      await this.prisma.organization.createMany({
+        data: combinedData,
+        skipDuplicates: true, // Игнорирует дублирующиеся записи
+      });
+    } catch (error) {
+      console.error('Error saving to database:', error.message);
+      throw error;
     }
 
     return combinedData;

@@ -23,25 +23,15 @@ export class SegmentService {
   async create(data: SegmentCreateDto): Promise<SegmentInterfaces.Response> {
     const segment = await this.prisma.segment.create({
       data: {
-        SegmentTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.name[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.name[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.name[LanguageRequestEnum.CY],
-            },
-          ],
-        },
+        name: data.name,
       },
-      include: {
-        SegmentTranslations: true,
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        createdAt: true,
+        deletedAt: true,
+        updatedAt: true,
       },
     });
     return segment;
@@ -60,32 +50,10 @@ export class SegmentService {
               }
             : {}),
         },
-        include: {
-          SegmentTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode, // langCode from request
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
-
-      const formattedSegment = segments.map((segment) => {
-        const translations = segment.SegmentTranslations;
-
-        const name = formatLanguageResponse(translations);
-        delete segment.SegmentTranslations;
-
-        return { ...segment, name };
       });
 
       return {
-        data: formattedSegment,
+        data: segments,
         totalDocs: segments.length,
         totalPage: 1,
       };
@@ -99,15 +67,7 @@ export class SegmentService {
     };
 
     if (data.search) {
-      where.SegmentTranslations = {
-        some: {
-          languageCode: data.langCode,
-          name: {
-            contains: data.search,
-            mode: 'insensitive',
-          },
-        },
-      };
+      where.name = data.search;
     }
 
     const count = await this.prisma.segment.count({
@@ -123,34 +83,12 @@ export class SegmentService {
     const categories = await this.prisma.segment.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      include: {
-        SegmentTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode, // langCode from request
-              },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
       take: pagination.take,
       skip: pagination.skip,
     });
 
-    const formattedCategories = categories.map((segment) => {
-      const translations = segment.SegmentTranslations;
-
-      const name = formatLanguageResponse(translations);
-      delete segment.SegmentTranslations;
-
-      return { ...segment, name };
-    });
-
     return {
-      data: formattedCategories,
+      data: categories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
@@ -162,29 +100,14 @@ export class SegmentService {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
-      include: {
-        SegmentTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode, // langCode from request
-              },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
+      include: {},
     });
 
     if (!segment) {
       throw new NotFoundException('Segment is not found');
     }
 
-    const name = formatLanguageResponse(segment.SegmentTranslations);
-    delete segment.SegmentTranslations;
-
-    return { ...segment, name };
+    return segment;
   }
 
   async update(data: SegmentUpdateDto): Promise<SegmentInterfaces.Response> {
@@ -195,25 +118,15 @@ export class SegmentService {
         id: category.id,
       },
       data: {
-        SegmentTranslations: {
-          updateMany: [
-            {
-              where: { languageCode: LanguageRequestEnum.RU },
-              data: { name: data.name[LanguageRequestEnum.RU] },
-            },
-            {
-              where: { languageCode: LanguageRequestEnum.UZ },
-              data: { name: data.name[LanguageRequestEnum.UZ] },
-            },
-            {
-              where: { languageCode: LanguageRequestEnum.CY },
-              data: { name: data.name[LanguageRequestEnum.CY] },
-            },
-          ],
-        },
+        name: data.name,
       },
-      include: {
-        SegmentTranslations: true, // Include translations in the response
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        createdAt: true,
+        deletedAt: true,
+        updatedAt: true,
       },
     });
   }
@@ -222,13 +135,13 @@ export class SegmentService {
     if (data.delete) {
       return await this.prisma.segment.delete({
         where: { id: data.id },
-        include: {
-          SegmentTranslations: {
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
+        select: {
+          id: true,
+          name: true,
+          status: true,
+          createdAt: true,
+          deletedAt: true,
+          updatedAt: true,
         },
       });
     }
@@ -236,13 +149,13 @@ export class SegmentService {
     return await this.prisma.segment.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
-      include: {
-        SegmentTranslations: {
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        createdAt: true,
+        deletedAt: true,
+        updatedAt: true,
       },
     });
   }
@@ -251,13 +164,13 @@ export class SegmentService {
     return this.prisma.segment.update({
       where: { id: data.id, status: DefaultStatus.INACTIVE },
       data: { status: DefaultStatus.ACTIVE },
-      include: {
-        SegmentTranslations: {
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        createdAt: true,
+        deletedAt: true,
+        updatedAt: true,
       },
     });
   }
