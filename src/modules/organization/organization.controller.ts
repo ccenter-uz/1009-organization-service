@@ -72,11 +72,11 @@ export class OrganizationController {
   }
 
   @Put()
-  @MessagePattern({ cmd: Commands.CONFIRM })
-  update(
+  @MessagePattern({ cmd: Commands.CHECK })
+  updateCheck(
     @Payload() data: OrganizationInterfaces.Update
   ): Promise<OrganizationInterfaces.Response> {
-    return this.organizationService.confirmOrg(data);
+    return this.organizationService.updateCheck(data);
   }
 
   @Delete()
