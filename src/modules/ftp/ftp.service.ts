@@ -11,6 +11,8 @@ import {
 } from 'types/organization/organization/dto/create-exel.dto';
 import excelDateToDateTime from '@/common/helper/excelDateConverter';
 import { PrismaService } from '../prisma/prisma.service';
+import orgPrismaExtension from '@/common/helper/prismaExtention';
+import { CreatedByEnum, DefaultStatus, OrganizationStatusEnum } from 'types/global';
 
 @Injectable()
 export class FtpService {
@@ -63,7 +65,7 @@ export class FtpService {
         (file) =>
           !file.isDirectory &&
           !file.name.endsWith('_edited.csv') &&
-          file.name.endsWith('.csv')
+          file.name.endsWith('_new.csv')
       );
 
       const batchSize = 50; // Количество файлов в одном пакете
@@ -114,9 +116,9 @@ export class FtpService {
                   name: row['SEGMENT'] + '',
                 });
               } else {
-                segment = await foundSegment;
+                segment = foundSegment;
               }
-
+      
               return {
                 clientId: row['CLNT_ID'] + '' || '',
                 createdAt: row['START']
@@ -126,20 +128,22 @@ export class FtpService {
                   ? excelDateToDateTime(row['STOP'])
                   : null,
                 name: row['NAME'] + '' || '',
-                // Phone: {
-                //   create: {
-                //     phone: row['PHONE'] || '',
-                //     PhoneTypeId: null, // PhoneTypeId добавляем только если он указан
-                //     isSecret: true, // Всегда true
-                //   },
-                // }, // Передаём массив объектов PhoneDto
+                Phone: {
+                  create: [
+                    {
+                      phone: row['PHONE'] + '' || '',
+                      isSecret: true,
+                    },
+                  ],
+                },
                 segmentId: segment.id || 0,
                 account: row['ACCOUNT'] + '' || '',
                 inn: row['INN'] + '' || '',
                 bankNumber: row['BANK'] + '' || '',
                 address: row['ADDRESS'] + '' || '',
                 mail: row['MAIL'] || '',
-                createdBy: 'billing',
+                createdBy: CreatedByEnum.Billing,
+                status: OrganizationStatusEnum.Check,
               } as CreateExelData;
             })
           );
@@ -167,16 +171,7 @@ export class FtpService {
       this.client.close();
     }
 
-    try {
-
-      await this.prisma.organization.createMany({
-        data: combinedData,
-        skipDuplicates: true, // Игнорирует дублирующиеся записи
-      });
-    } catch (error) {
-      console.error('Error saving to database:', error.message);
-      throw error;
-    }
+    await orgPrismaExtension.organization.createAndVersion(combinedData);
 
     return combinedData;
   }

@@ -50,6 +50,9 @@ export default function buildIncludeVersion(
     },
   };
   include.PhoneVersion = {
+    where:{
+      isSeckret:true,
+    },
     include: {
       PhoneTypes: {
         select: {
@@ -183,5 +186,5 @@ export const includeConfigVersion = {
     'ImpasseNewNameTranslations',
     'ImpasseOldNameTranslations',
   ],
-  Segment: ['SegmentTranslations'],
+  Segment: [],
 };

@@ -108,10 +108,11 @@ export default function formatOrganizationResponse(
   }
 
   const subCategoryTranslation =
-    organization.SubCategory.SubCategoryTranslations;
+    organization?.SubCategory?.SubCategoryTranslations;
   const categoryTranslation =
-    organization.SubCategory.category.CategoryTranslations;
+    organization?.SubCategory?.category?.CategoryTranslations;
 
+  
   const subCategoryName = formatLanguageResponse(subCategoryTranslation);
   const categoryName = formatLanguageResponse(categoryTranslation);
 
@@ -208,7 +209,7 @@ export const modulesConfig = [
   },
   {
     nameKey: 'Segment',
-    includeKeys: ['SegmentTranslations'],
+    includeKeys: [],
   },
   {
     nameKey: 'Nearby',

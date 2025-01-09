@@ -6,8 +6,8 @@ interface Translations {
 }
 
 interface FormatOptions {
-  nameKey: string; // Например, "Area"
-  includeKeys?: string[]; // Ключи, которые нужно включать, например: ["NewNameTranslations", "OldNameTranslations"]
+  nameKey: string;
+  includeKeys?: string[];
 }
 
 function formatModuleTranslationsVersion(
@@ -17,14 +17,14 @@ function formatModuleTranslationsVersion(
   const { nameKey, includeKeys = [] } = options;
   const result: any = { ...module };
 
-  // Форматируем базовый перевод
+ 
   const baseTranslationsKey = `${nameKey}Translations`;
   if (module[baseTranslationsKey]) {
     result.name = formatLanguageResponse(module[baseTranslationsKey]);
     delete result[baseTranslationsKey];
   }
 
-  // Форматируем дополнительные переводы
+ 
   for (const key of includeKeys) {
     const translationsKey = `${nameKey}${key}`;
     if (module[translationsKey]) {
@@ -211,7 +211,7 @@ export const modulesConfigVersion = [
   },
   {
     nameKey: 'Segment',
-    includeKeys: ['SegmentTranslations'],
+    includeKeys: [],
   },
   {
     nameKey: 'Nearby',
