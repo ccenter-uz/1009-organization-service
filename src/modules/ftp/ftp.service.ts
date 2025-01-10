@@ -28,9 +28,9 @@ export class FtpService {
         user: process.env.FTP_USER,
         password: process.env.FTP_PASSWORD,
         port: 21,
-        secure: true,
+        // secure: true,
         secureOptions: {
-          rejectUnauthorized: false,
+          rejectUnauthorized: true,
         },
       });
     } catch (error) {
@@ -53,19 +53,17 @@ export class FtpService {
     const combinedData: any[] = [];
 
     const tempDir = path.join(os.tmpdir(), 'ftp_temp');
-    let processedFilesCount = 0; // Счётчик обработанных файлов
+    let processedFilesCount = 0;
 
     try {
       await this.connect();
 
-      // Создаём временную директорию, если её нет
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir);
       }
 
       const fileList = await this.client.list();
 
-      // Фильтруем список файлов для исключения директорий и уже обработанных
       const csvFiles = fileList.filter(
         (file) =>
           !file.isDirectory &&
@@ -73,9 +71,8 @@ export class FtpService {
           file.name.endsWith('_new.csv')
       );
 
-      const batchSize = 50; // Количество файлов в одном пакете
+      const batchSize = 50;
 
-      // Обрабатываем файлы пакетами
       for (
         let batchIndex = 0;
         batchIndex < csvFiles.length;
@@ -85,16 +82,15 @@ export class FtpService {
 
         for (const file of batch) {
           if (processedFilesCount >= 110) {
-            break; // Прерываем обработку, если достигли лимита
+            break;
           }
-          processedFilesCount++; // Увеличиваем счётчик обработанных файлов
+          processedFilesCount++;
 
           const remoteFilePath = `/${file.name}`;
           const localTempFilePath = path.join(tempDir, file.name);
 
           await this.client.downloadTo(localTempFilePath, remoteFilePath);
 
-          // Читаем CSV файл и преобразуем его в JSON
           const workbook = xlsx.read(
             fs.readFileSync(localTempFilePath, 'utf8'),
             {
