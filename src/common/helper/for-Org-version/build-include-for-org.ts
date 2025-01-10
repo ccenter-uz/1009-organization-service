@@ -51,7 +51,7 @@ export default function buildIncludeVersion(
   };
   include.PhoneVersion = {
     where:{
-      isSeckret:true,
+      isSecret:true,
     },
     include: {
       PhoneTypes: {
