@@ -5,14 +5,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as xlsx from 'xlsx';
-import {
-  CreateExelData,
-  PhoneDtoExel,
-} from 'types/organization/organization/dto/create-exel.dto';
 import excelDateToDateTime from '@/common/helper/excelDateConverter';
 import { PrismaService } from '../prisma/prisma.service';
-import orgPrismaExtension from '@/common/helper/prismaExtention';
-import { CreatedByEnum, DefaultStatus, OrganizationStatusEnum } from 'types/global';
+import {
+  CreatedByEnum,
+  OrganizationStatusEnum,
+} from 'types/global';
 
 @Injectable()
 export class FtpService {
@@ -43,7 +41,16 @@ export class FtpService {
       throw error;
     }
   }
-
+  async createOrganization() {
+    let objects = [];
+    let res = await this.processCsvFilesToJSON();
+    objects = res;
+    while (res.length > 0) {
+      res = await this.processCsvFilesToJSON();
+      objects.concat(res);
+    }
+    return 'ok';
+  }
   async processCsvFilesToJSON(): Promise<any[]> {
     const combinedData: any[] = [];
 
@@ -103,23 +110,32 @@ export class FtpService {
             defval: null,
           });
 
-          const formattedRows = await Promise.all(
-            rows.map(async (row: any) => {
-              const foundSegment = await this.prisma.segment.findFirst({
-                where: {
-                  name: row['SEGMENT'] + '',
-                },
+          rows.forEach(async (row: any) => {
+            const foundSegment = await this.prisma.segment.findFirst({
+              where: {
+                name: row['SEGMENT'] + '',
+              },
+            });
+            let segment: any;
+            if (!foundSegment) {
+              segment = await this.segment.create({
+                name: row['SEGMENT'] + '',
               });
-              let segment: any;
-              if (!foundSegment) {
-                segment = await this.segment.create({
-                  name: row['SEGMENT'] + '',
-                });
-              } else {
-                segment = foundSegment;
-              }
-      
-              return {
+            } else {
+              segment = foundSegment;
+            }
+            const foundOrg = await this.prisma.organization.findFirst({
+              where: {
+                clientId: row['CLNT_ID'] + '',
+              },
+            });
+            console.log('row123');
+            if (foundOrg) {
+              return;
+            }
+
+            let res = await this.prisma.organization.create({
+              data: {
                 clientId: row['CLNT_ID'] + '' || '',
                 createdAt: row['START']
                   ? excelDateToDateTime(row['START'])
@@ -144,21 +160,46 @@ export class FtpService {
                 mail: row['MAIL'] || '',
                 createdBy: CreatedByEnum.Billing,
                 status: OrganizationStatusEnum.Check,
-              } as CreateExelData;
-            })
-          );
+              },
+              select: {
+                id: true,
+                clientId: true,
+                createdAt: true,
+                deletedAt: true,
+                name: true,
+                segmentId: true,
+                account: true,
+                inn: true,
+                bankNumber: true,
+                address: true,
+                mail: true,
+                createdBy: true,
+                status: true,
+              },
+            });
 
-          combinedData.push(...formattedRows);
+            await this.prisma.organizationVersion.create({
+              data: {
+                ...res,
+                organizationId: res.id,
+                PhoneVersion: {
+                  create: [
+                    {
+                      phone: row['PHONE'] + '' || '',
+                      isSecret: true,
+                    },
+                  ],
+                },
+              },
+            });
+          });
 
-          // Удаляем локальный файл после обработки
           fs.unlinkSync(localTempFilePath);
 
-          // Переименовываем файл на FTP-сервере, добавляя суффикс "_edited"
           const renamedFilePath = `/${path.basename(file.name, '.csv')}_edited.csv`;
           await this.client.rename(remoteFilePath, renamedFilePath);
         }
 
-        // Если достигнут лимит обработанных файлов, выходим из цикла обработки пакетов
         if (processedFilesCount >= 110) {
           break;
         }
@@ -171,9 +212,123 @@ export class FtpService {
       this.client.close();
     }
 
-    await orgPrismaExtension.organization.createAndVersion(combinedData);
-
     return combinedData;
+  }
+
+  async deactiveOrganization(): Promise<string> {
+    const tempDir = path.join(os.tmpdir(), 'ftp_temp');
+    let processedFilesCount = 0;
+
+    try {
+      await this.connect();
+
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir);
+      }
+
+      const fileList = await this.client.list();
+
+      const csvFiles = fileList.filter(
+        (file) =>
+          !file.isDirectory &&
+          !file.name.endsWith('_edited.csv') &&
+          file.name.endsWith('_deactive.csv')
+      );
+
+      const batchSize = 50;
+
+      for (
+        let batchIndex = 0;
+        batchIndex < csvFiles.length;
+        batchIndex += batchSize
+      ) {
+        const batch = csvFiles.slice(batchIndex, batchIndex + batchSize);
+
+        for (const file of batch) {
+          if (processedFilesCount >= 110) {
+            break;
+          }
+          processedFilesCount++;
+
+          const remoteFilePath = `/${file.name}`;
+          const localTempFilePath = path.join(tempDir, file.name);
+
+          await this.client.downloadTo(localTempFilePath, remoteFilePath);
+
+          const workbook = xlsx.read(
+            fs.readFileSync(localTempFilePath, 'utf8'),
+            {
+              type: 'string',
+              raw: false,
+            }
+          );
+
+          const sheetName = workbook.SheetNames[0];
+          const rows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], {
+            defval: null,
+          });
+
+          rows.forEach(async (row: any) => {
+            const organization = await this.prisma.organization.findUnique({
+              where: { clientId: row['CLNT_ID'] + '' },
+            });
+
+            if (!organization) {
+              console.error(
+                `Organization with clientId ${row['CLNT_ID']} not found.`
+              );
+              return;
+            }
+
+            let res = await this.prisma.organization.update({
+              where: {
+                clientId: row['CLNT_ID'] + '',
+              },
+              data: {
+                deletedAt: row['STOP']
+                  ? excelDateToDateTime(row['STOP'])
+                  : null,
+                createdBy: CreatedByEnum.Billing,
+                status: OrganizationStatusEnum.Deleted,
+              },
+            });
+            console.log(res);
+
+            let orgVer = await this.prisma.organizationVersion.update({
+              where: {
+                clientId: row['CLNT_ID'] + '',
+              },
+              data: {
+                deletedAt: row['STOP']
+                  ? excelDateToDateTime(row['STOP'])
+                  : null,
+                createdBy: CreatedByEnum.Billing,
+                status: OrganizationStatusEnum.Deleted,
+              },
+            });
+
+            console.log(orgVer);
+          });
+
+          fs.unlinkSync(localTempFilePath);
+
+          const renamedFilePath = `/${path.basename(file.name, '.csv')}_edited.csv`;
+          await this.client.rename(remoteFilePath, renamedFilePath);
+        }
+
+        if (processedFilesCount >= 110) {
+          break;
+        }
+      }
+    } catch (error) {
+      console.error('Error processing CSV files:', error.message);
+
+      throw error;
+    } finally {
+      this.client.close();
+    }
+
+    return 'ok';
   }
 
   async saveAsJSON(data: any[], outputFilePath: string): Promise<void> {

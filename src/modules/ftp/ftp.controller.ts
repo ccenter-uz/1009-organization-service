@@ -13,14 +13,7 @@ export class FtpController {
   @Get('process-files')
   @HttpCode(HttpStatus.OK)
   @MessagePattern({ cmd: FtpServiceCommands.READ_FILES })
-  async processFiles(): Promise<string> {
-    let objects = [];
-    let res = await this.ftpService.processCsvFilesToJSON();
-    objects = res;
-    while (res.length > 0) {
-      res = await this.ftpService.processCsvFilesToJSON();
-      objects.concat(res);
-    } 
-    return 'ok';
+  async processFiles(): Promise<any> {
+    return await this.ftpService.deactiveOrganization()
   }
 }

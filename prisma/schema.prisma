@@ -1102,14 +1102,14 @@ model PictureVersion {
 model PhoneVersion {
   id                    Int                 @id @default(autoincrement())
   phone                 String              @map("phone") @db.VarChar()
-  PhoneTypeId           Int                 @map("phone_type_id") @db.Integer()
+  PhoneTypeId           Int?                 @map("phone_type_id") @db.Integer()
   isSecret              Boolean             @map("isSecret") @db.Boolean()
   OrganizationVersionId Int                 @map("organization_version_id")
   createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamp
   updatedAt             DateTime?           @updatedAt @map("updated_at")
   deletedAt             DateTime?           @map("deleted_at")
   OrganizationVersion   OrganizationVersion @relation(fields: [OrganizationVersionId], references: [id])
-  PhoneTypes            PhoneTypes          @relation(fields: [PhoneTypeId], references: [id])
+  PhoneTypes            PhoneTypes?          @relation(fields: [PhoneTypeId], references: [id])
 
   @@map("phone_version")
 }
