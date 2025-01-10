@@ -15,7 +15,7 @@ datasource db {
 
 model Category {
   id                   Int                    @id @default(autoincrement())
-  staffNumber          String                 @map("staff_number") @db.VarChar(40)
+  staffNumber          String?                @map("staff_number") @db.VarChar(40)
   status               Int                    @default(1) @db.SmallInt()
   cityId               Int?                   @map("city_id")
   createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamp
@@ -44,7 +44,7 @@ model CategoryTranslations {
 
 model SubCategory {
   id          Int       @id @default(autoincrement())
-  staffNumber String    @map("staff_number") @db.VarChar(40)
+  staffNumber String?   @map("staff_number") @db.VarChar(40)
   status      Int       @default(1) @db.SmallInt()
   categoryId  Int       @map("category_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
@@ -75,7 +75,7 @@ model SubCategoryTranslations {
 model MainOrganization {
   id                  Int                   @id @default(autoincrement())
   name                String
-  staffNumber         String                @map("staff_number") @db.VarChar(40)
+  staffNumber         String?               @map("staff_number") @db.VarChar(40)
   status              Int                   @default(1) @db.SmallInt()
   createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamp
   updatedAt           DateTime?             @updatedAt @map("updated_at")
@@ -102,7 +102,7 @@ model Segment {
 
 model ProductServiceCategory {
   id                                 Int                                  @id @default(autoincrement())
-  staffNumber                        String                               @map("staff_number") @db.VarChar(40)
+  staffNumber                        String?                              @map("staff_number") @db.VarChar(40)
   status                             Int                                  @default(1) @db.SmallInt()
   createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
   updatedAt                          DateTime?                            @updatedAt @map("updated_at")
@@ -131,7 +131,7 @@ model ProductServiceCategoryTranslations {
 
 model ProductServiceSubCategory {
   id                       Int       @id @default(autoincrement())
-  staffNumber              String    @map("staff_number") @db.VarChar(40)
+  staffNumber              String?   @map("staff_number") @db.VarChar(40)
   status                   Int       @default(1) @db.SmallInt()
   productServiceCategoryId Int       @map("product_service_category_id")
   createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
@@ -242,7 +242,7 @@ model District {
   cityId                      Int                           @map("city_id")
   status                      Int                           @default(1) @db.SmallInt()
   index                       Int                           @db.Integer()
-  staffNumber                 String                        @map("staff_number") @db.VarChar(40)
+  staffNumber                 String?                       @map("staff_number") @db.VarChar(40)
   createdAt                   DateTime                      @default(now()) @map("created_at") @db.Timestamp
   updatedAt                   DateTime?                     @updatedAt @map("upd ated_at")
   deletedAt                   DateTime?                     @updatedAt @map("deleted_at")
@@ -307,7 +307,7 @@ model DistrictNewNameTranslations {
 model NearbyCategory {
   id          Int       @id @default(autoincrement())
   name        String
-  staffNumber String    @map("staff_number") @db.VarChar(40)
+  staffNumber String?   @map("staff_number") @db.VarChar(40)
   status      Int       @default(1) @db.SmallInt()
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
@@ -320,7 +320,7 @@ model NearbyCategory {
 
 model Nearby {
   id               Int       @id @default(autoincrement())
-  staffNumber      String    @map("staff_number") @db.VarChar(40)
+  staffNumber      String?   @map("staff_number") @db.VarChar(40)
   status           Int       @default(1) @db.SmallInt()
   nearbyCategoryId Int       @map("nearby_category_id")
   regionId         Int       @map("region_id")
@@ -359,7 +359,7 @@ model Passage {
   cityId      Int       @map("city_id")
   index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
-  staffNumber String    @map("staff_number") @db.VarChar(40)
+  staffNumber String?   @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
@@ -421,7 +421,7 @@ model Area {
   cityId      Int       @map("city_id")
   index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
-  staffNumber String    @map("staff_number") @db.VarChar(40)
+  staffNumber String?   @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
@@ -484,7 +484,7 @@ model Avenue {
   cityId      Int       @map("city_id")
   index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
-  staffNumber String    @map("staff_number") @db.VarChar(40)
+  staffNumber String?   @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
@@ -547,7 +547,7 @@ model ResidentialArea {
   cityId      Int       @map("city_id")
   index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
-  staffNumber String    @map("staff_number") @db.VarChar(40)
+  staffNumber String?   @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
@@ -610,7 +610,7 @@ model Impasse {
   cityId      Int       @map("city_id")
   index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
-  staffNumber String    @map("staff_number") @db.VarChar(40)
+  staffNumber String?   @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
@@ -673,7 +673,7 @@ model Village {
   cityId      Int       @map("city_id")
   index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
-  staffNumber String    @map("staff_number") @db.VarChar(40)
+  staffNumber String?   @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
@@ -736,7 +736,7 @@ model Lane {
   cityId      Int       @map("city_id")
   index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
-  staffNumber String    @map("staff_number") @db.VarChar(40)
+  staffNumber String?   @map("staff_number") @db.VarChar(40)
   districtId  Int?      @map("district_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
@@ -800,7 +800,7 @@ model Street {
   districtId  Int?      @map("district_id")
   index       Int       @db.Integer()
   status      Int       @default(1) @db.SmallInt()
-  staffNumber String    @map("staff_number") @db.VarChar(40)
+  staffNumber String?   @map("staff_number") @db.VarChar(40)
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
@@ -858,7 +858,7 @@ model StreetNewNameTranslations {
 
 model PhoneTypes {
   id                     Int                      @id @default(autoincrement())
-  staffNumber            String                   @map("staff_number") @db.VarChar(40)
+  staffNumber            String?                  @map("staff_number") @db.VarChar(40)
   status                 Int                      @default(1) @db.SmallInt()
   createdAt              DateTime                 @default(now()) @map("created_at") @db.Timestamp
   updatedAt              DateTime?                @updatedAt @map("updated_at")
