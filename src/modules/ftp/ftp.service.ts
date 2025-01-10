@@ -7,10 +7,7 @@ import * as os from 'os';
 import * as xlsx from 'xlsx';
 import excelDateToDateTime from '@/common/helper/excelDateConverter';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  CreatedByEnum,
-  OrganizationStatusEnum,
-} from 'types/global';
+import { CreatedByEnum, OrganizationStatusEnum } from 'types/global';
 
 @Injectable()
 export class FtpService {
@@ -45,6 +42,7 @@ export class FtpService {
     let objects = [];
     let res = await this.processCsvFilesToJSON();
     objects = res;
+
     while (res.length > 0) {
       res = await this.processCsvFilesToJSON();
       objects.concat(res);
@@ -110,90 +108,92 @@ export class FtpService {
             defval: null,
           });
 
-          rows.forEach(async (row: any) => {
-            const foundSegment = await this.prisma.segment.findFirst({
-              where: {
-                name: row['SEGMENT'] + '',
-              },
-            });
-            let segment: any;
-            if (!foundSegment) {
-              segment = await this.segment.create({
-                name: row['SEGMENT'] + '',
+          let orgs = await Promise.all(
+            rows.map(async (row: any) => {
+              const foundSegment = await this.prisma.segment.findFirst({
+                where: {
+                  name: row['SEGMENT'] + '',
+                },
               });
-            } else {
-              segment = foundSegment;
-            }
-            const foundOrg = await this.prisma.organization.findFirst({
-              where: {
-                clientId: row['CLNT_ID'] + '',
-              },
-            });
-            console.log('row123');
-            if (foundOrg) {
-              return;
-            }
-
-            let res = await this.prisma.organization.create({
-              data: {
-                clientId: row['CLNT_ID'] + '' || '',
-                createdAt: row['START']
-                  ? excelDateToDateTime(row['START'])
-                  : '',
-                deletedAt: row['STOP']
-                  ? excelDateToDateTime(row['STOP'])
-                  : null,
-                name: row['NAME'] + '' || '',
-                Phone: {
-                  create: [
-                    {
-                      phone: row['PHONE'] + '' || '',
-                      isSecret: true,
-                    },
-                  ],
+              let segment: any;
+              if (!foundSegment) {
+                segment = await this.segment.create({
+                  name: row['SEGMENT'] + '',
+                });
+              } else {
+                segment = foundSegment;
+              }
+              const foundOrg = await this.prisma.organization.findFirst({
+                where: {
+                  clientId: row['CLNT_ID'] + '',
                 },
-                segmentId: segment.id || 0,
-                account: row['ACCOUNT'] + '' || '',
-                inn: row['INN'] + '' || '',
-                bankNumber: row['BANK'] + '' || '',
-                address: row['ADDRESS'] + '' || '',
-                mail: row['MAIL'] || '',
-                createdBy: CreatedByEnum.Billing,
-                status: OrganizationStatusEnum.Check,
-              },
-              select: {
-                id: true,
-                clientId: true,
-                createdAt: true,
-                deletedAt: true,
-                name: true,
-                segmentId: true,
-                account: true,
-                inn: true,
-                bankNumber: true,
-                address: true,
-                mail: true,
-                createdBy: true,
-                status: true,
-              },
-            });
+              });
+              if (foundOrg) {
+                return;
+              }
 
-            await this.prisma.organizationVersion.create({
-              data: {
-                ...res,
-                organizationId: res.id,
-                PhoneVersion: {
-                  create: [
-                    {
-                      phone: row['PHONE'] + '' || '',
-                      isSecret: true,
-                    },
-                  ],
+              let res = await this.prisma.organization.create({
+                data: {
+                  clientId: row['CLNT_ID'] + '' || '',
+                  createdAt: row['START']
+                    ? excelDateToDateTime(row['START'])
+                    : '',
+                  deletedAt: row['STOP']
+                    ? excelDateToDateTime(row['STOP'])
+                    : null,
+                  name: row['NAME'] + '' || '',
+                  Phone: {
+                    create: [
+                      {
+                        phone: row['PHONE'] + '' || '',
+                        isSecret: true,
+                      },
+                    ],
+                  },
+                  segmentId: segment.id || 0,
+                  account: row['ACCOUNT'] + '' || '',
+                  inn: row['INN'] + '' || '',
+                  bankNumber: row['BANK'] + '' || '',
+                  address: row['ADDRESS'] + '' || '',
+                  mail: row['MAIL'] || '',
+                  createdBy: CreatedByEnum.Billing,
+                  status: OrganizationStatusEnum.Check,
                 },
-              },
-            });
-          });
+                select: {
+                  id: true,
+                  clientId: true,
+                  createdAt: true,
+                  deletedAt: true,
+                  name: true,
+                  segmentId: true,
+                  account: true,
+                  inn: true,
+                  bankNumber: true,
+                  address: true,
+                  mail: true,
+                  createdBy: true,
+                  status: true,
+                },
+              });
 
+              await this.prisma.organizationVersion.create({
+                data: {
+                  ...res,
+                  organizationId: res.id,
+                  PhoneVersion: {
+                    create: [
+                      {
+                        phone: row['PHONE'] + '' || '',
+                        isSecret: true,
+                      },
+                    ],
+                  },
+                },
+              });
+            })
+          );
+
+          combinedData.push(...orgs);
           fs.unlinkSync(localTempFilePath);
 
           const renamedFilePath = `/${path.basename(file.name, '.csv')}_edited.csv`;
@@ -214,8 +214,19 @@ export class FtpService {
 
     return combinedData;
   }
+  async deactiveOrganization() {
+    let objects = [];
+    let res = await this.deactiveOrganizationIterator();
+    objects = res;
 
-  async deactiveOrganization(): Promise<string> {
+    while (res.length > 0) {
+      res = await this.deactiveOrganizationIterator();
+      objects.concat(res);
+    }
+    return 'ok';
+  }
+  async deactiveOrganizationIterator(): Promise<any[]> {
+    const combinedData: any[] = [];
     const tempDir = path.join(os.tmpdir(), 'ftp_temp');
     let processedFilesCount = 0;
 
@@ -268,48 +279,47 @@ export class FtpService {
             defval: null,
           });
 
-          rows.forEach(async (row: any) => {
-            const organization = await this.prisma.organization.findUnique({
-              where: { clientId: row['CLNT_ID'] + '' },
-            });
+          let orgs = await Promise.all(
+            rows.map(async (row: any) => {
+              const organization = await this.prisma.organization.findUnique({
+                where: { clientId: row['CLNT_ID'] + '' },
+              });
 
-            if (!organization) {
-              console.error(
-                `Organization with clientId ${row['CLNT_ID']} not found.`
-              );
-              return;
-            }
+              if (!organization) {
+                console.error(
+                  `Organization with clientId ${row['CLNT_ID']} not found.`
+                );
+                return;
+              }
 
-            let res = await this.prisma.organization.update({
-              where: {
-                clientId: row['CLNT_ID'] + '',
-              },
-              data: {
-                deletedAt: row['STOP']
-                  ? excelDateToDateTime(row['STOP'])
-                  : null,
-                createdBy: CreatedByEnum.Billing,
-                status: OrganizationStatusEnum.Deleted,
-              },
-            });
-            console.log(res);
+              let res = await this.prisma.organization.update({
+                where: {
+                  clientId: row['CLNT_ID'] + '',
+                },
+                data: {
+                  deletedAt: row['STOP']
+                    ? excelDateToDateTime(row['STOP'])
+                    : null,
+                  createdBy: CreatedByEnum.Billing,
+                  status: OrganizationStatusEnum.Deleted,
+                },
+              });
 
-            let orgVer = await this.prisma.organizationVersion.update({
-              where: {
-                clientId: row['CLNT_ID'] + '',
-              },
-              data: {
-                deletedAt: row['STOP']
-                  ? excelDateToDateTime(row['STOP'])
-                  : null,
-                createdBy: CreatedByEnum.Billing,
-                status: OrganizationStatusEnum.Deleted,
-              },
-            });
-
-            console.log(orgVer);
-          });
-
+              let orgVer = await this.prisma.organizationVersion.update({
+                where: {
+                  clientId: row['CLNT_ID'] + '',
+                },
+                data: {
+                  deletedAt: row['STOP']
+                    ? excelDateToDateTime(row['STOP'])
+                    : null,
+                  createdBy: CreatedByEnum.Billing,
+                  status: OrganizationStatusEnum.Deleted,
+                },
+              });
+            })
+          );
+          combinedData.push(...orgs);
           fs.unlinkSync(localTempFilePath);
 
           const renamedFilePath = `/${path.basename(file.name, '.csv')}_edited.csv`;
@@ -328,7 +338,7 @@ export class FtpService {
       this.client.close();
     }
 
-    return 'ok';
+    return combinedData;
   }
 
   async saveAsJSON(data: any[], outputFilePath: string): Promise<void> {

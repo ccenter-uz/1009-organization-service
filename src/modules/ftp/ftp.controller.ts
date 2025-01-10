@@ -14,6 +14,10 @@ export class FtpController {
   @HttpCode(HttpStatus.OK)
   @MessagePattern({ cmd: FtpServiceCommands.READ_FILES })
   async processFiles(): Promise<any> {
-    return await this.ftpService.deactiveOrganization()
+    
+    const createRes = await this.ftpService.createOrganization();
+    const deleteRes = await this.ftpService.deactiveOrganization();
+
+    return { createRes, deleteRes };
   }
 }
