@@ -30,6 +30,8 @@ import { StreetModule } from './modules/street/street.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { OrganizationVersionModule } from './modules/organization-version/organization-version.module';
 import { PhoneTypeModule } from './modules/phone-type/phone-type.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CronJobModule } from './common/cron/cron.module';
 
 @Module({
   imports: [
@@ -37,6 +39,7 @@ import { PhoneTypeModule } from './modules/phone-type/phone-type.module';
       isGlobal: true,
       load: [appConfig, dbConfig, rabbitConfig],
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     CategoryModule,
     SubCategoryModule,
@@ -60,6 +63,7 @@ import { PhoneTypeModule } from './modules/phone-type/phone-type.module';
     OrganizationModule,
     OrganizationVersionModule,
     PhoneTypeModule,
+    CronJobModule,
   ],
   controllers: [],
   providers: [
