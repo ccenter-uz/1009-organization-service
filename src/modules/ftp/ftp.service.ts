@@ -14,10 +14,8 @@ export class FtpService {
 
   async createExcelData(newRows: ExcelData[] | []): Promise<string> {
     try {
-      console.log(1111111111);
 
       newRows.forEach(async (row) => {
-        console.log('create row', row);
 
         const foundSegment = await this.prisma.segment.findFirst({
           where: {
@@ -107,7 +105,6 @@ export class FtpService {
   async deactiveteExcelData(deactiveRows: ExcelData[] | []): Promise<string> {
     try {
       deactiveRows.forEach(async (row) => {
-        console.log('delete row', row);
         const organization = await this.prisma.organization.findUnique({
           where: { clientId: row['CLNT_ID'] + '' },
         });
