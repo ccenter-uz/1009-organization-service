@@ -1,3 +1,4 @@
+import { CreatedByEnum } from 'types/global';
 import { SubCategory } from './../../../../node_modules/.prisma/client/index.d';
 interface IncludeConfig {
   [key: string]: string[];
@@ -50,6 +51,9 @@ export default function buildInclude(
     },
   };
   include.Phone = {
+    where: {
+      isSecret: data.role == CreatedByEnum.Moderator ? true : false,
+    },
     include: {
       PhoneTypes: {
         select: {
