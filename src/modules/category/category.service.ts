@@ -79,7 +79,7 @@ export class CategoryService {
 
   async findAll(
     data: CategoryFilterDto
-  ): Promise<CategoryInterfaces.ResponseWithPagination> {
+  ): Promise<CategoryInterfaces.ResponseWithPagination> { 
     const methodName: string = this.findAll.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
@@ -193,7 +193,7 @@ export class CategoryService {
           }),
       cityId: data.cityId,
     };
-
+    
     if (data.search) {
       where.CategoryTranslations = {
         some: {
