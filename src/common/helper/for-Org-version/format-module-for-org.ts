@@ -6,8 +6,8 @@ interface Translations {
 }
 
 interface FormatOptions {
-  nameKey: string; // Например, "Area"
-  includeKeys?: string[]; // Ключи, которые нужно включать, например: ["NewNameTranslations", "OldNameTranslations"]
+  nameKey: string;
+  includeKeys?: string[];
 }
 
 function formatModuleTranslationsVersion(
@@ -17,14 +17,12 @@ function formatModuleTranslationsVersion(
   const { nameKey, includeKeys = [] } = options;
   const result: any = { ...module };
 
-  // Форматируем базовый перевод
   const baseTranslationsKey = `${nameKey}Translations`;
   if (module[baseTranslationsKey]) {
     result.name = formatLanguageResponse(module[baseTranslationsKey]);
     delete result[baseTranslationsKey];
   }
 
-  // Форматируем дополнительные переводы
   for (const key of includeKeys) {
     const translationsKey = `${nameKey}${key}`;
     if (module[translationsKey]) {
@@ -61,13 +59,14 @@ export default function formatOrganizationResponseVersion(
   }
 
   for (let [index, el] of Object.entries(organization['PhoneVersion'])) {
-    const name = formatLanguageResponse(
-      el['PhoneTypes'].PhoneTypesTranslations
-    );
-
-    formattedOrganization['PhoneVersion'][index]['PhoneTypes'].name = name;
-    delete formattedOrganization['PhoneVersion'][index]['PhoneTypes']
-      .PhoneTypesTranslations;
+    if (el['PhoneTypes']?.PhoneTypesTranslations) {
+      const name = formatLanguageResponse(
+        el['PhoneTypes']?.PhoneTypesTranslations
+      );
+      formattedOrganization['Phone'][index]['PhoneTypes'].name = name;
+      delete formattedOrganization['Phone'][index]['PhoneTypes']
+        .PhoneTypesTranslations;
+    }
   }
 
   for (let [index, el] of Object.entries(organization['NearbeesVersion'])) {
@@ -111,24 +110,28 @@ export default function formatOrganizationResponseVersion(
   }
 
   const subCategoryTranslation =
-    organization.SubCategory.SubCategoryTranslations;
+    organization?.SubCategory?.SubCategoryTranslations;
   const categoryTranslation =
-    organization.SubCategory.category.CategoryTranslations;
+    organization?.SubCategory?.category?.CategoryTranslations;
 
-  const subCategoryName = formatLanguageResponse(subCategoryTranslation);
-  const categoryName = formatLanguageResponse(categoryTranslation);
+  if (subCategoryTranslation) {
+    const subCategoryName = formatLanguageResponse(subCategoryTranslation);
+    formattedOrganization.SubCategory.name = subCategoryName;
 
-  formattedOrganization.SubCategory.category.name = categoryName;
-  formattedOrganization.SubCategory.name = subCategoryName;
-  formattedOrganization.subcategory = organization.SubCategory;
+    formattedOrganization.subcategory = organization.SubCategory;
 
-  formattedOrganization.category = formattedOrganization.SubCategory.category;
+    if (categoryTranslation) {
+      const categoryName = formatLanguageResponse(categoryTranslation);
+      formattedOrganization.SubCategory.category.name = categoryName;
+      formattedOrganization.category =
+        formattedOrganization.SubCategory.category;
+      delete formattedOrganization.SubCategory.category.CategoryTranslations;
+      delete formattedOrganization.subcategory.category;
+    }
 
-  delete formattedOrganization.SubCategory.SubCategoryTranslations;
-  delete formattedOrganization.SubCategory.category.CategoryTranslations;
-  delete formattedOrganization.SubCategory;
-  delete formattedOrganization.subcategory.category;
-
+    delete formattedOrganization.SubCategory.SubCategoryTranslations;
+    delete formattedOrganization.SubCategory;
+  }
   return { ...formattedOrganization };
 }
 
@@ -211,7 +214,7 @@ export const modulesConfigVersion = [
   },
   {
     nameKey: 'Segment',
-    includeKeys: ['SegmentTranslations'],
+    includeKeys: [],
   },
   {
     nameKey: 'Nearby',

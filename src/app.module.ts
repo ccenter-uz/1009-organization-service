@@ -30,6 +30,7 @@ import { StreetModule } from './modules/street/street.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { OrganizationVersionModule } from './modules/organization-version/organization-version.module';
 import { PhoneTypeModule } from './modules/phone-type/phone-type.module';
+import { FtpModule } from './modules/ftp/ftp.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CronJobModule } from './common/cron/cron.module';
 
@@ -63,6 +64,7 @@ import { CronJobModule } from './common/cron/cron.module';
     OrganizationModule,
     OrganizationVersionModule,
     PhoneTypeModule,
+    FtpModule,
     CronJobModule,
   ],
   controllers: [],
