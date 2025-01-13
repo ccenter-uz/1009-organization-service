@@ -819,8 +819,6 @@ export class OrganizationService {
   }
 
   async updateCheck(data: ConfirmDto): Promise<any> {
-    
-
     if (data.role == CreatedByEnum.Moderator) {
       if (data.status == OrganizationStatusEnum.Accepted) {
         const organizationVersion =
@@ -839,7 +837,7 @@ export class OrganizationService {
             },
             data: {
               status: OrganizationStatusEnum.Accepted,
-              descrioption: data.descrioption,
+              rejectReason: data.rejectReason,
             },
           });
 
@@ -853,7 +851,7 @@ export class OrganizationService {
             },
             data: {
               status: OrganizationStatusEnum.Accepted,
-              descrioption: data.descrioption,
+              rejectReason: data.rejectReason,
             },
           });
           return await this.prisma.organization.update({
@@ -873,7 +871,7 @@ export class OrganizationService {
             },
             data: {
               status: OrganizationStatusEnum.Deleted,
-              descrioption: data.descrioption,
+              rejectReason: data.rejectReason,
             },
           });
           return await this.prisma.organization.update({
@@ -893,7 +891,7 @@ export class OrganizationService {
             },
             data: {
               status: OrganizationStatusEnum.Accepted,
-              descrioption: data.descrioption,
+              rejectReason: data.rejectReason,
             },
           });
           return await this.prisma.organization.update({
@@ -922,7 +920,7 @@ export class OrganizationService {
           },
           data: {
             status: OrganizationStatusEnum.Rejected,
-            descrioption: data.descrioption,
+            rejectReason: data.rejectReason,
           },
         });
       }
@@ -949,6 +947,7 @@ export class OrganizationService {
           },
           data: {
             status: OrganizationStatusEnum.Deleted,
+            deleteReason: data.deleteReason,
             method: OrganizationMethodEnum.Delete,
           },
           include: {
@@ -964,6 +963,7 @@ export class OrganizationService {
             id: organizationVersion.id,
           },
           data: {
+            deleteReason: data.deleteReason,
             status: OrganizationStatusEnum.Deleted,
           },
           include: {
@@ -981,6 +981,7 @@ export class OrganizationService {
           },
           data: {
             status: OrganizationStatusEnum.Check,
+            deleteReason: data.deleteReason,
             method: OrganizationMethodEnum.Delete,
           },
           include: {
