@@ -65,7 +65,7 @@ import { CronJobModule } from './common/cron/cron.module';
     OrganizationVersionModule,
     PhoneTypeModule,
     FtpModule,
-    CronJobModule,
+    // CronJobModule,
   ],
   controllers: [],
   providers: [
