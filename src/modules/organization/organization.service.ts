@@ -819,7 +819,7 @@ export class OrganizationService {
   }
 
   async updateCheck(data: ConfirmDto): Promise<any> {
-    console.log(data);
+    
 
     if (data.role == CreatedByEnum.Moderator) {
       if (data.status == OrganizationStatusEnum.Accepted) {

@@ -195,5 +195,5 @@ export const includeConfig = {
     'ImpasseNewNameTranslations',
     'ImpasseOldNameTranslations',
   ],
-  Segment: ['SegmentTranslations'],
+  Segment: [],
 };

@@ -61,13 +61,14 @@ export default function formatOrganizationResponse(
   }
 
   for (let [index, el] of Object.entries(organization['Phone'])) {
-    const name = formatLanguageResponse(
-      el['PhoneTypes'].PhoneTypesTranslations
-    );
-
-    formattedOrganization['Phone'][index]['PhoneTypes'].name = name;
-    delete formattedOrganization['Phone'][index]['PhoneTypes']
-      .PhoneTypesTranslations;
+    if (el['PhoneTypes']?.PhoneTypesTranslations) {
+      const name = formatLanguageResponse(
+        el['PhoneTypes']?.PhoneTypesTranslations
+      );
+      formattedOrganization['Phone'][index]['PhoneTypes'].name = name;
+      delete formattedOrganization['Phone'][index]['PhoneTypes']
+        .PhoneTypesTranslations;
+    }
   }
 
   for (let [index, el] of Object.entries(organization['Nearbees'])) {
@@ -108,24 +109,28 @@ export default function formatOrganizationResponse(
   }
 
   const subCategoryTranslation =
-    organization.SubCategory.SubCategoryTranslations;
+    organization?.SubCategory?.SubCategoryTranslations;
   const categoryTranslation =
-    organization.SubCategory.category.CategoryTranslations;
+    organization?.SubCategory?.category?.CategoryTranslations;
 
-  const subCategoryName = formatLanguageResponse(subCategoryTranslation);
-  const categoryName = formatLanguageResponse(categoryTranslation);
+  if (subCategoryTranslation) {
+    const subCategoryName = formatLanguageResponse(subCategoryTranslation);
+    formattedOrganization.SubCategory.name = subCategoryName;
 
-  formattedOrganization.SubCategory.category.name = categoryName;
-  formattedOrganization.SubCategory.name = subCategoryName;
-  formattedOrganization.subcategory = organization.SubCategory;
+    formattedOrganization.subcategory = organization.SubCategory;
 
-  formattedOrganization.category = formattedOrganization.SubCategory.category;
-
-  delete formattedOrganization.SubCategory.SubCategoryTranslations;
-  delete formattedOrganization.SubCategory.category.CategoryTranslations;
-  delete formattedOrganization.SubCategory;
-  delete formattedOrganization.subcategory.category;
-
+    if (categoryTranslation) {
+      const categoryName = formatLanguageResponse(categoryTranslation);
+      formattedOrganization.SubCategory.category.name = categoryName;
+      formattedOrganization.category =
+        formattedOrganization.SubCategory.category;
+      delete formattedOrganization.SubCategory.category.CategoryTranslations;
+      delete formattedOrganization.subcategory.category;
+    }
+    
+    delete formattedOrganization.SubCategory.SubCategoryTranslations;
+    delete formattedOrganization.SubCategory;
+  }
   return { ...formattedOrganization };
 }
 
@@ -208,7 +213,7 @@ export const modulesConfig = [
   },
   {
     nameKey: 'Segment',
-    includeKeys: ['SegmentTranslations'],
+    includeKeys: [],
   },
   {
     nameKey: 'Nearby',
