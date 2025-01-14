@@ -1,4 +1,4 @@
-import { CreatedByEnum } from 'types/global';
+import { CreatedByEnum, Roles } from 'types/global';
 import { SubCategory } from './../../../../node_modules/.prisma/client/index.d';
 interface IncludeConfig {
   [key: string]: string[];
@@ -9,6 +9,16 @@ export default function buildInclude(
   data: any
 ): Record<string, any> {
   const include: Record<string, any> = {};
+  let secretWhere = {};
+  if (
+    data.role == Roles.USER ||
+    data.role == Roles.OPERATOR ||
+    data.role == Roles.ADMIN
+  ) {
+    secretWhere = {
+      isSecret: false,
+    };
+  }
 
   for (const [key, translations] of Object.entries(config)) {
     include[key] = {
@@ -51,9 +61,7 @@ export default function buildInclude(
     },
   };
   include.Phone = {
-    where: {
-      isSecret: data.role == CreatedByEnum.Moderator ? true : false,
-    },
+    where: secretWhere,
     include: {
       PhoneTypes: {
         select: {
