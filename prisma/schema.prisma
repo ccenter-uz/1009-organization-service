@@ -918,6 +918,7 @@ model Organization {
   impasseId          Int?      @map("impasse_id")
   segmentId          Int       @map("segment_id")
   passageId          Int?      @map("passage_id")
+  deleteReason       String?   @map("delete_reason") @db.Text()
   status             Int?      @map("status") @db.SmallInt()
   createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt          DateTime? @updatedAt @map("updated_at")
@@ -1057,7 +1058,8 @@ model OrganizationVersion {
   passageId          Int?      @map("passage_id") @db.Integer()
   organizationId     Int       @map("organization_id") @db.Integer()
   method             String?   @map("method") @db.VarChar()
-  descrioption       String?   @map("descrioption") @db.VarChar()
+  rejectReason       String?   @map("reject_reason") @db.VarChar()
+  deleteReason       String?   @map("delete_reason") @db.Text()
   status             Int?      @map("status") @db.SmallInt()
   createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt          DateTime? @updatedAt @map("updated_at")
