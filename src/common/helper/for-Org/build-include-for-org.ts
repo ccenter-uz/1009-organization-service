@@ -1,5 +1,5 @@
-import { CreatedByEnum, Roles } from 'types/global';
-import { SubCategory } from './../../../../node_modules/.prisma/client/index.d';
+import { Roles } from 'types/global';
+
 interface IncludeConfig {
   [key: string]: string[];
 }

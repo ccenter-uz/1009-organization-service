@@ -1,4 +1,3 @@
-import { Nearbees } from './../../../node_modules/.prisma/client/index.d';
 import {
   Inject,
   Injectable,
@@ -8,9 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreatedByEnum,
-  DeleteDto,
   GetOneDto,
-  ListQueryDto,
   OrganizationMethodEnum,
   OrganizationStatusEnum,
 } from 'types/global';
@@ -671,7 +668,7 @@ export class OrganizationService {
 
     let formattedOrganization = formatOrganizationResponse(
       organization,
-      modulesConfig 
+      modulesConfig
     );
     if (data.role !== 'moderator') {
       delete formattedOrganization.secret;

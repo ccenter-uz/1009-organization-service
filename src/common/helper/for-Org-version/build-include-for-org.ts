@@ -1,4 +1,3 @@
-import { SubCategory } from '.prisma/client';
 interface IncludeConfig {
   [key: string]: string[];
 }
@@ -50,8 +49,8 @@ export default function buildIncludeVersion(
     },
   };
   include.PhoneVersion = {
-    where:{
-      isSecret:true,
+    where: {
+      isSecret: true,
     },
     include: {
       PhoneTypes: {

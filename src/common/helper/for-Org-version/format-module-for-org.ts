@@ -63,8 +63,8 @@ export default function formatOrganizationResponseVersion(
       const name = formatLanguageResponse(
         el['PhoneTypes']?.PhoneTypesTranslations
       );
-      formattedOrganization['Phone'][index]['PhoneTypes'].name = name;
-      delete formattedOrganization['Phone'][index]['PhoneTypes']
+      formattedOrganization['PhoneVersion'][index]['PhoneTypes'].name = name;
+      delete formattedOrganization['PhoneVersion'][index]['PhoneTypes']
         .PhoneTypesTranslations;
     }
   }
