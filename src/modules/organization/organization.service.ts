@@ -166,9 +166,12 @@ export class OrganizationService {
       });
     }
 
-    const segment = await this.SegmentService.findOne({
-      id: data.segmentId,
-    });
+    let segment;
+    if (data.segmentId) {
+      segment = await this.SegmentService.findOne({
+        id: data.segmentId,
+      });
+    }
 
     let phoneCreateArray = [];
     let phones = data.phone['phones'];
@@ -231,22 +234,22 @@ export class OrganizationService {
         streetId: street?.id,
         laneId: lane?.id,
         impasseId: impasse?.id,
-        segmentId: segment.id,
+        segmentId: segment?.id ? segment.id : undefined,
         mainOrganizationId: mainOrganization.id,
         subCategoryId: subCategory.id,
-        description: data.description,
-        account: data.account,
-        bankNumber: data.bankNumber,
+        description: data?.description ? data?.description : null,
+        account: data?.account ? data?.account : null,
+        bankNumber: data?.bankNumber ? data?.bankNumber : null,
         address: data.address,
         apartment: data.apartment,
         home: data.home,
-        inn: data.inn,
-        kvartal: data.kvartal,
-        legalName: data.legalName,
-        mail: data.mail,
+        inn: data?.inn ? data?.inn : null,
+        kvartal: data?.kvartal ? data?.kvartal : null,
+        legalName: data?.legalName ? data.legalName : undefined,
+        mail: data?.mail ? data?.mail : null,
         name: data.name,
         secret: data.secret,
-        manager: data.manager,
+        manager: data?.manager ? data?.manager : null,
         index: data.index,
         transport: data.transport,
         workTime: data.workTime,
@@ -291,7 +294,6 @@ export class OrganizationService {
         ProductServices: true,
       },
     });
-
     await this.organizationVersionService.create(organization);
 
     return organization;
