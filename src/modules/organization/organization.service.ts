@@ -415,6 +415,9 @@ export class OrganizationService {
           org,
           modulesConfig
         );
+        if (data.role !== 'moderator') {
+          delete formattedOrganization.secret;
+        }
         result.push(formattedOrganization);
       }
 
@@ -471,6 +474,9 @@ export class OrganizationService {
         org,
         modulesConfig
       );
+      if (data.role !== 'moderator') {
+        delete formattedOrganization.secret;
+      }
       result.push(formattedOrganization);
     }
     return {
@@ -503,6 +509,9 @@ export class OrganizationService {
           org,
           modulesConfigVersion
         );
+        if (data.role !== 'moderator') {
+          delete formattedOrganization.secret;
+        }
         result.push(formattedOrganization);
       }
       return {
@@ -549,7 +558,9 @@ export class OrganizationService {
         org,
         modulesConfigVersion
       );
-
+      if (data.role !== 'moderator') {
+        delete formattedOrganization.secret;
+      }
       result.push(formattedOrganization);
     }
 
@@ -660,9 +671,11 @@ export class OrganizationService {
 
     let formattedOrganization = formatOrganizationResponse(
       organization,
-      modulesConfig
+      modulesConfig 
     );
-
+    if (data.role !== 'moderator') {
+      delete formattedOrganization.secret;
+    }
     return formattedOrganization;
   }
 
