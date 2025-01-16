@@ -66,6 +66,8 @@ export default function formatOrganizationResponseVersion(
       formattedOrganization['PhoneVersion'][index]['PhoneTypes'].name = name;
       delete formattedOrganization['PhoneVersion'][index]['PhoneTypes']
         .PhoneTypesTranslations;
+
+      // change
     }
   }
 
