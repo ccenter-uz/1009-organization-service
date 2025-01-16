@@ -3,9 +3,6 @@ import {
   Post,
   Get,
   Put,
-  Delete,
-  Patch,
-  UseInterceptors,
   UploadedFiles,
 } from '@nestjs/common';
 import { OrganizationVersionService } from './organization-version.service';
@@ -16,12 +13,9 @@ import {
   OrganizationVersionUpdateDto,
 } from 'types/organization/organization-version';
 import {
-  DeleteDto,
-  GetOneDto,
   LanguageRequestDto,
   ListQueryDto,
 } from 'types/global';
-import { FilesInterceptor } from '@nestjs/platform-express';
 import * as Multer from 'multer';
 @Controller('organization')
 export class OrganizationVersionController {

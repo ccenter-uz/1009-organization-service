@@ -1,7 +1,3 @@
-import {
-  Category,
-  SubCategory,
-} from './../../../../node_modules/.prisma/client/index.d';
 import { formatLanguageResponse } from '../format-language.helper';
 
 interface Translations {
@@ -127,7 +123,7 @@ export default function formatOrganizationResponse(
       delete formattedOrganization.SubCategory.category.CategoryTranslations;
       delete formattedOrganization.subcategory.category;
     }
-    
+
     delete formattedOrganization.SubCategory.SubCategoryTranslations;
     delete formattedOrganization.SubCategory;
   }
