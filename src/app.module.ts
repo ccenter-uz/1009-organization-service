@@ -33,6 +33,10 @@ import { PhoneTypeModule } from './modules/phone-type/phone-type.module';
 import { FtpModule } from './modules/ftp/ftp.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CronJobModule } from './common/cron/cron.module';
+import { AdditionalCategoryModule } from './modules/additional-category/additional-category.module';
+import { AdditionalModule } from './modules/additional/additional.module';
+import { AdditionalContentModule } from './modules/additional-content/additional-content.module';
+import { AdditionalTableModule } from './modules/additional-table/additional-table.module';
 
 @Module({
   imports: [
@@ -65,6 +69,10 @@ import { CronJobModule } from './common/cron/cron.module';
     OrganizationVersionModule,
     PhoneTypeModule,
     FtpModule,
+    AdditionalCategoryModule,
+    AdditionalModule,
+    AdditionalContentModule,
+    AdditionalTableModule,
     // CronJobModule,
   ],
   controllers: [],
