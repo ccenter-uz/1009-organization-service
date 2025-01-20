@@ -13,7 +13,7 @@ import {
   LanguageRequestDto,
   ListQueryDto,
 } from 'types/global';
-import { CategoryFilterDto } from 'types/organization/category/dto/filter-category.dto';
+import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
 
 @Controller('category')
 export class CategoryController {
@@ -30,7 +30,7 @@ export class CategoryController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: CategoryFilterDto
+    @Payload() data: CityRegionFilterDto
   ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
     return this.categoryService.findAll(data);
   }

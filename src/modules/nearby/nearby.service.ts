@@ -76,6 +76,8 @@ export class NearbyService {
         orderBy: { createdAt: 'desc' },
         where: {
           nearbyCategoryId: data.nearbyCategoryId,
+          cityId: data.cityId,
+          regionId: data.regionId,
           ...(data.status !== 2
             ? {
                 status: data.status,
@@ -182,6 +184,8 @@ export class NearbyService {
             status: data.status,
           }),
       nearbyCategoryId: data.nearbyCategoryId,
+      cityId: data.cityId,
+      regionId: data.regionId,
     };
 
     if (data.search) {
