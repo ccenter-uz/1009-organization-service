@@ -17,6 +17,7 @@ import {
   ImpasseInterfaces,
   ImpasseUpdateDto,
 } from 'types/organization/impasse';
+import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
 @Injectable()
 export class ImpasseService {
   constructor(
@@ -113,7 +114,7 @@ export class ImpasseService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: CityRegionFilterDto
   ): Promise<ImpasseInterfaces.ResponseWithPagination> {
     if (data.all) {
       const impasses = await this.prisma.impasse.findMany({
@@ -124,6 +125,8 @@ export class ImpasseService {
                 status: data.status,
               }
             : {}),
+          cityId: data.cityId,
+          regionId: data.regionId,
         },
         include: {
           ImpasseTranslations: {
@@ -306,6 +309,8 @@ export class ImpasseService {
         : {
             status: data.status,
           }),
+      cityId: data.cityId,
+      regionId: data.regionId,
     };
     if (data.search) {
       where.ImpasseTranslations = {

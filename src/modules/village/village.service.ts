@@ -17,6 +17,7 @@ import {
   VillageInterfaces,
   VillageUpdateDto,
 } from 'types/organization/village';
+import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
 
 @Injectable()
 export class VillageService {
@@ -117,7 +118,7 @@ export class VillageService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: CityRegionFilterDto
   ): Promise<VillageInterfaces.ResponseWithPagination> {
     if (data.all) {
       const villages = await this.prisma.village.findMany({
@@ -128,6 +129,8 @@ export class VillageService {
                 status: data.status,
               }
             : {}),
+          cityId: data.cityId,
+          regionId: data.regionId,
         },
         include: {
           VillageTranslations: {
@@ -309,6 +312,8 @@ export class VillageService {
         : {
             status: data.status,
           }),
+      cityId: data.cityId,
+      regionId: data.regionId,
     };
     if (data.search) {
       where.VillageTranslations = {

@@ -17,6 +17,7 @@ import {
   StreetInterfaces,
   StreetUpdateDto,
 } from 'types/organization/street';
+import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
 @Injectable()
 export class StreetService {
   constructor(
@@ -115,7 +116,7 @@ export class StreetService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: CityRegionFilterDto
   ): Promise<StreetInterfaces.ResponseWithPagination> {
     if (data.all) {
       const streets = await this.prisma.street.findMany({
@@ -126,6 +127,8 @@ export class StreetService {
                 status: data.status,
               }
             : {}),
+          cityId: data.cityId,
+          regionId: data.regionId,
         },
         include: {
           StreetTranslations: {
@@ -306,6 +309,8 @@ export class StreetService {
         : {
             status: data.status,
           }),
+      cityId: data.cityId,
+      regionId: data.regionId,
     };
     if (data.search) {
       where.StreetTranslations = {
