@@ -13,7 +13,7 @@ import {
   LanguageRequestEnum,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
-import { CategoryFilterDto } from 'types/organization/category/dto/filter-category.dto';
+import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
 
 @Injectable()
 export class CategoryService {
@@ -30,6 +30,7 @@ export class CategoryService {
       data: {
         staffNumber: data.staffNumber,
         cityId: data.cityId,
+        regionId: data.regionId,
         CategoryTranslations: {
           create: [
             {
@@ -78,8 +79,8 @@ export class CategoryService {
   }
 
   async findAll(
-    data: CategoryFilterDto
-  ): Promise<CategoryInterfaces.ResponseWithPagination> { 
+    data: CityRegionFilterDto
+  ): Promise<CategoryInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
@@ -94,6 +95,7 @@ export class CategoryService {
               }
             : {}),
           cityId: data.cityId,
+          regionId: data.regionId,
         },
         include: {
           city: {
@@ -192,8 +194,9 @@ export class CategoryService {
             status: data.status,
           }),
       cityId: data.cityId,
+      regionId: data.regionId,
     };
-    
+
     if (data.search) {
       where.CategoryTranslations = {
         some: {
@@ -430,6 +433,7 @@ export class CategoryService {
       data: {
         staffNumber: data.staffNumber || category.staffNumber,
         cityId: data.cityId,
+        regionId: data.regionId,
         CategoryTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

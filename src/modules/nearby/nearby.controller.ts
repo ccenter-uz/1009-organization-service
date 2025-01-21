@@ -24,7 +24,7 @@ export class NearbyController {
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
     @Payload() data: NearbyFilterDto
-  ): Promise<NearbyInterfaces.ResponseWithoutPagination> {
+  ): Promise<NearbyInterfaces.ResponseWithoutPagination> {    
     return this.subCategoryService.findAll(data);
   }
 
