@@ -17,6 +17,7 @@ import {
   AvenueInterfaces,
   AvenueUpdateDto,
 } from 'types/organization/avenue';
+import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
 @Injectable()
 export class AvenueService {
   constructor(
@@ -114,7 +115,7 @@ export class AvenueService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: CityRegionFilterDto
   ): Promise<AvenueInterfaces.ResponseWithPagination> {
     if (data.all) {
       const avenues = await this.prisma.avenue.findMany({
@@ -125,6 +126,8 @@ export class AvenueService {
                 status: data.status,
               }
             : {}),
+          cityId: data.cityId,
+          regionId: data.regionId,
         },
         include: {
           AvenueTranslations: {
@@ -308,6 +311,8 @@ export class AvenueService {
         : {
             status: data.status,
           }),
+      cityId: data.cityId,
+      regionId: data.regionId,
     };
 
     if (data.search) {

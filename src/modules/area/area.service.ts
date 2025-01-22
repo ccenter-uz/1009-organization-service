@@ -17,6 +17,7 @@ import {
   AreaInterfaces,
   AreaUpdateDto,
 } from 'types/organization/area';
+import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
 @Injectable()
 export class AreaService {
   constructor(
@@ -115,7 +116,7 @@ export class AreaService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: CityRegionFilterDto
   ): Promise<AreaInterfaces.ResponseWithPagination> {
     if (data.all) {
       const areas = await this.prisma.area.findMany({
@@ -126,6 +127,8 @@ export class AreaService {
                 status: data.status,
               }
             : {}),
+          cityId: data.cityId,
+          regionId: data.regionId,
         },
         include: {
           AreaTranslations: {
@@ -308,6 +311,8 @@ export class AreaService {
         : {
             status: data.status,
           }),
+      cityId: data.cityId,
+      regionId: data.regionId,
     };
     if (data.search) {
       where.AreaTranslations = {

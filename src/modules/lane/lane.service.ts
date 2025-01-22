@@ -17,6 +17,7 @@ import {
   LaneInterfaces,
   LaneUpdateDto,
 } from 'types/organization/lane';
+import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
 @Injectable()
 export class LaneService {
   constructor(
@@ -115,7 +116,7 @@ export class LaneService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: CityRegionFilterDto
   ): Promise<LaneInterfaces.ResponseWithPagination> {
     if (data.all) {
       const lanes = await this.prisma.lane.findMany({
@@ -126,6 +127,8 @@ export class LaneService {
                 status: data.status,
               }
             : {}),
+          cityId: data.cityId,
+          regionId: data.regionId,
         },
         include: {
           LaneTranslations: {
@@ -306,6 +309,8 @@ export class LaneService {
         : {
             status: data.status,
           }),
+      cityId: data.cityId,
+      regionId: data.regionId,
     };
     if (data.search) {
       where.LaneTranslations = {
