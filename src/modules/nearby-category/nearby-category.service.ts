@@ -45,7 +45,7 @@ export class NearbyCategoryService {
               }
             : {}),
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { name: 'asc' },
       });
 
       return {
@@ -82,7 +82,7 @@ export class NearbyCategoryService {
 
     const nearby = await this.prisma.nearbyCategory.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { name: 'asc' },
       take: pagination.take,
       skip: pagination.skip,
     });

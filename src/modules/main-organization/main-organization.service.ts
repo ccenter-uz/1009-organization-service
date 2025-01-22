@@ -45,7 +45,7 @@ export class MainOrganizationService {
               }
             : {}),
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { name: 'asc' },
       });
 
       return {
@@ -81,7 +81,7 @@ export class MainOrganizationService {
 
     const mainOrganization = await this.prisma.mainOrganization.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { name: 'asc' },
       take: pagination.take,
       skip: pagination.skip,
     });

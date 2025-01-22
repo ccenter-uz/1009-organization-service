@@ -42,7 +42,7 @@ export class SegmentService {
   ): Promise<SegmentInterfaces.ResponseWithPagination> {
     if (data.all) {
       const segments = await this.prisma.segment.findMany({
-        orderBy: { createdAt: 'desc' },
+        orderBy: { name: 'asc' },
         where: {
           ...(data.status !== 2
             ? {
@@ -82,7 +82,7 @@ export class SegmentService {
 
     const categories = await this.prisma.segment.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { name: 'asc' },
       take: pagination.take,
       skip: pagination.skip,
     });
