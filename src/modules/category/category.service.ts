@@ -107,7 +107,6 @@ export class CategoryService {
             )
           `);
         } else {
-         
           conditions.push(Prisma.sql`
             EXISTS (
               SELECT 1
@@ -202,56 +201,6 @@ export class CategoryService {
       perPage: data.limit,
     });
 
-    // const categories = await this.prisma.category.findMany({
-    //   where,
-    //   orderBy: { createdAt: 'desc' },
-    //   include: {
-    //     city: {
-    //       include: {
-    //         CityTranslations: {
-    //           where: data.allLang
-    //             ? {}
-    //             : {
-    //                 languageCode: data.langCode,
-    //               },
-    //           select: {
-    //             languageCode: true,
-    //             name: true,
-    //           },
-    //         },
-    //         Region: {
-    //           include: {
-    //             RegionTranslations: {
-    //               where: data.allLang
-    //                 ? {}
-    //                 : {
-    //                     languageCode: data.langCode,
-    //                   },
-    //               select: {
-    //                 languageCode: true,
-    //                 name: true,
-    //               },
-    //             },
-    //           },
-    //         },
-    //       },
-    //     },
-    //     CategoryTranslations: {
-    //       where: data.allLang
-    //         ? {}
-    //         : {
-    //             languageCode: data.langCode,
-    //           },
-    //       select: {
-    //         name: true,
-    //         languageCode: true,
-    //       },
-    //     },
-    //   },
-    //   take: pagination.take,
-    //   skip: pagination.skip,
-    // });
-
     const conditions: Prisma.Sql[] = [];
     if (data.status === 0 || data.status === 1)
       conditions.push(Prisma.sql`c.status = ${data.status}`);
@@ -294,9 +243,6 @@ export class CategoryService {
       pagination
     );
 
-    categories.forEach((el: any) => {
-      console.log(el);
-    });
     const formattedCategories = [];
 
     for (let i = 0; i < categories.length; i++) {
