@@ -88,61 +88,45 @@ export class CategoryService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
     if (data.all) {
-      const categories = await this.prisma.category.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-          cityId: data.cityId,
-          regionId: data.regionId,
-        },
-        include: {
-          city: {
-            include: {
-              CityTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              Region: {
-                include: {
-                  RegionTranslations: {
-                    where: data.allLang
-                      ? {}
-                      : {
-                          languageCode: data.langCode,
-                        },
-                    select: {
-                      languageCode: true,
-                      name: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          CategoryTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
+      const conditions: Prisma.Sql[] = [];
+      if (data.status === 0 || data.status === 1)
+        conditions.push(Prisma.sql`c.status = ${data.status}`);
+      if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
+      if (data.regionId)
+        conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+      if (data.search) {
+        // Если langCode указан, ищем по нему, если нет — ищем по первому переводу категории
+        if (data.langCode) {
+          conditions.push(Prisma.sql`
+            EXISTS (
+              SELECT 1
+              FROM category_translations ct
+              WHERE ct.category_id = c.id
+                AND ct.language_code = ${data.langCode}
+                AND ct.name ILIKE ${`%${data.search}%`}
+            )
+          `);
+        } else {
+         
+          conditions.push(Prisma.sql`
+            EXISTS (
+              SELECT 1
+              FROM category_translations ct
+              WHERE ct.category_id = c.id
+                AND ct.name ILIKE ${`%${data.search}%`}
+              ORDER BY ct.language_code   
+              LIMIT 1
+            )
+          `);
+        }
+      }
+      const categories: any = await getOrderedData(
+        'Category',
+        'category',
+        this.prisma,
+        data,
+        conditions
+      );
 
       const formattedCategories = [];
 
@@ -269,7 +253,7 @@ export class CategoryService {
     // });
 
     const conditions: Prisma.Sql[] = [];
-    if (data.status !== 2)
+    if (data.status === 0 || data.status === 1)
       conditions.push(Prisma.sql`c.status = ${data.status}`);
     if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
     if (data.regionId)
@@ -302,6 +286,8 @@ export class CategoryService {
     }
 
     const categories: any = await getOrderedData(
+      'Category',
+      'category',
       this.prisma,
       data,
       conditions,
