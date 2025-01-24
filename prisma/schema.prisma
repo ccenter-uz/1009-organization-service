@@ -1343,7 +1343,7 @@ model ApiLogs {
   response         String?
   status           Int?
   duration         Int?     @db.SmallInt()
-  timestamp        DateTime @default(now())
+  createdAt        DateTime @default(now()) @map("created_at")
 
   @@map("api_logs")
 }

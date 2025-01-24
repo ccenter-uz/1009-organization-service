@@ -29,7 +29,6 @@ export class LoggingInterceptor implements NestInterceptor {
         response: JSON.stringify(data.response, null, 2),
         status: data.status,
         duration: data.duration,
-        timestamp: new Date(),
       },
     });
   }
