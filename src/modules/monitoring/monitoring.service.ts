@@ -56,6 +56,15 @@ export class MonitoringService {
         mode: 'insensitive',
       };
     }
+
+    if (data.userId) {
+      where.userId = data.userId;
+    }
+
+    if (data.organizationId) {
+      where.organizationId = data.organizationId;
+    }
+
     const count = await this.prisma.apiLogs.count({
       where,
     });
