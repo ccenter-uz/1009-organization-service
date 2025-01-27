@@ -89,6 +89,7 @@ export class PassageService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         PassageTranslations: {
           create: [
             {
@@ -597,6 +598,7 @@ export class PassageService {
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || passage.staffNumber,
         index: data.index || passage.index,
+        orderNumber: data.orderNumber,
         PassageTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

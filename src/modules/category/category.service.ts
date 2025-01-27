@@ -33,6 +33,7 @@ export class CategoryService {
         staffNumber: data.staffNumber,
         cityId: data.cityId,
         regionId: data.regionId,
+        orderNumber: data.orderNumber,
         CategoryTranslations: {
           create: [
             {
@@ -84,7 +85,6 @@ export class CategoryService {
     data: CityRegionFilterDto
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
-
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
     if (data.all) {
@@ -95,7 +95,6 @@ export class CategoryService {
       if (data.regionId)
         conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
       if (data.search) {
-        // Если langCode указан, ищем по нему, если нет — ищем по первому переводу категории
         if (data.langCode) {
           conditions.push(Prisma.sql`
             EXISTS (
@@ -208,7 +207,6 @@ export class CategoryService {
     if (data.regionId)
       conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
     if (data.search) {
-      // Если langCode указан, ищем по нему, если нет — ищем по первому переводу категории
       if (data.langCode) {
         conditions.push(Prisma.sql`
           EXISTS (
@@ -220,7 +218,6 @@ export class CategoryService {
           )
         `);
       } else {
-        // Если langCode не указан, ищем по первому языковому переводу
         conditions.push(Prisma.sql`
           EXISTS (
             SELECT 1
@@ -411,6 +408,7 @@ export class CategoryService {
         staffNumber: data.staffNumber || category.staffNumber,
         cityId: data.cityId,
         regionId: data.regionId,
+        orderNumber: data.orderNumber,
         CategoryTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

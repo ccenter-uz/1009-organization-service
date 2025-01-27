@@ -181,14 +181,28 @@ export async function getOrderedDataWithDistrict(
         ${whereClause}
         GROUP BY 
             c.id, city.id, region.id, district.id
-        ORDER BY
+        ${
+          data.order === 'name'
+            ? Prisma.raw(`ORDER BY
             (
                 SELECT jsonb_extract_path_text(
                     Translations::jsonb->0, 'name'
                 )
-                FROM ${Prisma.raw(CapitalizaName)}Translations
-                WHERE ${Prisma.raw(`${name}_id`)} = c.id
-            ) ASC
+                FROM ${CapitalizaName}Translations
+                WHERE ${`${name}_id`} = c.id
+            ) ASC`)
+            : Prisma.raw(`
+                ORDER BY 
+                c.order_number ASC,
+                (
+                    SELECT jsonb_extract_path_text(
+                        Translations::jsonb->0, 'name'
+                    )
+                    FROM ${CapitalizaName}Translations
+                    WHERE ${name}_id = c.id
+                ) ASC
+            `)
+        }
         ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}
       `
   );
