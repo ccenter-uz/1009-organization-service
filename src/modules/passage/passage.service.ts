@@ -150,120 +150,6 @@ export class PassageService {
       }
     }
     if (data.all) {
-      // const passages = await this.prisma.passage.findMany({
-      //   where: {
-      //     ...(data.status !== 2
-      //       ? {
-      //           status: data.status,
-      //         }
-      //       : {}),
-      //     cityId: data.cityId,
-      //     regionId: data.regionId,
-      //   },
-      //   include: {
-      //     PassageTranslations: {
-      //       where: data.allLang
-      //         ? {}
-      //         : {
-      //             languageCode: data.langCode,
-      //           },
-      //       select: {
-      //         languageCode: true,
-      //         name: true,
-      //       },
-      //     },
-      //     PassageOldNameTranslations: {
-      //       where: data.allLang
-      //         ? {}
-      //         : {
-      //             languageCode: data.langCode,
-      //           },
-      //       select: {
-      //         languageCode: true,
-      //         name: true,
-      //       },
-      //     },
-      //     PassageNewNameTranslations: {
-      //       where: data.allLang
-      //         ? {}
-      //         : {
-      //             languageCode: data.langCode,
-      //           },
-      //       select: {
-      //         languageCode: true,
-      //         name: true,
-      //       },
-      //     },
-      //     region: {
-      //       include: {
-      //         RegionTranslations: {
-      //           where: data.allLang
-      //             ? {}
-      //             : {
-      //                 languageCode: data.langCode,
-      //               },
-      //           select: {
-      //             languageCode: true,
-      //             name: true,
-      //           },
-      //         },
-      //       },
-      //     },
-      //     city: {
-      //       include: {
-      //         CityTranslations: {
-      //           where: data.allLang
-      //             ? {}
-      //             : {
-      //                 languageCode: data.langCode,
-      //               },
-      //           select: {
-      //             languageCode: true,
-      //             name: true,
-      //           },
-      //         },
-      //       },
-      //     },
-      //     district: {
-      //       include: {
-      //         DistrictTranslations: {
-      //           where: data.allLang
-      //             ? {}
-      //             : {
-      //                 languageCode: data.langCode,
-      //               },
-      //           select: {
-      //             languageCode: true,
-      //             name: true,
-      //           },
-      //         },
-      //         DistrictNewNameTranslations: {
-      //           where: data.allLang
-      //             ? {}
-      //             : {
-      //                 languageCode: data.langCode,
-      //               },
-      //           select: {
-      //             languageCode: true,
-      //             name: true,
-      //           },
-      //         },
-      //         DistrictOldNameTranslations: {
-      //           where: data.allLang
-      //             ? {}
-      //             : {
-      //                 languageCode: data.langCode,
-      //               },
-      //           select: {
-      //             languageCode: true,
-      //             name: true,
-      //           },
-      //         },
-      //       },
-      //     },
-      //   },
-      // });
-
       let passages = await getOrderedDataWithDistrict(
         'Passage',
         'passage',
@@ -271,7 +157,7 @@ export class PassageService {
         data,
         conditions
       );
-      
+
       const formattedPassage = [];
 
       for (let i = 0; i < passages.length; i++) {
@@ -373,114 +259,13 @@ export class PassageService {
       perPage: data.limit,
     });
 
-    const passages = await this.prisma.passage.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        PassageTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        PassageNewNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        PassageOldNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        city: {
-          include: {
-            CityTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        district: {
-          include: {
-            DistrictTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictNewNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictOldNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    let passages = await getOrderedDataWithDistrict(
+      'Passage',
+      'passage',
+      this.prisma,
+      data,
+      conditions
+    );
 
     const formattedPassage = [];
 

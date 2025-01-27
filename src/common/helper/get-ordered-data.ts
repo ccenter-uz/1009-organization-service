@@ -98,7 +98,5 @@ export async function getOrderedData(
                         ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}
                         `
       );
-      
-
   return result;
 }
