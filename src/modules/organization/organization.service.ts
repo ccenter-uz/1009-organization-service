@@ -360,6 +360,10 @@ export class OrganizationService {
       where.villageId = data.villageId;
     }
 
+    if (data.streetId) {
+      where.streetId = data.streetId;
+    }
+
     if (data.belongAbonent === true) {
       where.createdBy = CreatedByEnum.Client;
     }
