@@ -12,6 +12,7 @@ import {
   SegmentInterfaces,
   SegmentUpdateDto,
 } from 'types/organization/segment';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Injectable()
 export class SegmentService {
@@ -36,11 +37,19 @@ export class SegmentService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: ListQueryWithOrderDto
   ): Promise<SegmentInterfaces.ResponseWithPagination> {
     if (data.all) {
       const segments = await this.prisma.segment.findMany({
-        orderBy: { name: 'asc' },
+        orderBy:
+          data.order === 'name'
+            ? { name: 'asc' }
+            : [
+                {
+                  orderNumber: 'asc',
+                },
+                { name: 'asc' },
+              ],
         where: {
           ...(data.status !== 2
             ? {
@@ -80,7 +89,15 @@ export class SegmentService {
 
     const categories = await this.prisma.segment.findMany({
       where,
-      orderBy: { name: 'asc' },
+      orderBy:
+        data.order === 'name'
+          ? { name: 'asc' }
+          : [
+              {
+                orderNumber: 'asc',
+              },
+              { name: 'asc' },
+            ],
       take: pagination.take,
       skip: pagination.skip,
     });

@@ -16,8 +16,8 @@ import {
   PassageInterfaces,
   PassageUpdateDto,
 } from 'types/organization/passage';
-import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
-import { getOrderedDataWithDistrict } from '@/common/helper/get-ordered-data-with-district';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
+import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 import { Prisma } from '@prisma/client';
 @Injectable()
 export class PassageService {
@@ -119,43 +119,12 @@ export class PassageService {
   async findAll(
     data: CityRegionFilterDto
   ): Promise<PassageInterfaces.ResponseWithPagination> {
-    const conditions: Prisma.Sql[] = [];
-    if (data.status === 0 || data.status === 1)
-      conditions.push(Prisma.sql`c.status = ${data.status}`);
-    if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
-    if (data.regionId)
-      conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
-    if (data.search) {
-      if (data.langCode) {
-        conditions.push(Prisma.sql`
-                EXISTS (
-                  SELECT 1
-                  FROM passage_translations ct
-                  WHERE ct.passage_id = c.id
-                    AND ct.language_code = ${data.langCode}
-                    AND ct.name ILIKE ${`%${data.search}%`}
-                )
-              `);
-      } else {
-        conditions.push(Prisma.sql`
-                EXISTS (
-                  SELECT 1
-                  FROM passage_translations ct
-                  WHERE ct.passage_id = c.id
-                    AND ct.name ILIKE ${`%${data.search}%`}
-                  ORDER BY ct.language_code   
-                  LIMIT 1
-                )
-              `);
-      }
-    }
     if (data.all) {
       let passages = await getOrderedDataWithDistrict(
         'Passage',
         'passage',
         this.prisma,
-        data,
-        conditions
+        data
       );
 
       const formattedPassage = [];
@@ -264,7 +233,7 @@ export class PassageService {
       'passage',
       this.prisma,
       data,
-      conditions
+      pagination
     );
 
     const formattedPassage = [];

@@ -17,7 +17,7 @@ import {
   StreetInterfaces,
   StreetUpdateDto,
 } from 'types/organization/street';
-import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 @Injectable()
 export class StreetService {
   constructor(

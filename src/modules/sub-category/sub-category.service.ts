@@ -15,6 +15,9 @@ import {
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { CategoryService } from '../category/category.service';
+import { getOrderedData } from '@/common/helper/sql-rows-for-select/get-ordered-data.dto';
+import { Prisma } from '@prisma/client';
+import { getSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/sub-category-get-ordered.dto';
 @Injectable()
 export class SubCategoryService {
   constructor(
@@ -61,47 +64,45 @@ export class SubCategoryService {
   async findAll(
     data: SubCategoryFilterDto
   ): Promise<SubCategoryInterfaces.ResponseWithPagination> {
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+                  EXISTS (
+                    SELECT 1
+                    FROM sub_category_translations ct
+                    WHERE ct.sub_category_id = c.id
+                      AND ct.language_code = ${data.langCode}
+                      AND ct.name ILIKE ${`%${data.search}%`}
+                  )
+                `);
+      } else {
+        conditions.push(Prisma.sql`
+                  EXISTS (
+                    SELECT 1
+                    FROM sub_category_translations ct
+                    WHERE ct.sub_category_id = c.id
+                      AND ct.name ILIKE ${`%${data.search}%`}
+                    ORDER BY ct.language_code   
+                    LIMIT 1
+                  )
+                `);
+      }
+    }
+    if (data.categoryId) {
+      conditions.push(Prisma.sql`c.category_id = ${data.categoryId}`);
+    }
     if (data.all) {
-      const subCategories = await this.prisma.subCategory.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          categoryId: data.categoryId,
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-        },
-        include: {
-          category: {
-            include: {
-              CategoryTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          SubCategoryTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
-
+     
+      const subCategories = await getSubCategoryOrderedData(
+        'SubCategory',
+        'sub_category',
+        this.prisma,
+        data,
+        conditions
+      );
       const formattedSubCategories = [];
 
       for (let i = 0; i < subCategories.length; i++) {
@@ -160,40 +161,14 @@ export class SubCategoryService {
       perPage: data.limit,
     });
 
-    const subCategories = await this.prisma.subCategory.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        category: {
-          include: {
-            CategoryTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        SubCategoryTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const subCategories = await getSubCategoryOrderedData(
+      'SubCategory',
+      'sub_category',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
 
     const formattedSubCategories = [];
 

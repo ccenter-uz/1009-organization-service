@@ -6,13 +6,44 @@ export async function getOrderedDataWithDistrict(
   name: string,
   prisma: PrismaService,
   data: any,
-  conditions?: Prisma.Sql[],
   pagination?: { take: number; skip: number }
 ) {
+  const conditions: Prisma.Sql[] = [];
+  if (data.status === 0 || data.status === 1)
+    conditions.push(Prisma.sql`c.status = ${data.status}`);
+  if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
+  if (data.regionId)
+    conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+  if (data.search) {
+    if (data.langCode) {
+      conditions.push(Prisma.sql`
+                    EXISTS (
+                      SELECT 1
+                      FROM ${name}_translations ct
+                      WHERE ct.${name}_id = c.id
+                        AND ct.language_code = ${data.langCode}
+                        AND ct.name ILIKE ${`%${data.search}%`}
+                    )
+                  `);
+    } else {
+      conditions.push(Prisma.sql`
+                    EXISTS (
+                      SELECT 1
+                      FROM ${name}_translations ct
+                      WHERE ct.${name}_id = c.id
+                        AND ct.name ILIKE ${`%${data.search}%`}
+                      ORDER BY ct.language_code   
+                      LIMIT 1
+                    )
+                  `);
+    }
+  }
+
   const whereClause =
     conditions?.length > 0
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
       : Prisma.empty;
+  console.log(data.order);
 
   const result: any = await prisma.$queryRaw(
     Prisma.sql`
@@ -182,7 +213,7 @@ export async function getOrderedDataWithDistrict(
         GROUP BY 
             c.id, city.id, region.id, district.id
         ${
-          data.order === 'name'
+          data?.order === 'name'
             ? Prisma.raw(`ORDER BY
             (
                 SELECT jsonb_extract_path_text(

@@ -15,6 +15,7 @@ import {
   NearbyCategoryCreateDto,
   NearbyCategoryInterfaces,
 } from 'types/organization/nearby-category';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Injectable()
 export class NearbyCategoryService {
@@ -35,8 +36,10 @@ export class NearbyCategoryService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: ListQueryWithOrderDto
   ): Promise<NearbyCategoryInterfaces.ResponseWithPagination> {
+    console.log(data.order);
+    
     if (data.all) {
       const nearbyCategry = await this.prisma.nearbyCategory.findMany({
         where: {
@@ -46,7 +49,15 @@ export class NearbyCategoryService {
               }
             : {}),
         },
-        orderBy: { name: 'asc' },
+        orderBy:
+          data.order === 'name'
+            ? { name: 'asc' }
+            : [
+                {
+                  orderNumber: 'asc',
+                },
+                { name: 'asc' },
+              ],
       });
 
       return {
@@ -82,7 +93,15 @@ export class NearbyCategoryService {
 
     const nearby = await this.prisma.nearbyCategory.findMany({
       where,
-      orderBy: { name: 'asc' },
+      orderBy:
+        data.order === 'name'
+          ? { name: 'asc' }
+          : [
+              {
+                orderNumber: 'asc',
+              },
+              { name: 'asc' },
+            ],
       take: pagination.take,
       skip: pagination.skip,
     });
