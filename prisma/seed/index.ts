@@ -1,4 +1,8 @@
-async function main() {}
+import { seedRegionsAndCities } from './regions-and-cities.seed';
+
+async function main() {
+  seedRegionsAndCities();
+}
 
 main()
   .catch((e) => {

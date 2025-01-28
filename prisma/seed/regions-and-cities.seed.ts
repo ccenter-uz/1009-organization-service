@@ -1,47 +1,68 @@
 import { PrismaClient } from '@prisma/client';
+import { LanguageRequestEnum } from '../../types/global';
+import { RegionsAndCities } from '../../types/seed';
 
 const prisma = new PrismaClient();
 
 export async function seedRegionsAndCities() {
-  const regions = []; // from types
+  const regions = RegionsAndCities;
 
   for (const region of regions) {
     const existingRegion = await prisma.regionTranslations.findFirst({
       where: { name: region.name.ru },
     });
 
+    let regionId: number;
+
     if (!existingRegion) {
+      console.log(`Creating region: ${region.name.ru}`);
+
       const createdRegion = await prisma.region.create({
         data: {
           RegionTranslations: {
             create: [
-              { languageCode: 'ru', name: region.name.ru },
-              { languageCode: 'uz', name: region.name.uz },
-              { languageCode: 'cy', name: region.name.cy },
+              { languageCode: LanguageRequestEnum.RU, name: region.name.ru },
+              { languageCode: LanguageRequestEnum.UZ, name: region.name.uz },
+              { languageCode: LanguageRequestEnum.CY, name: region.name.cy },
             ],
           },
         },
       });
 
-      console.log(`Region created: ${region.name.ru}`);
+      regionId = createdRegion.id;
+    } else {
+      console.log(`Region '${region.name.ru}' already exists.`);
+      regionId = existingRegion.regionId;
+    }
 
-      for (const city of region.cities) {
+    for (const city of region.cities) {
+      const existingCity = await prisma.cityTranslations.findFirst({
+        where: {
+          name: city?.name?.ru,
+        },
+      });
+
+      if (!existingCity) {
+        console.log(
+          `Adding new city '${city.name.ru}' to region '${region.name.ru}'`
+        );
         await prisma.city.create({
           data: {
-            regionId: createdRegion.id,
+            regionId: regionId,
             CityTranslations: {
               create: [
-                { languageCode: 'ru', name: city.name.ru },
-                { languageCode: 'uz', name: city.name.uz },
-                { languageCode: 'cy', name: city.name.cy },
+                { languageCode: LanguageRequestEnum.RU, name: city.name.ru },
+                { languageCode: LanguageRequestEnum.UZ, name: city.name.uz },
+                { languageCode: LanguageRequestEnum.CY, name: city.name.cy },
               ],
             },
           },
         });
-        console.log(`City created: ${city.name.ru}`);
+      } else {
+        console.log(
+          `City '${city.name.ru}' already exists in region '${region.name.ru}'.`
+        );
       }
-    } else {
-      console.log(`Region already exists: ${region.name.ru}`);
     }
   }
 }
