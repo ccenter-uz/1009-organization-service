@@ -5,7 +5,6 @@ import {
   DeleteDto,
   GetOneDto,
   LanguageRequestEnum,
-  ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
@@ -89,6 +88,7 @@ export class VillageService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         VillageTranslations: {
           create: [
             {
@@ -778,6 +778,7 @@ export class VillageService {
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || village.staffNumber,
         index: data.index || village.index,
+        orderNumber: data.orderNumber,
         VillageTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

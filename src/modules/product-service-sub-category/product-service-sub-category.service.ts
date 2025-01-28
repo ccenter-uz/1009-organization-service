@@ -32,6 +32,7 @@ export class ProductServiceSubCategoryService {
     const subCategory = await this.prisma.productServiceSubCategory.create({
       data: {
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         productServiceCategoryId: ProductServiceCategory.id,
         ProductServiceSubCategoryTranslations: {
           create: [
@@ -275,6 +276,7 @@ export class ProductServiceSubCategoryService {
       },
       data: {
         staffNumber: data.staffNumber || ProductServiceSubCategory.staffNumber,
+        orderNumber: data.orderNumber,
         productServiceCategoryId:
           data.productServiceCategoryId ||
           ProductServiceSubCategory.productServiceCategoryId,

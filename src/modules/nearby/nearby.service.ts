@@ -44,6 +44,7 @@ export class NearbyService {
         regionId: region.id,
         cityId: city.id,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         NearbyTranslations: {
           create: [
             {
@@ -437,6 +438,7 @@ export class NearbyService {
         regionId: data.regionId || nearby.regionId,
         cityId: data.cityId || nearby.cityId,
         staffNumber: data.staffNumber || nearby.staffNumber,
+        orderNumber: data.orderNumber,
         NearbyTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

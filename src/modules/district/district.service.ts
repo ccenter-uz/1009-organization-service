@@ -81,6 +81,7 @@ export class DistrictService {
         cityId: city.id,
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         DistrictTranslations: {
           create: [
             {
@@ -97,7 +98,7 @@ export class DistrictService {
             },
           ],
         },
-        ...names
+        ...names,
       },
       include: {
         DistrictTranslations: true,
@@ -585,6 +586,7 @@ export class DistrictService {
         cityId: data.cityId || district.cityId,
         staffNumber: data.staffNumber || district.staffNumber,
         index: data.index || district.index,
+        orderNumber: data.orderNumber,
         DistrictTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

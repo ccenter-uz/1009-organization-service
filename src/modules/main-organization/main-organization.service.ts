@@ -27,6 +27,7 @@ export class MainOrganizationService {
       data: {
         staffNumber: data.staffNumber,
         name: data.name,
+        orderNumber: data.orderNumber,
       },
     });
 
@@ -120,6 +121,7 @@ export class MainOrganizationService {
       data: {
         staffNumber: data.staffNumber,
         name: data.name,
+        orderNumber: data.orderNumber,
       },
     });
   }

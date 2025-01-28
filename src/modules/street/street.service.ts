@@ -88,6 +88,7 @@ export class StreetService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         StreetTranslations: {
           create: [
             {
@@ -771,6 +772,7 @@ export class StreetService {
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || street.staffNumber,
         index: data.index || street.index,
+        orderNumber: data.orderNumber,
         StreetTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

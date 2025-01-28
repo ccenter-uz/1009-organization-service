@@ -32,6 +32,7 @@ export class SubCategoryService {
       data: {
         staffNumber: data.staffNumber,
         categoryId: category.id,
+        orderNumber: data.orderNumber,
         SubCategoryTranslations: {
           create: [
             {
@@ -318,6 +319,7 @@ export class SubCategoryService {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
         },
+        orderNumber: data.orderNumber,
       },
       include: {
         category: true,

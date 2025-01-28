@@ -88,6 +88,7 @@ export class LaneService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         LaneTranslations: {
           create: [
             {
@@ -770,6 +771,7 @@ export class LaneService {
         cityId: data.cityId || lane.cityId,
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || lane.staffNumber,
+        orderNumber: data.orderNumber,
         index: data.index || lane.index,
         LaneTranslations: {
           updateMany:

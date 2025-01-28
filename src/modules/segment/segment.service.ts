@@ -21,6 +21,7 @@ export class SegmentService {
     const segment = await this.prisma.segment.create({
       data: {
         name: data.name,
+        orderNumber: data.orderNumber,
       },
       select: {
         id: true,
@@ -116,6 +117,7 @@ export class SegmentService {
       },
       data: {
         name: data.name,
+        orderNumber: data.orderNumber,
       },
       select: {
         id: true,

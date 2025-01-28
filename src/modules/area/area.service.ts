@@ -88,6 +88,7 @@ export class AreaService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         AreaTranslations: {
           create: [
             {
@@ -773,6 +774,7 @@ export class AreaService {
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || area.staffNumber,
         index: data.index || area.index,
+        orderNumber: data.orderNumber,
         AreaTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

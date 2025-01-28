@@ -27,6 +27,7 @@ export class PhoneTypeService {
     const phoneTypes = await this.prisma.phoneTypes.create({
       data: {
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         PhoneTypesTranslations: {
           create: [
             {
@@ -201,6 +202,7 @@ export class PhoneTypeService {
       },
       data: {
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         PhoneTypesTranslations: {
           updateMany: [
             {

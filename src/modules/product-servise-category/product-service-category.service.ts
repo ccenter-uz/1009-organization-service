@@ -27,7 +27,7 @@ export class ProductServiceCategoryService {
       await this.prisma.productServiceCategory.create({
         data: {
           staffNumber: data.staffNumber,
-
+          orderNumber: data.orderNumber,
           ProductServiceCategoryTranslations: {
             create: [
               {
@@ -216,6 +216,7 @@ export class ProductServiceCategoryService {
       },
       data: {
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         ProductServiceCategoryTranslations: {
           updateMany: [
             {

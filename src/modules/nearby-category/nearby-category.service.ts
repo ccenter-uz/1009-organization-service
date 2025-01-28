@@ -28,6 +28,7 @@ export class NearbyCategoryService {
       data: {
         staffNumber: data.staffNumber,
         name: data.name,
+        orderNumber: data.orderNumber,
       },
     });
     return nearbyCategory;
@@ -79,7 +80,6 @@ export class NearbyCategoryService {
       perPage: data.limit,
     });
 
-
     const nearby = await this.prisma.nearbyCategory.findMany({
       where,
       orderBy: { name: 'asc' },
@@ -121,6 +121,7 @@ export class NearbyCategoryService {
       data: {
         staffNumber: data.staffNumber,
         name: data.name,
+        orderNumber: data.orderNumber,
       },
     });
   }

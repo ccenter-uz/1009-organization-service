@@ -86,6 +86,7 @@ export class ImpasseService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         ImpasseTranslations: {
           create: [
             {
@@ -772,6 +773,7 @@ export class ImpasseService {
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || impasse.staffNumber,
         index: data.index || impasse.index,
+        orderNumber: data.orderNumber,
         ImpasseTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
