@@ -23,7 +23,7 @@ export class MainOrganizationService {
   async create(
     data: MainOrganizationCreateDto
   ): Promise<MainOrganizationInterfaces.Response> {
-    // const mainOrganization = await this.prisma.mainOrganization
+    
     const mainOrganization = await this.prisma.mainOrganization.create({
       data: {
         staffNumber: data.staffNumber,

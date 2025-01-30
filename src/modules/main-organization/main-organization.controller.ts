@@ -13,6 +13,7 @@ import {
   MainOrganizationInterfaces,
   MainOrganizationUpdateDto,
 } from 'types/organization/main-organization';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Controller('main-organization')
 export class MainOrganizationController {
@@ -30,7 +31,7 @@ export class MainOrganizationController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: ListQueryWithOrderDto
   ): Promise<MainOrganizationInterfaces.ResponseWithoutPagination> {
     return this.categoryService.findAll(data);
   }

@@ -140,25 +140,7 @@ export class PhoneTypeService {
       perPage: data.limit,
     });
 
-    // const phoneType = await this.prisma.phoneTypes.findMany({
-    // where,
-    // orderBy: { createdAt: 'desc' },
-    // include: {
-    // PhoneTypesTranslations: {
-    // where: data.allLang
-    // ? {}
-    // : {
-    // languageCode: data.langCode, // langCode from request
-    // },
-    // select: {
-    // languageCode: true,
-    // name: true,
-    // },
-    // },
-    // },
-    // take: pagination.take,
-    // skip: pagination.skip,
-    // });
+    
     const phoneType = await getSingleOrderedData(
       'PhoneTypes',
       'phone_types',

@@ -126,13 +126,12 @@ export class ResidentialAreaService {
   async findAll(
     data: CityRegionFilterDto
   ): Promise<ResidentialAreaInterfaces.ResponseWithPagination> {
-    
     if (data.all) {
       let residentialAreas = await getOrderedDataWithDistrict(
         'ResidentialArea',
         'residential_area',
         this.prisma,
-        data,
+        data
       );
 
       const formattedResidentialArea = [];
@@ -236,115 +235,6 @@ export class ResidentialAreaService {
       page: data.page,
       perPage: data.limit,
     });
-
-    // const residentialAreas = await this.prisma.residentialArea.findMany({
-    //   where,
-    //   orderBy: { createdAt: 'desc' },
-    //   include: {
-    //     ResidentialAreaTranslations: {
-    //       where: data.allLang
-    //         ? {}
-    //         : {
-    //             languageCode: data.langCode,
-    //           },
-    //       select: {
-    //         name: true,
-    //         languageCode: true,
-    //       },
-    //     },
-    //     ResidentialAreaNewNameTranslations: {
-    //       where: data.allLang
-    //         ? {}
-    //         : {
-    //             languageCode: data.langCode,
-    //           },
-    //       select: {
-    //         name: true,
-    //         languageCode: true,
-    //       },
-    //     },
-    //     ResidentialAreaOldNameTranslations: {
-    //       where: data.allLang
-    //         ? {}
-    //         : {
-    //             languageCode: data.langCode,
-    //           },
-    //       select: {
-    //         name: true,
-    //         languageCode: true,
-    //       },
-    //     },
-    //     region: {
-    //       include: {
-    //         RegionTranslations: {
-    //           where: data.allLang
-    //             ? {}
-    //             : {
-    //                 languageCode: data.langCode,
-    //               },
-    //           select: {
-    //             languageCode: true,
-    //             name: true,
-    //           },
-    //         },
-    //       },
-    //     },
-    //     city: {
-    //       include: {
-    //         CityTranslations: {
-    //           where: data.allLang
-    //             ? {}
-    //             : {
-    //                 languageCode: data.langCode,
-    //               },
-    //           select: {
-    //             languageCode: true,
-    //             name: true,
-    //           },
-    //         },
-    //       },
-    //     },
-    //     district: {
-    //       include: {
-    //         DistrictTranslations: {
-    //           where: data.allLang
-    //             ? {}
-    //             : {
-    //                 languageCode: data.langCode,
-    //               },
-    //           select: {
-    //             languageCode: true,
-    //             name: true,
-    //           },
-    //         },
-    //         DistrictNewNameTranslations: {
-    //           where: data.allLang
-    //             ? {}
-    //             : {
-    //                 languageCode: data.langCode,
-    //               },
-    //           select: {
-    //             languageCode: true,
-    //             name: true,
-    //           },
-    //         },
-    //         DistrictOldNameTranslations: {
-    //           where: data.allLang
-    //             ? {}
-    //             : {
-    //                 languageCode: data.langCode,
-    //               },
-    //           select: {
-    //             languageCode: true,
-    //             name: true,
-    //           },
-    //         },
-    //       },
-    //     },
-    //   },
-    //   take: pagination.take,
-    //   skip: pagination.skip,
-    // });
 
     let residentialAreas = await getOrderedDataWithDistrict(
       'ResidentialArea',

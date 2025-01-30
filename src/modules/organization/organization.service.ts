@@ -653,7 +653,7 @@ export class OrganizationService {
       where: {
         id: data.id,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { name: 'asc' },
       include: {
         ...include,
       },

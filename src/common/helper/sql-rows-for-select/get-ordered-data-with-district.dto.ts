@@ -19,8 +19,8 @@ export async function getOrderedDataWithDistrict(
       conditions.push(Prisma.sql`
                     EXISTS (
                       SELECT 1
-                      FROM ${name}_translations ct
-                      WHERE ct.${name}_id = c.id
+                      FROM ${Prisma.raw(name)}_translations ct
+                      WHERE ct.${Prisma.raw(name)}_id = c.id
                         AND ct.language_code = ${data.langCode}
                         AND ct.name ILIKE ${`%${data.search}%`}
                     )
@@ -29,8 +29,8 @@ export async function getOrderedDataWithDistrict(
       conditions.push(Prisma.sql`
                     EXISTS (
                       SELECT 1
-                      FROM ${name}_translations ct
-                      WHERE ct.${name}_id = c.id
+                      FROM ${Prisma.raw(name)}_translations ct
+                      WHERE ct.${Prisma.raw(name)}_id = c.id
                         AND ct.name ILIKE ${`%${data.search}%`}
                       ORDER BY ct.language_code   
                       LIMIT 1

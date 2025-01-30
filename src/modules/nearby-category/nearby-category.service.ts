@@ -24,7 +24,7 @@ export class NearbyCategoryService {
   async create(
     data: NearbyCategoryCreateDto
   ): Promise<NearbyCategoryInterfaces.Response> {
-    // const mainOrganization = await this.prisma.mainOrganization
+    
     const nearbyCategory = await this.prisma.nearbyCategory.create({
       data: {
         staffNumber: data.staffNumber,
