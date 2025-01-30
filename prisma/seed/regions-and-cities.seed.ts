@@ -6,6 +6,8 @@ const prisma = new PrismaClient();
 
 export async function seedRegionsAndCities() {
   const regions = RegionsAndCities;
+  let counterRegion = 0;
+  let counterCity = 0;
 
   for (const region of regions) {
     const existingRegion = await prisma.regionTranslations.findFirst({
@@ -30,6 +32,7 @@ export async function seedRegionsAndCities() {
       });
 
       regionId = createdRegion.id;
+      counterRegion++;
     } else {
       console.log(`Region '${region.name.ru}' already exists.`);
       regionId = existingRegion.regionId;
@@ -58,6 +61,8 @@ export async function seedRegionsAndCities() {
             },
           },
         });
+
+        counterCity++;
       } else {
         console.log(
           `City '${city.name.ru}' already exists in region '${region.name.ru}'.`
@@ -65,4 +70,7 @@ export async function seedRegionsAndCities() {
       }
     }
   }
+
+  console.log(`Total created Region: ${counterRegion}`);
+  console.log(`Total created City: ${counterCity}`);
 }
