@@ -18,6 +18,8 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictFilterDto } from 'types/organization/district/dto/filter-district.dto';
+import { Prisma } from '@prisma/client';
+import { getDistrictData } from '@/common/helper/sql-rows-for-select/get-district-data.dto';
 @Injectable()
 export class DistrictService {
   constructor(
@@ -123,83 +125,12 @@ export class DistrictService {
     data: DistrictFilterDto
   ): Promise<DistrictInterfaces.ResponseWithPagination> {
     if (data.all) {
-      const district = await this.prisma.district.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-          regionId: data.regionId,
-          cityId: data.cityId,
-        },
-        include: {
-          Region: {
-            include: {
-              RegionTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          City: {
-            include: {
-              CityTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          DistrictTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          DistrictNewNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          DistrictOldNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
+      const district = await getDistrictData(
+        'District',
+        'district',
+        this.prisma,
+        data
+      );
 
       const formattedDistrict = [];
 
@@ -274,77 +205,13 @@ export class DistrictService {
       perPage: data.limit,
     });
 
-    const district = await this.prisma.district.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        Region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        City: {
-          include: {
-            CityTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        DistrictTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        DistrictNewNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        DistrictOldNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const district = await getDistrictData(
+      'District',
+      'district',
+      this.prisma,
+      data,
+      pagination
+    );
 
     const formattedDistrict = [];
 

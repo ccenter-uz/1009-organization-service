@@ -14,7 +14,6 @@ export async function getOrderedData(
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
       : Prisma.empty;
 
-  console.log(data.order);
 
   const result: any = await prisma.$queryRaw(
     Prisma.sql`

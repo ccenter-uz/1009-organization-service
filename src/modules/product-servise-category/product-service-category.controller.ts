@@ -2,22 +2,17 @@ import { Controller, Delete, Get, Patch, Post, Put } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ProductServiceCategoryService } from './product-service-category.service';
 import { ProductServiceCategoryServiceCommands as Commands } from 'types/organization/product-service-category/commands';
-import {
-  CategoryCreateDto,
-  CategoryInterfaces,
-  CategoryUpdateDto,
-} from 'types/organization/category';
+
 import {
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
-  ListQueryDto,
 } from 'types/global';
 import {
   ProductServiseCategoryCreateDto,
   ProductServiseCategoryInterfaces,
   ProductServiseCategoryUpdateDto,
 } from 'types/organization/product-service-category';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Controller('product-service-category')
 export class ProductServiceCategoryController {
@@ -36,7 +31,7 @@ export class ProductServiceCategoryController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: ListQueryWithOrderDto
   ): Promise<ProductServiseCategoryInterfaces.ResponseWithoutPagination> {
     return this.categoryService.findAll(data);
   }

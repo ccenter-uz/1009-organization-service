@@ -15,9 +15,8 @@ import {
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { CategoryService } from '../category/category.service';
-import { getOrderedData } from '@/common/helper/sql-rows-for-select/get-ordered-data.dto';
 import { Prisma } from '@prisma/client';
-import { getSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/sub-category-get-ordered.dto';
+import { getSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/get-sub-category-ordered.dto';
 @Injectable()
 export class SubCategoryService {
   constructor(
@@ -95,10 +94,11 @@ export class SubCategoryService {
       conditions.push(Prisma.sql`c.category_id = ${data.categoryId}`);
     }
     if (data.all) {
-     
       const subCategories = await getSubCategoryOrderedData(
         'SubCategory',
         'sub_category',
+        'Category',
+        'category',
         this.prisma,
         data,
         conditions
@@ -112,9 +112,9 @@ export class SubCategoryService {
 
         delete subCategory.SubCategoryTranslations;
 
-        const category: any = subCategories[i].category;
-        const categorytTranslations = category.CategoryTranslations;
-        const categoryName = formatLanguageResponse(categorytTranslations);
+        const category: any = subCategories[i].Category;
+        const categoryTranslations = category.CategoryTranslations;
+        const categoryName = formatLanguageResponse(categoryTranslations);
 
         category.name = categoryName;
         delete category.CategoryTranslations;
@@ -164,6 +164,8 @@ export class SubCategoryService {
     const subCategories = await getSubCategoryOrderedData(
       'SubCategory',
       'sub_category',
+      'Category',
+      'category',
       this.prisma,
       data,
       conditions,
@@ -177,9 +179,9 @@ export class SubCategoryService {
       const translations = subCategory.SubCategoryTranslations;
       const name = formatLanguageResponse(translations);
 
-      const category: any = subCategories[i].category;
-      const categorytTranslations = category.CategoryTranslations;
-      const categoryName = formatLanguageResponse(categorytTranslations);
+      const category: any = subCategories[i].Category;
+      const categoryTranslations = category.CategoryTranslations;
+      const categoryName = formatLanguageResponse(categoryTranslations);
 
       category.name = categoryName;
 

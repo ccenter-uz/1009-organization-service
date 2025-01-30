@@ -15,6 +15,8 @@ import {
   ProductServiceSubCategoryInterfaces,
   ProductServiceSubCategoryUpdateDto,
 } from 'types/organization/product-service-sub-category';
+import { getSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/get-sub-category-ordered.dto';
+import { Prisma } from '@prisma/client';
 @Injectable()
 export class ProductServiceSubCategoryService {
   constructor(
@@ -62,34 +64,49 @@ export class ProductServiceSubCategoryService {
   async findAll(
     data: ProductServiceSubCategoryFilterDto
   ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+                      EXISTS (
+                        SELECT 1
+                        FROM product_service_sub_category_translations ct
+                        WHERE ct.product_service_sub_category_id = c.id
+                          AND ct.language_code = ${data.langCode}
+                          AND ct.name ILIKE ${`%${data.search}%`}
+                      )
+                    `);
+      } else {
+        conditions.push(Prisma.sql`
+                      EXISTS (
+                        SELECT 1
+                        FROM product_service_sub_category_translations ct
+                        WHERE ct.product_service_sub_category_id = c.id
+                          AND ct.name ILIKE ${`%${data.search}%`}
+                        ORDER BY ct.language_code   
+                        LIMIT 1
+                      )
+                    `);
+      }
+    }
+    //productServiceCategoryId: data.categoryId,
+    if (data.categoryId) {
+      conditions.push(
+        Prisma.sql`c.product_service_category_id = ${data.categoryId}`
+      );
+    }
     if (data.all) {
-      const ProductServiceSubCategories =
-        await this.prisma.productServiceSubCategory.findMany({
-          orderBy: { createdAt: 'desc' },
-          where: {
-            ...(data.status == 2
-              ? {}
-              : {
-                  status: data.status,
-                }),
-            productServiceCategoryId: data.categoryId,
-          },
-
-          include: {
-            ProductServiceCategory: true,
-            ProductServiceSubCategoryTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        });
+      const ProductServiceSubCategories = await getSubCategoryOrderedData(
+        'SubCategory',
+        'sub_category',
+        'Category',
+        'category',
+        this.prisma,
+        data,
+        conditions
+      );
 
       const formattedSubCategories = [];
 
@@ -139,42 +156,16 @@ export class ProductServiceSubCategoryService {
       perPage: data.limit,
     });
 
-    const ProductServiceSubCategories =
-      await this.prisma.productServiceSubCategory.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          ProductServiceCategory: {
-            include: {
-              ProductServiceCategoryTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode, // langCode from request
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          ProductServiceSubCategoryTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              name: true,
-              languageCode: true,
-            },
-          },
-        },
-        take: pagination.take,
-        skip: pagination.skip,
-      });
-
+    const ProductServiceSubCategories = await getSubCategoryOrderedData(
+      'ProductServiceSubCategory',
+      'product_service_sub_category',
+      'ProductServiceCategory',
+      'product_service_category',
+      this.prisma,
+      data,
+      conditions
+    );
+    
     const formattedSubCategories = [];
 
     for (let i = 0; i < ProductServiceSubCategories.length; i++) {

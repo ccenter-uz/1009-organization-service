@@ -43,7 +43,12 @@ export class SegmentService {
       const segments = await this.prisma.segment.findMany({
         orderBy:
           data.order === 'name'
-            ? { name: 'asc' }
+            ? [
+              { name: 'asc' },
+              {
+                orderNumber: 'asc',
+              },
+            ]
             : [
                 {
                   orderNumber: 'asc',
@@ -91,7 +96,12 @@ export class SegmentService {
       where,
       orderBy:
         data.order === 'name'
-          ? { name: 'asc' }
+          ? [
+              { name: 'asc' },
+              {
+                orderNumber: 'asc',
+              },
+            ]
           : [
               {
                 orderNumber: 'asc',

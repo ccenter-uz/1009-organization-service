@@ -132,7 +132,7 @@ model ProductServiceCategoryTranslations {
 
   ProductServiceCategory ProductServiceCategory @relation(fields: [productServiceCategoryId], references: [id])
 
-  @@map("product_service_category_translations")
+  @@map("product_service_categorzy_translations")
 }
 
 model ProductServiceSubCategory {

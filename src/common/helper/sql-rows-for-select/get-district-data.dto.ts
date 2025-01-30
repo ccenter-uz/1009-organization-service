@@ -1,7 +1,7 @@
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 
-export async function getOrderedDataWithDistrict(
+export async function getDistrictData(
   CapitalizaName: string,
   name: string,
   prisma: PrismaService,
@@ -11,32 +11,35 @@ export async function getOrderedDataWithDistrict(
   const conditions: Prisma.Sql[] = [];
   if (data.status === 0 || data.status === 1)
     conditions.push(Prisma.sql`c.status = ${data.status}`);
-  if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
-  if (data.regionId)
-    conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
   if (data.search) {
     if (data.langCode) {
-      conditions.push(Prisma.sql`
-                    EXISTS (
-                      SELECT 1
-                      FROM ${name}_translations ct
-                      WHERE ct.${name}_id = c.id
-                        AND ct.language_code = ${data.langCode}
-                        AND ct.name ILIKE ${`%${data.search}%`}
-                    )
-                  `);
+        conditions.push(Prisma.sql`
+            EXISTS (
+                SELECT 1
+                FROM district_translations ct
+                WHERE ct.district_id = c.id
+                AND ct.language_code = ${data.langCode}
+                AND ct.name ILIKE ${`%${data.search}%`}
+            )
+        `);
     } else {
-      conditions.push(Prisma.sql`
-                    EXISTS (
-                      SELECT 1
-                      FROM ${name}_translations ct
-                      WHERE ct.${name}_id = c.id
-                        AND ct.name ILIKE ${`%${data.search}%`}
-                      ORDER BY ct.language_code   
-                      LIMIT 1
-                    )
-                  `);
+        conditions.push(Prisma.sql`
+            EXISTS (
+                SELECT 1
+                FROM district_translations ct
+                WHERE ct.district_id = c.id
+                AND ct.name ILIKE ${`%${data.search}%`}
+                ORDER BY ct.language_code   
+                LIMIT 1
+            )
+        `);
     }
+  }
+  if (data.regionId) {
+    conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+  }
+  if (data.cityId) {
+    conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
   }
 
   const whereClause =
@@ -116,48 +119,6 @@ export async function getOrderedDataWithDistrict(
                 WHERE (${data.allLang} = TRUE OR 
                     ${data.langCode ? Prisma.sql`rt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
                 GROUP BY rt.region_id
-            ),
-            DistrictTranslations AS (
-                SELECT
-                    dt.district_id,
-                    JSON_AGG(
-                        JSONB_BUILD_OBJECT(
-                            'languageCode', dt.language_code,
-                            'name', dt.name
-                        )
-                    )::JSONB AS Translations
-                FROM district_translations dt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`dt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY dt.district_id
-            ),
-            DistrictNewNameTranslations AS (
-                SELECT
-                    dt.district_id,
-                    JSON_AGG(
-                        JSONB_BUILD_OBJECT(
-                            'languageCode', dt.language_code,
-                            'name', dt.name
-                        )
-                    )::JSONB AS Translations
-                FROM district_new_name_translations dt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`dt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY dt.district_id
-            ),
-            DistrictOldNameTranslations AS (
-                SELECT
-                    dt.district_id,
-                    JSON_AGG(
-                        JSONB_BUILD_OBJECT(
-                            'languageCode', dt.language_code,
-                            'name', dt.name
-                        )
-                    )::JSONB AS Translations
-                FROM district_old_name_translations dt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`dt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY dt.district_id
             )
         SELECT
             c.*,
@@ -171,7 +132,7 @@ export async function getOrderedDataWithDistrict(
                     (SELECT Translations FROM CityTranslations WHERE city_id = city.id), 
                     '[]'::JSONB
                 )
-            ) AS City, 
+            ) AS "City", 
             JSONB_SET(
                 ROW_TO_JSON(region)::JSONB,  
                 '{RegionTranslations}', 
@@ -179,38 +140,14 @@ export async function getOrderedDataWithDistrict(
                     (SELECT Translations FROM RegionTranslations WHERE region_id = region.id), 
                     '[]'::JSONB
                 )
-            ) AS Region,
-            JSONB_SET(
-                JSONB_SET(
-                    JSONB_SET(
-                        ROW_TO_JSON(district)::JSONB,
-                        '{DistrictTranslations}',
-                        COALESCE(
-                            (SELECT Translations FROM DistrictTranslations WHERE district_id = district.id),
-                            '[]'::JSONB
-                        )
-                    ),
-                    '{DistrictNewNameTranslations}',
-                    COALESCE(
-                        (SELECT Translations FROM DistrictNewNameTranslations WHERE district_id = district.id),
-                        '[]'::JSONB
-                    )
-                ),
-                '{DistrictOldNameTranslations}',
-                COALESCE(
-                    (SELECT Translations FROM DistrictOldNameTranslations WHERE district_id = district.id),
-                    '[]'::JSONB
-                )
-            ) AS District
-
+            ) AS "Region"
         FROM
             ${Prisma.raw(name)} c
         LEFT JOIN city ON c.city_id = city.id
         LEFT JOIN region ON city.region_id = region.id
-        LEFT JOIN district ON c.district_id = district.id
         ${whereClause}
         GROUP BY 
-            c.id, city.id, region.id, district.id
+            c.id, city.id, region.id
         ${
           data?.order === 'name'
             ? Prisma.raw(`ORDER BY

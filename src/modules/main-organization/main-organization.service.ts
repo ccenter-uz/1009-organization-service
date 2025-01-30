@@ -49,7 +49,12 @@ export class MainOrganizationService {
         },
         orderBy:
           data.order === 'name'
-            ? { name: 'asc' }
+            ? [
+                { name: 'asc' },
+                {
+                  orderNumber: 'asc',
+                },
+              ]
             : [
                 {
                   orderNumber: 'asc',
@@ -93,7 +98,12 @@ export class MainOrganizationService {
       where,
       orderBy:
         data.order === 'name'
-          ? { name: 'asc' }
+          ? [
+              { name: 'asc' },
+              {
+                orderNumber: 'asc',
+              },
+            ]
           : [
               {
                 orderNumber: 'asc',

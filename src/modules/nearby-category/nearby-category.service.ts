@@ -38,8 +38,7 @@ export class NearbyCategoryService {
   async findAll(
     data: ListQueryWithOrderDto
   ): Promise<NearbyCategoryInterfaces.ResponseWithPagination> {
-    console.log(data.order);
-    
+
     if (data.all) {
       const nearbyCategry = await this.prisma.nearbyCategory.findMany({
         where: {
@@ -51,7 +50,12 @@ export class NearbyCategoryService {
         },
         orderBy:
           data.order === 'name'
-            ? { name: 'asc' }
+            ? [
+                { name: 'asc' },
+                {
+                  orderNumber: 'asc',
+                },
+              ]
             : [
                 {
                   orderNumber: 'asc',
@@ -95,7 +99,12 @@ export class NearbyCategoryService {
       where,
       orderBy:
         data.order === 'name'
-          ? { name: 'asc' }
+          ? [
+              { name: 'asc' },
+              {
+                orderNumber: 'asc',
+              },
+            ]
           : [
               {
                 orderNumber: 'asc',
