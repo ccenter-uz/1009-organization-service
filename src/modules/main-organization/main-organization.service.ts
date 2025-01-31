@@ -14,6 +14,7 @@ import {
   MainOrganizationInterfaces,
   MainOrganizationUpdateDto,
 } from 'types/organization/main-organization';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Injectable()
 export class MainOrganizationService {
@@ -22,11 +23,12 @@ export class MainOrganizationService {
   async create(
     data: MainOrganizationCreateDto
   ): Promise<MainOrganizationInterfaces.Response> {
-    // const mainOrganization = await this.prisma.mainOrganization
+    
     const mainOrganization = await this.prisma.mainOrganization.create({
       data: {
         staffNumber: data.staffNumber,
         name: data.name,
+        orderNumber: data.orderNumber,
       },
     });
 
@@ -34,7 +36,7 @@ export class MainOrganizationService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: ListQueryWithOrderDto
   ): Promise<MainOrganizationInterfaces.ResponseWithPagination> {
     if (data.all) {
       const mainOrganization = await this.prisma.mainOrganization.findMany({
@@ -45,7 +47,20 @@ export class MainOrganizationService {
               }
             : {}),
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy:
+          data.order === 'name'
+            ? [
+                { name: 'asc' },
+                {
+                  orderNumber: 'asc',
+                },
+              ]
+            : [
+                {
+                  orderNumber: 'asc',
+                },
+                { name: 'asc' },
+              ],
       });
 
       return {
@@ -81,7 +96,20 @@ export class MainOrganizationService {
 
     const mainOrganization = await this.prisma.mainOrganization.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy:
+        data.order === 'name'
+          ? [
+              { name: 'asc' },
+              {
+                orderNumber: 'asc',
+              },
+            ]
+          : [
+              {
+                orderNumber: 'asc',
+              },
+              { name: 'asc' },
+            ],
       take: pagination.take,
       skip: pagination.skip,
     });
@@ -120,6 +148,7 @@ export class MainOrganizationService {
       data: {
         staffNumber: data.staffNumber,
         name: data.name,
+        orderNumber: data.orderNumber,
       },
     });
   }

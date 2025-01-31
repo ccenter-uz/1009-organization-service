@@ -13,6 +13,7 @@ import {
   PhoneTypeCreateDto,
   PhoneTypeInterfaces,
 } from 'types/organization/phone-type';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Controller('phone-type')
 export class PhoneTypeController {
@@ -29,7 +30,7 @@ export class PhoneTypeController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: ListQueryWithOrderDto
   ): Promise<PhoneTypeInterfaces.ResponseWithoutPagination> {
     return this.phoneTypeService.findAll(data);
   }

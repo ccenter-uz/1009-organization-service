@@ -10,11 +10,13 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
+import { getSingleOrderedData } from '@/common/helper/sql-rows-for-select/get-single-ordered-data.dto';
+import { Prisma } from '@prisma/client';
+import { getSingleData } from '@/common/helper/sql-rows-for-select/get-single-data.dto';
 
 @Injectable()
 export class RegionService {
@@ -50,30 +52,41 @@ export class RegionService {
   async findAll(
     data: ListQueryDto
   ): Promise<RegionInterfaces.ResponseWithPagination> {
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+              EXISTS (
+                SELECT 1
+                FROM region_translations ct
+                WHERE ct.region_id = c.id
+                  AND ct.language_code = ${data.langCode}
+                  AND ct.name ILIKE ${`%${data.search}%`}
+              )
+            `);
+      } else {
+        conditions.push(Prisma.sql`
+              EXISTS (
+                SELECT 1
+                FROM region_translations ct
+                WHERE ct.region_id = c.id
+                  AND ct.name ILIKE ${`%${data.search}%`}
+                ORDER BY ct.language_code   
+                LIMIT 1
+              )
+            `);
+      }
+    }
     if (data.all) {
-      const regions = await this.prisma.region.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-        },
-        include: {
-          RegionTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
+      const regions = await getSingleData(
+        'Region',
+        'region',
+        this.prisma,
+        data,
+        conditions
+      );
 
       const formattedCategories = [];
 
@@ -121,25 +134,14 @@ export class RegionService {
       perPage: data.limit,
     });
 
-    const regions = await this.prisma.region.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        RegionTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const regions = await getSingleData(
+      'Region',
+      'region',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
 
     const formattedCategories = [];
 
