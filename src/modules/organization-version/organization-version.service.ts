@@ -116,7 +116,6 @@ export class OrganizationVersionService {
         Transfer: data['PaymentTypes'][0].Transfer,
       },
     ];
-
     const organizationVersion = await this.prisma.organizationVersion.create({
       data: {
         organizationId: data.id,

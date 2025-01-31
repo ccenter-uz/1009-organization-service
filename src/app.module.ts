@@ -5,7 +5,7 @@ import {
   dbConfig,
   rabbitConfig,
 } from './common/config/configuration';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AllExceptionFilter } from './common/filter/all-exception.filter';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { CategoryModule } from './modules/category/category.module';
@@ -37,6 +37,8 @@ import { AdditionalCategoryModule } from './modules/additional-category/addition
 import { AdditionalModule } from './modules/additional/additional.module';
 import { AdditionalContentModule } from './modules/additional-content/additional-content.module';
 import { AdditionalTableModule } from './modules/additional-table/additional-table.module';
+import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
+import { MonitoringModule } from './modules/monitoring/monitoring.module';
 
 @Module({
   imports: [
@@ -73,10 +75,15 @@ import { AdditionalTableModule } from './modules/additional-table/additional-tab
     AdditionalModule,
     AdditionalContentModule,
     AdditionalTableModule,
+    MonitoringModule,
     // CronJobModule,
   ],
   controllers: [],
   providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
     {
       provide: APP_FILTER,
       useClass: AllExceptionFilter,
