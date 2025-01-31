@@ -1341,20 +1341,20 @@ model AdditionalTableContentTranslations {
 }
 
 model ApiLogs {
-  id               Int      @id @default(autoincrement())
-  userId           Int      @map("user_id")
-  userNumericId    String?  @map("user_numeric_id") @db.VarChar(15)
-  userFullName     String?  @map("user_full_name") @db.VarChar(300)
-  userRole         String?  @map("user_role") @db.VarChar(50)
-  organizationId   Int?     @map("organization_id")
-  organizationName String?  @map("organization_name") @db.VarChar()
-  method           String?  @db.VarChar(50)
-  path             String?  @db.VarChar(150)
+  id               Int       @id @default(autoincrement())
+  userId           Int       @map("user_id")
+  userNumericId    String?   @map("user_numeric_id") @db.VarChar(15)
+  userFullName     String?   @map("user_full_name") @db.VarChar(300)
+  userRole         String?   @map("user_role") @db.VarChar(50)
+  organizationId   Int?      @map("organization_id")
+  organizationName String?   @map("organization_name") @db.VarChar()
+  method           String?   @db.VarChar(50)
+  path             String?   @db.VarChar(150)
   request          String?
   response         String?
   status           Int?
-  duration         Int?     @db.SmallInt()
-  createdAt        DateTime @default(now()) @map("created_at")
+  duration         Int?      @db.SmallInt()
+  createdAt        DateTime? @default(now()) @map("created_at")
 
   @@map("api_logs")
 }
