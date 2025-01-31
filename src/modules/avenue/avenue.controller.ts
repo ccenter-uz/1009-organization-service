@@ -7,12 +7,9 @@ import {
   AvenueInterfaces,
   AvenueServiceCommands as Commands,
 } from 'types/organization/avenue';
-import {
-  DeleteDto,
-  GetOneDto,
-  ListQueryDto,
-} from 'types/global';
+import { DeleteDto, GetOneDto, ListQueryDto } from 'types/global';
 import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 
 @Controller('avenue')
 export class AvenueController {
@@ -27,7 +24,7 @@ export class AvenueController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryWithOrderDto
+    @Payload() data: CityRegionFilterDto
   ): Promise<AvenueInterfaces.ResponseWithoutPagination> {
     return this.avenueService.findAll(data);
   }
