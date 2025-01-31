@@ -7,13 +7,8 @@ import {
   CategoryInterfaces,
   CategoryUpdateDto,
 } from 'types/organization/category';
-import {
-  DeleteDto,
-  GetOneDto,
-  LanguageRequestDto,
-  ListQueryDto,
-} from 'types/global';
-import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
+import { DeleteDto, GetOneDto } from 'types/global';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 
 @Controller('category')
 export class CategoryController {

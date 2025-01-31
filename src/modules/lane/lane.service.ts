@@ -17,7 +17,8 @@ import {
   LaneInterfaces,
   LaneUpdateDto,
 } from 'types/organization/lane';
-import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
+import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 @Injectable()
 export class LaneService {
   constructor(
@@ -88,6 +89,7 @@ export class LaneService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         LaneTranslations: {
           create: [
             {
@@ -119,120 +121,12 @@ export class LaneService {
     data: CityRegionFilterDto
   ): Promise<LaneInterfaces.ResponseWithPagination> {
     if (data.all) {
-      const lanes = await this.prisma.lane.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-          cityId: data.cityId,
-          regionId: data.regionId,
-        },
-        include: {
-          LaneTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          LaneOldNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          LaneNewNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          region: {
-            include: {
-              RegionTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          city: {
-            include: {
-              CityTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          district: {
-            include: {
-              DistrictTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictNewNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictOldNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
+      const lanes = await getOrderedDataWithDistrict(
+        'Lane',
+        'lane',
+        this.prisma,
+        data
+      );
 
       const formattedLane = [];
 
@@ -333,114 +227,13 @@ export class LaneService {
       perPage: data.limit,
     });
 
-    const lanes = await this.prisma.lane.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        LaneTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        LaneNewNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        LaneOldNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        city: {
-          include: {
-            CityTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        district: {
-          include: {
-            DistrictTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictNewNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictOldNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const lanes = await getOrderedDataWithDistrict(
+      'Lane',
+      'lane',
+      this.prisma,
+      data,
+      pagination
+    );
 
     const formattedLane = [];
 
@@ -770,6 +563,7 @@ export class LaneService {
         cityId: data.cityId || lane.cityId,
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || lane.staffNumber,
+        orderNumber: data.orderNumber,
         index: data.index || lane.index,
         LaneTranslations: {
           updateMany:

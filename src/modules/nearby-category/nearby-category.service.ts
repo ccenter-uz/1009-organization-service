@@ -15,6 +15,7 @@ import {
   NearbyCategoryCreateDto,
   NearbyCategoryInterfaces,
 } from 'types/organization/nearby-category';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Injectable()
 export class NearbyCategoryService {
@@ -23,19 +24,21 @@ export class NearbyCategoryService {
   async create(
     data: NearbyCategoryCreateDto
   ): Promise<NearbyCategoryInterfaces.Response> {
-    // const mainOrganization = await this.prisma.mainOrganization
+    
     const nearbyCategory = await this.prisma.nearbyCategory.create({
       data: {
         staffNumber: data.staffNumber,
         name: data.name,
+        orderNumber: data.orderNumber,
       },
     });
     return nearbyCategory;
   }
 
   async findAll(
-    data: ListQueryDto
+    data: ListQueryWithOrderDto
   ): Promise<NearbyCategoryInterfaces.ResponseWithPagination> {
+
     if (data.all) {
       const nearbyCategry = await this.prisma.nearbyCategory.findMany({
         where: {
@@ -45,7 +48,20 @@ export class NearbyCategoryService {
               }
             : {}),
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy:
+          data.order === 'name'
+            ? [
+                { name: 'asc' },
+                {
+                  orderNumber: 'asc',
+                },
+              ]
+            : [
+                {
+                  orderNumber: 'asc',
+                },
+                { name: 'asc' },
+              ],
       });
 
       return {
@@ -79,10 +95,22 @@ export class NearbyCategoryService {
       perPage: data.limit,
     });
 
-
     const nearby = await this.prisma.nearbyCategory.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy:
+        data.order === 'name'
+          ? [
+              { name: 'asc' },
+              {
+                orderNumber: 'asc',
+              },
+            ]
+          : [
+              {
+                orderNumber: 'asc',
+              },
+              { name: 'asc' },
+            ],
       take: pagination.take,
       skip: pagination.skip,
     });
@@ -121,6 +149,7 @@ export class NearbyCategoryService {
       data: {
         staffNumber: data.staffNumber,
         name: data.name,
+        orderNumber: data.orderNumber,
       },
     });
   }
