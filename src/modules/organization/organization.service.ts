@@ -403,7 +403,7 @@ export class OrganizationService {
     if (data.all) {
       const organizations = await this.prisma.organization.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { name: 'asc' },
         include,
       });
       const result = [];
@@ -460,7 +460,7 @@ export class OrganizationService {
 
     const organization = await this.prisma.organization.findMany({
       where: whereWithLang,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { name: 'asc' },
       include,
       take: pagination.take,
       skip: pagination.skip,
@@ -497,7 +497,7 @@ export class OrganizationService {
     if (data.all) {
       const organizations = await this.prisma.organizationVersion.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { name: 'desc' },
         include,
       });
       const result = [];
@@ -541,7 +541,7 @@ export class OrganizationService {
 
     const organization = await this.prisma.organizationVersion.findMany({
       where: whereWithLang,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { name: 'desc' },
       include,
       take: pagination.take,
       skip: pagination.skip,
@@ -583,7 +583,7 @@ export class OrganizationService {
     if (data.all) {
       const organizations = await this.prisma.organizationVersion.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { name: 'desc' },
         include,
       });
       const result = [];
@@ -621,7 +621,7 @@ export class OrganizationService {
 
     const organization = await this.prisma.organizationVersion.findMany({
       where: whereWithLang,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { name: 'desc' },
       include,
       take: pagination.take,
       skip: pagination.skip,
@@ -657,7 +657,7 @@ export class OrganizationService {
       where: {
         id: data.id,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { name: 'asc' },
       include: {
         ...include,
       },

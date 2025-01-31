@@ -15,6 +15,8 @@ import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityFilterDto } from 'types/organization/city/dto/filter-city.dto';
+import { Prisma } from '@prisma/client';
+import { getCityData } from '@/common/helper/sql-rows-for-select/get-city-data.dto';
 @Injectable()
 export class CityService {
   constructor(
@@ -57,46 +59,44 @@ export class CityService {
   async findAll(
     data: CityFilterDto
   ): Promise<CityInterfaces.ResponseWithPagination> {
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM city_translations ct
+            WHERE ct.city_id = c.id
+              AND ct.language_code = ${data.langCode}
+              AND ct.name ILIKE ${`%${data.search}%`}
+          )
+        `);
+      } else {
+        conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM city_translations ct
+            WHERE ct.city_id = c.id
+              AND ct.name ILIKE ${`%${data.search}%`}
+            ORDER BY ct.language_code   
+            LIMIT 1
+          )
+        `);
+      }
+    }
+    if (data.regionId) {
+      conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+    }
     if (data.all) {
-      const cities = await this.prisma.city.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-          regionId: data.regionId,
-        },
-        include: {
-          Region: {
-            include: {
-              RegionTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          CityTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
+      const cities = await getCityData(
+        'City',
+        'city',
+        this.prisma,
+        data,
+        conditions
+      );
 
       const formattedCity = [];
 
@@ -104,18 +104,18 @@ export class CityService {
         const formatedCity = cities[i];
         const translations = formatedCity.CityTranslations;
         const name = formatLanguageResponse(translations);
-  
+
         delete formatedCity.CityTranslations;
-  
+
         const regionTranslations = formatedCity.Region.RegionTranslations;
         const regionName = formatLanguageResponse(regionTranslations);
-  
+
         delete formatedCity.Region.RegionTranslations;
-  
+
         const region = { ...formatedCity.Region, name: regionName };
-  
+
         delete formatedCity.Region;
-  
+
         formattedCity.push({ ...formatedCity, name, region });
       }
       return {
@@ -154,40 +154,15 @@ export class CityService {
       perPage: data.limit,
     });
 
-    const city = await this.prisma.city.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        Region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        CityTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const city = await getCityData(
+      'City',
+      'city',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
+    
 
     const formattedCity = [];
 
