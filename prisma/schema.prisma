@@ -132,7 +132,7 @@ model ProductServiceCategoryTranslations {
 
   ProductServiceCategory ProductServiceCategory @relation(fields: [productServiceCategoryId], references: [id])
 
-  @@map("product_service_categorzy_translations")
+  @@map("product_service_category_translations")
 }
 
 model ProductServiceSubCategory {
@@ -364,7 +364,7 @@ model Passage {
   id                         Int                          @id @default(autoincrement())
   regionId                   Int                          @map("region_id")
   cityId                     Int                          @map("city_id")
-  index                      String                       @db.VarChar(32)
+  index                      String                       @db.VarChar(1000)
   status                     Int                          @default(1) @db.SmallInt()
   staffNumber                String?                      @map("staff_number") @db.VarChar(40)
   districtId                 Int?                         @map("district_id")
@@ -746,7 +746,7 @@ model Lane {
   id                      Int                       @id @default(autoincrement())
   regionId                Int                       @map("region_id")
   cityId                  Int                       @map("city_id")
-  index                   String                    @db.VarChar(32)
+  index                   String                    @db.VarChar(1000)
   status                  Int                       @default(1) @db.SmallInt()
   staffNumber             String?                   @map("staff_number") @db.VarChar(40)
   districtId              Int?                      @map("district_id")
