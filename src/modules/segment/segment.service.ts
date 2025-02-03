@@ -5,16 +5,14 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
-  LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
-import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import {
   SegmentCreateDto,
   SegmentInterfaces,
   SegmentUpdateDto,
 } from 'types/organization/segment';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Injectable()
 export class SegmentService {
@@ -24,6 +22,7 @@ export class SegmentService {
     const segment = await this.prisma.segment.create({
       data: {
         name: data.name,
+        orderNumber: data.orderNumber,
       },
       select: {
         id: true,
@@ -38,11 +37,24 @@ export class SegmentService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: ListQueryWithOrderDto
   ): Promise<SegmentInterfaces.ResponseWithPagination> {
     if (data.all) {
       const segments = await this.prisma.segment.findMany({
-        orderBy: { createdAt: 'desc' },
+        orderBy:
+          data.order === 'name'
+            ? [
+              { name: 'asc' },
+              {
+                orderNumber: 'asc',
+              },
+            ]
+            : [
+                {
+                  orderNumber: 'asc',
+                },
+                { name: 'asc' },
+              ],
         where: {
           ...(data.status !== 2
             ? {
@@ -82,7 +94,20 @@ export class SegmentService {
 
     const categories = await this.prisma.segment.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy:
+        data.order === 'name'
+          ? [
+              { name: 'asc' },
+              {
+                orderNumber: 'asc',
+              },
+            ]
+          : [
+              {
+                orderNumber: 'asc',
+              },
+              { name: 'asc' },
+            ],
       take: pagination.take,
       skip: pagination.skip,
     });
@@ -119,6 +144,7 @@ export class SegmentService {
       },
       data: {
         name: data.name,
+        orderNumber: data.orderNumber,
       },
       select: {
         id: true,

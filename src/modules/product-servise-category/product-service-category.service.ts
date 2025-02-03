@@ -5,7 +5,6 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
@@ -15,6 +14,9 @@ import {
   ProductServiseCategoryInterfaces,
   ProductServiseCategoryUpdateDto,
 } from 'types/organization/product-service-category';
+import { Prisma } from '@prisma/client';
+import { getSingleOrderedData } from '@/common/helper/sql-rows-for-select/get-single-ordered-data.dto';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Injectable()
 export class ProductServiceCategoryService {
@@ -27,7 +29,7 @@ export class ProductServiceCategoryService {
       await this.prisma.productServiceCategory.create({
         data: {
           staffNumber: data.staffNumber,
-
+          orderNumber: data.orderNumber,
           ProductServiceCategoryTranslations: {
             create: [
               {
@@ -53,33 +55,44 @@ export class ProductServiceCategoryService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: ListQueryWithOrderDto
   ): Promise<ProductServiseCategoryInterfaces.ResponseWithPagination> {
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+              EXISTS (
+                SELECT 1
+                FROM product_service_category_translations ct
+                WHERE ct.product_service_category_id = c.id
+                  AND ct.language_code = ${data.langCode}
+                  AND ct.name ILIKE ${`%${data.search}%`}
+              )
+            `);
+      } else {
+        conditions.push(Prisma.sql`
+              EXISTS (
+                SELECT 1
+                FROM product_service_category_translations ct
+                WHERE ct.product_service_category_id = c.id
+                  AND ct.name ILIKE ${`%${data.search}%`}
+                ORDER BY ct.language_code   
+                LIMIT 1
+              )
+            `);
+      }
+    }
+
     if (data.all) {
-      const productServiceCategories =
-        await this.prisma.productServiceCategory.findMany({
-          orderBy: { createdAt: 'desc' },
-          where: {
-            ...(data.status !== 2
-              ? {
-                  status: data.status,
-                }
-              : {}),
-          },
-          include: {
-            ProductServiceCategoryTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode, // langCode from request
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        });
+      const productServiceCategories = await getSingleOrderedData(
+        'ProductServiceCategory',
+        'product_service_category',
+        this.prisma,
+        data,
+        conditions
+      );
 
       const formattedCategories = productServiceCategories.map(
         (productServiceCategory) => {
@@ -129,26 +142,14 @@ export class ProductServiceCategoryService {
       perPage: data.limit,
     });
 
-    const productServiceCategories =
-      await this.prisma.productServiceCategory.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          ProductServiceCategoryTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode, // langCode from request
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-        take: pagination.take,
-        skip: pagination.skip,
-      });
+    const productServiceCategories = await getSingleOrderedData(
+      'ProductServiceCategory',
+      'product_service_category',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
 
     const formattedCategories = productServiceCategories.map(
       (productServiceCategory) => {
@@ -216,6 +217,7 @@ export class ProductServiceCategoryService {
       },
       data: {
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         ProductServiceCategoryTranslations: {
           updateMany: [
             {

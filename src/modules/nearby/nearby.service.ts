@@ -11,13 +11,14 @@ import {
   DeleteDto,
   GetOneDto,
   LanguageRequestEnum,
-  ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { NearbyCategoryService } from '../nearby-category/nearby-category.service';
+import { getNearbyOrderedData } from '@/common/helper/sql-rows-for-select/get-nearby-ordered-data.dto';
+import { Prisma } from '@prisma/client';
 @Injectable()
 export class NearbyService {
   constructor(
@@ -44,6 +45,7 @@ export class NearbyService {
         regionId: region.id,
         cityId: city.id,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         NearbyTranslations: {
           create: [
             {
@@ -71,72 +73,49 @@ export class NearbyService {
   async findAll(
     data: NearbyFilterDto
   ): Promise<NearbyInterfaces.ResponseWithPagination> {
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM nearby_translations ct
+            WHERE ct.nearby_id = c.id
+              AND ct.language_code = ${data.langCode}
+              AND ct.name ILIKE ${`%${data.search}%`}
+          )
+        `);
+      } else {
+        conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM nearby_translations ct
+            WHERE ct.nearby_id = c.id
+              AND ct.name ILIKE ${`%${data.search}%`}
+            ORDER BY ct.language_code   
+            LIMIT 1
+          )
+        `);
+      }
+    }
+    if (data.nearbyCategoryId) {
+      conditions.push(
+        Prisma.sql`c.nearby_category_id = ${data.nearbyCategoryId}`
+      );
+    }
+    if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
+    if (data.regionId)
+      conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
     if (data.all) {
-      const nearby = await this.prisma.nearby.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          nearbyCategoryId: data.nearbyCategoryId,
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-        },
-        include: {
-          NearbyTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          Region: {
-            include: {
-              RegionTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          City: {
-            include: {
-              CityTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          NearbyCategory: {
-            select: {
-              id: true,
-              name: true,
-              staffNumber: true,
-              status: true,
-              createdAt: true,
-              updatedAt: true,
-              deletedAt: true,
-            },
-          },
-        },
-      });
+      const nearby = await getNearbyOrderedData(
+        'Nearby',
+        'nearby',
+        this.prisma,
+        data,
+        conditions
+      );
 
       const formattedDistrict = [];
 
@@ -146,20 +125,20 @@ export class NearbyService {
         const name = formatLanguageResponse(translations);
         delete nearbyData.NearbyTranslations;
 
-        const regionTranslations = nearbyData.Region.RegionTranslations;
+        const regionTranslations = nearbyData.region.RegionTranslations;
         const regionName = formatLanguageResponse(regionTranslations);
-        delete nearbyData.Region.RegionTranslations;
-        const region = { ...nearbyData.Region, name: regionName };
-        delete nearbyData.Region;
+        delete nearbyData.region.RegionTranslations;
+        const region = { ...nearbyData.region, name: regionName };
+        delete nearbyData.region;
 
-        const cityTranslations = nearbyData.City.CityTranslations;
+        const cityTranslations = nearbyData.city.CityTranslations;
         const cityName = formatLanguageResponse(cityTranslations);
-        delete nearbyData.City.CityTranslations;
-        const city = { ...nearbyData.City, name: cityName };
-        delete nearbyData.City;
+        delete nearbyData.city.CityTranslations;
+        const city = { ...nearbyData.city, name: cityName };
+        delete nearbyData.city;
 
-        nearbyData.category = nearbyData.NearbyCategory;
-        delete nearbyData.NearbyCategory;
+        nearbyData.category = nearbyData.nearbycategory;
+        delete nearbyData.nearbycategory;
         formattedDistrict.push({
           ...nearbyData,
           name,
@@ -182,6 +161,8 @@ export class NearbyService {
             status: data.status,
           }),
       nearbyCategoryId: data.nearbyCategoryId,
+      cityId: data.cityId,
+      regionId: data.regionId,
     };
 
     if (data.search) {
@@ -206,62 +187,15 @@ export class NearbyService {
       perPage: data.limit,
     });
 
-    const nearby = await this.prisma.nearby.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        NearbyTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        Region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        City: {
-          include: {
-            CityTranslations: {
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        NearbyCategory: {
-          select: {
-            id: true,
-            name: true,
-            staffNumber: true,
-            status: true,
-            createdAt: true,
-            updatedAt: true,
-            deletedAt: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-
+    const nearby = await getNearbyOrderedData(
+      'Nearby',
+      'nearby',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
+    
     const formattedNearby = [];
 
     for (let i = 0; i < nearby.length; i++) {
@@ -271,20 +205,20 @@ export class NearbyService {
 
       delete nearbyData.NearbyTranslations;
 
-      const regionTranslations = nearbyData.Region.RegionTranslations;
+      const regionTranslations = nearbyData.region.RegionTranslations;
       const regionName = formatLanguageResponse(regionTranslations);
-      delete nearbyData.Region.RegionTranslations;
-      const region = { ...nearbyData.Region, name: regionName };
-      delete nearbyData.Region;
+      delete nearbyData.region.RegionTranslations;
+      const region = { ...nearbyData.region, name: regionName };
+      delete nearbyData.region;
 
-      const cityTranslations = nearbyData.City.CityTranslations;
+      const cityTranslations = nearbyData.city.CityTranslations;
       const cityName = formatLanguageResponse(cityTranslations);
-      delete nearbyData.City.CityTranslations;
-      const city = { ...nearbyData.City, name: cityName };
-      delete nearbyData.City;
+      delete nearbyData.city.CityTranslations;
+      const city = { ...nearbyData.city, name: cityName };
+      delete nearbyData.city;
 
-      nearbyData.category = nearbyData.NearbyCategory;
-      delete nearbyData.NearbyCategory;
+      nearbyData.category = nearbyData.nearbycategory;
+      delete nearbyData.nearbycategory;
 
       formattedNearby.push({
         ...nearbyData,
@@ -433,6 +367,7 @@ export class NearbyService {
         regionId: data.regionId || nearby.regionId,
         cityId: data.cityId || nearby.cityId,
         staffNumber: data.staffNumber || nearby.staffNumber,
+        orderNumber: data.orderNumber,
         NearbyTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

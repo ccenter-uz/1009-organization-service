@@ -16,6 +16,9 @@ import {
   PhoneTypeInterfaces,
 } from 'types/organization/phone-type';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
+import { getSingleOrderedData } from '@/common/helper/sql-rows-for-select/get-single-ordered-data.dto';
+import { Prisma } from '@prisma/client';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Injectable()
 export class PhoneTypeService {
@@ -27,6 +30,7 @@ export class PhoneTypeService {
     const phoneTypes = await this.prisma.phoneTypes.create({
       data: {
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         PhoneTypesTranslations: {
           create: [
             {
@@ -52,32 +56,44 @@ export class PhoneTypeService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: ListQueryWithOrderDto
   ): Promise<PhoneTypeInterfaces.ResponseWithPagination> {
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM phone_types_id_translations ct
+            WHERE ct.phone_types_id = c.id
+              AND ct.language_code = ${data.langCode}
+              AND ct.name ILIKE ${`%${data.search}%`}
+          )
+        `);
+      } else {
+        conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM phone_types_id_translations ct
+            WHERE ct.phone_types_id = c.id
+              AND ct.name ILIKE ${`%${data.search}%`}
+            ORDER BY ct.language_code   
+            LIMIT 1
+          )
+        `);
+      }
+    }
+
     if (data.all) {
-      const phoneType = await this.prisma.phoneTypes.findMany({
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-        },
-        include: {
-          PhoneTypesTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode, // langCode from request
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+      const phoneType = await getSingleOrderedData(
+        'PhoneTypes',
+        'phone_types',
+        this.prisma,
+        data,
+        conditions
+      );
 
       const formattedPhoneTypes = phoneType.map((productServiceCategory) => {
         const translations = productServiceCategory.PhoneTypesTranslations;
@@ -124,25 +140,15 @@ export class PhoneTypeService {
       perPage: data.limit,
     });
 
-    const phoneType = await this.prisma.phoneTypes.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        PhoneTypesTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode, // langCode from request
-              },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    
+    const phoneType = await getSingleOrderedData(
+      'PhoneTypes',
+      'phone_types',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
 
     const formattedCategories = phoneType.map((productServiceCategory) => {
       const translations = productServiceCategory.PhoneTypesTranslations;
@@ -201,6 +207,7 @@ export class PhoneTypeService {
       },
       data: {
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         PhoneTypesTranslations: {
           updateMany: [
             {

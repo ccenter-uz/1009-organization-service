@@ -7,13 +7,8 @@ import {
   CategoryInterfaces,
   CategoryUpdateDto,
 } from 'types/organization/category';
-import {
-  DeleteDto,
-  GetOneDto,
-  LanguageRequestDto,
-  ListQueryDto,
-} from 'types/global';
-import { CategoryFilterDto } from 'types/organization/category/dto/filter-category.dto';
+import { DeleteDto, GetOneDto } from 'types/global';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 
 @Controller('category')
 export class CategoryController {
@@ -30,7 +25,7 @@ export class CategoryController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: CategoryFilterDto
+    @Payload() data: CityRegionFilterDto
   ): Promise<CategoryInterfaces.ResponseWithoutPagination> {
     return this.categoryService.findAll(data);
   }

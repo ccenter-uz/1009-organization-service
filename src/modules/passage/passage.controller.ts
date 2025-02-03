@@ -13,6 +13,7 @@ import {
   LanguageRequestDto,
   ListQueryDto,
 } from 'types/global';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 
 @Controller('passage')
 export class PassageController {
@@ -29,7 +30,7 @@ export class PassageController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: CityRegionFilterDto
   ): Promise<PassageInterfaces.ResponseWithoutPagination> {
     return this.passageService.findAll(data);
   }

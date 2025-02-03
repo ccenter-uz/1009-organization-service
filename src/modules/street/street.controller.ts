@@ -13,6 +13,7 @@ import {
   LanguageRequestDto,
   ListQueryDto,
 } from 'types/global';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 
 @Controller('street')
 export class StreetController {
@@ -27,11 +28,10 @@ export class StreetController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: CityRegionFilterDto
   ): Promise<StreetInterfaces.ResponseWithoutPagination> {
     return this.streetService.findAll(data);
   }
-
 
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })

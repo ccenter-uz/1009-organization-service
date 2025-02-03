@@ -7,11 +7,8 @@ import {
   VillageInterfaces,
   VillageServiceCommands as Commands,
 } from 'types/organization/village';
-import {
-  DeleteDto,
-  GetOneDto,
-  ListQueryDto,
-} from 'types/global';
+import { DeleteDto, GetOneDto, ListQueryDto } from 'types/global';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 
 @Controller('village')
 export class VillageController {
@@ -28,11 +25,10 @@ export class VillageController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: CityRegionFilterDto
   ): Promise<VillageInterfaces.ResponseWithoutPagination> {
     return this.villageService.findAll(data);
   }
-
 
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })
