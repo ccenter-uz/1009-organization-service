@@ -17,6 +17,8 @@ import {
   StreetInterfaces,
   StreetUpdateDto,
 } from 'types/organization/street';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
+import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 @Injectable()
 export class StreetService {
   constructor(
@@ -87,6 +89,7 @@ export class StreetService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         StreetTranslations: {
           create: [
             {
@@ -115,121 +118,15 @@ export class StreetService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: CityRegionFilterDto
   ): Promise<StreetInterfaces.ResponseWithPagination> {
     if (data.all) {
-      const streets = await this.prisma.street.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-        },
-        include: {
-          StreetTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          StreetOldNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          StreetNewNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          region: {
-            include: {
-              RegionTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          city: {
-            include: {
-              CityTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          district: {
-            include: {
-              DistrictTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictNewNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictOldNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
+      const streets = await getOrderedDataWithDistrict(
+        'Street',
+        'street',
+        this.prisma,
+        data
+      );
 
       const formattedStreet = [];
 
@@ -306,6 +203,8 @@ export class StreetService {
         : {
             status: data.status,
           }),
+      cityId: data.cityId,
+      regionId: data.regionId,
     };
     if (data.search) {
       where.StreetTranslations = {
@@ -328,114 +227,13 @@ export class StreetService {
       perPage: data.limit,
     });
 
-    const streets = await this.prisma.street.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        StreetTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        StreetNewNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        StreetOldNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        city: {
-          include: {
-            CityTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        district: {
-          include: {
-            DistrictTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictNewNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictOldNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const streets = await getOrderedDataWithDistrict(
+      'Street',
+      'street',
+      this.prisma,
+      data,
+      pagination
+    );
 
     const formattedStreet = [];
 
@@ -766,6 +564,7 @@ export class StreetService {
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || street.staffNumber,
         index: data.index || street.index,
+        orderNumber: data.orderNumber,
         StreetTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

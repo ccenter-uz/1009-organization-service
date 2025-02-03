@@ -17,6 +17,8 @@ import {
   ImpasseInterfaces,
   ImpasseUpdateDto,
 } from 'types/organization/impasse';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
+import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 @Injectable()
 export class ImpasseService {
   constructor(
@@ -85,6 +87,7 @@ export class ImpasseService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         ImpasseTranslations: {
           create: [
             {
@@ -113,121 +116,15 @@ export class ImpasseService {
   }
 
   async findAll(
-    data: ListQueryDto
+    data: CityRegionFilterDto
   ): Promise<ImpasseInterfaces.ResponseWithPagination> {
     if (data.all) {
-      const impasses = await this.prisma.impasse.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-        },
-        include: {
-          ImpasseTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          ImpasseOldNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          ImpasseNewNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          region: {
-            include: {
-              RegionTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          city: {
-            include: {
-              CityTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          district: {
-            include: {
-              DistrictTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictNewNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictOldNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
+      let impasses = await getOrderedDataWithDistrict(
+        'Impasse',
+        'impasse',
+        this.prisma,
+        data
+      );
 
       const formattedImpasse = [];
 
@@ -306,6 +203,8 @@ export class ImpasseService {
         : {
             status: data.status,
           }),
+      cityId: data.cityId,
+      regionId: data.regionId,
     };
     if (data.search) {
       where.ImpasseTranslations = {
@@ -328,115 +227,13 @@ export class ImpasseService {
       perPage: data.limit,
     });
 
-    const impasses = await this.prisma.impasse.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        ImpasseTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        ImpasseNewNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        ImpasseOldNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        city: {
-          include: {
-            CityTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        district: {
-          include: {
-            DistrictTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictNewNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictOldNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-
+    let impasses = await getOrderedDataWithDistrict(
+      'Impasse',
+      'impasse',
+      this.prisma,
+      data,
+      pagination
+    );
     const formattedImpasse = [];
 
     for (let i = 0; i < impasses.length; i++) {
@@ -767,6 +564,7 @@ export class ImpasseService {
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || impasse.staffNumber,
         index: data.index || impasse.index,
+        orderNumber: data.orderNumber,
         ImpasseTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

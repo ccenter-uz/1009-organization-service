@@ -13,6 +13,7 @@ import {
   NearbyCategoryCreateDto,
   NearbyCategoryInterfaces,
 } from 'types/organization/nearby-category';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Controller('nearby-category')
 export class NearbyCategoryController {
@@ -29,7 +30,7 @@ export class NearbyCategoryController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: ListQueryWithOrderDto
   ): Promise<NearbyCategoryInterfaces.ResponseWithoutPagination> {
     return this.nearbyCategoryService.findAll(data);
   }

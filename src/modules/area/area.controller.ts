@@ -13,6 +13,7 @@ import {
   LanguageRequestDto,
   ListQueryDto,
 } from 'types/global';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 
 @Controller('area')
 export class AreaController {
@@ -27,7 +28,7 @@ export class AreaController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: CityRegionFilterDto
   ): Promise<AreaInterfaces.ResponseWithoutPagination> {
     return this.areaService.findAll(data);
   }

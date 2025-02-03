@@ -14,9 +14,7 @@ export class FtpService {
 
   async createExcelData(newRows: ExcelData[] | []): Promise<string> {
     try {
-
       newRows.forEach(async (row) => {
-
         const foundSegment = await this.prisma.segment.findFirst({
           where: {
             name: row['SEGMENT'] + '',
@@ -81,8 +79,10 @@ export class FtpService {
 
         await this.prisma.organizationVersion.create({
           data: {
-            ...res,
-            organizationId: res.id,
+            clientId: row['CLNT_ID'] + '' || '',
+            createdAt: row['START'] ? excelDateToDateTime(row['START']) : '',
+            deletedAt: row['STOP'] ? excelDateToDateTime(row['STOP']) : null,
+            name: row['NAME'] + '' || '',
             PhoneVersion: {
               create: [
                 {
@@ -91,6 +91,15 @@ export class FtpService {
                 },
               ],
             },
+            segmentId: segment.id || 0,
+            account: row['ACCOUNT'] + '' || '',
+            inn: row['INN'] + '' || '',
+            bankNumber: row['BANK'] + '' || '',
+            address: row['ADDRESS'] + '' || '',
+            mail: row['MAIL'] || '',
+            createdBy: CreatedByEnum.Billing,
+            status: OrganizationStatusEnum.Check,
+            organizationId: res.id,
           },
         });
       });

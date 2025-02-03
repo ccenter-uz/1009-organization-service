@@ -8,14 +8,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   CreatedByEnum,
   DefaultStatus,
-  DeleteDto,
   GetOneDto,
   LanguageRequestDto,
-  LanguageRequestEnum,
   ListQueryDto,
   OrganizationMethodEnum,
   OrganizationStatusEnum,
-  OrganizationVersionActionsEnum,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
@@ -119,7 +116,6 @@ export class OrganizationVersionService {
         Transfer: data['PaymentTypes'][0].Transfer,
       },
     ];
-
     const organizationVersion = await this.prisma.organizationVersion.create({
       data: {
         organizationId: data.id,
@@ -190,7 +186,7 @@ export class OrganizationVersionService {
     data: LanguageRequestDto
   ): Promise<OrganizationVersionInterfaces.ResponseWithoutPagination> {
     const organizations = await this.prisma.organization.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { name: 'asc' },
       include: {
         Picture: {
           select: {
@@ -346,7 +342,7 @@ export class OrganizationVersionService {
       where: {
         id: data.id,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { name: 'asc' },
       include: {
         Picture: {
           select: {
