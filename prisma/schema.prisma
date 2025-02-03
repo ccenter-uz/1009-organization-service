@@ -1260,7 +1260,7 @@ model AdditionalMentionTranslations {
 
 model AdditionalContent {
   id           Int       @id @default(autoincrement())
-  additionalId Int       @map("additional_category_id")
+  additionalId Int       @map("additional_id")
   status       Int       @default(1) @db.SmallInt()
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt    DateTime? @updatedAt @map("updated_at")
@@ -1288,7 +1288,7 @@ model AdditionalContentNameTranslations {
 
 model AdditionalContentContentTranslations {
   id                  Int       @id @default(autoincrement())
-  additionalContentId Int       @map("additional_id")
+  additionalContentId Int       @map("additional_content_id")
   languageCode        String    @map("language_code")
   name                String
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamp
@@ -1329,7 +1329,7 @@ model AdditionalTableNameTranslations {
 
 model AdditionalTableContentTranslations {
   id                Int       @id @default(autoincrement())
-  additionalTableId Int       @map("additional_id")
+  additionalTableId Int       @map("additional_table_id")
   languageCode      String    @map("language_code")
   name              String
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
