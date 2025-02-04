@@ -126,51 +126,7 @@ export class AdditionalService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
     if (data.all) {
-      const additionals = await this.prisma.additional.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-        },
-        include: {
-          AdditionalTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          AdditionalMentionTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          AdditionalWarningTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
+      const additionals = await getAllAdditional(this.prisma, data);
 
       const formattedCategories = [];
 
@@ -230,50 +186,8 @@ export class AdditionalService {
       page: data.page,
       perPage: data.limit,
     });
-    let ress = await getAllAdditional(this.prisma, data, pagination);
-    console.log('123123:', ress);
-
-    const additionals = await this.prisma.additional.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        AdditionalTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        AdditionalMentionTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-        AdditionalWarningTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    
+    const additionals = await getAllAdditional(this.prisma, data, pagination);
 
     const formattedCategories = [];
 
@@ -291,6 +205,28 @@ export class AdditionalService {
       const translationsMention = additional.AdditionalMentionTranslations;
       const mention = formatLanguageResponse(translationsMention);
       delete additional.AdditionalMentionTranslations;
+
+      if (data.langCode && !data.allLang) {
+        for (let z = 0; z < additional?.content?.length; z++) {
+          const element = additional.content[z];
+          if (element.name) {
+            element.name = element.name[data.langCode];
+          }
+          if (element.content) {
+            element.content = element.content[data.langCode];
+          }
+        }
+
+        for (let z = 0; z < additional?.table?.length; z++) {
+          const element = additional.table[z];
+          if (element.name) {
+            element.name = element.name[data.langCode];
+          }
+          if (element.content) {
+            element.content = element.content[data.langCode];
+          }
+        }
+      }
 
       formattedCategories.push({ ...additional, name, warning, mention });
     }
