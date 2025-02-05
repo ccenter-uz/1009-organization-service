@@ -39,6 +39,7 @@ import { AdditionalContentModule } from './modules/additional-content/additional
 import { AdditionalTableModule } from './modules/additional-table/additional-table.module';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
+import { NeighborhoodModule } from './modules/neighborhood/neighborhood.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { MonitoringModule } from './modules/monitoring/monitoring.module';
     AreaModule,
     AvenueModule,
     ResidentialAreaModule,
+    NeighborhoodModule,
     ImpasseModule,
     VillageModule,
     LaneModule,
