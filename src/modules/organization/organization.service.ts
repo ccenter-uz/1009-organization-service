@@ -54,6 +54,7 @@ import formatOrganizationResponseVersion, {
 } from '@/common/helper/for-Org-version/format-module-for-org';
 import { UnconfirmOrganizationFilterDto } from 'types/organization/organization/dto/filter-unconfirm-organization.dto';
 import { PassageService } from '../passage/passage.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class OrganizationService {
@@ -218,6 +219,14 @@ export class OrganizationService {
           productServices[i].productServiceSubCategoryId,
       });
     }
+    let CreatedByRole = CreatedByEnum.Moderator;
+
+    if (data.role == CreatedByEnum.Client) {
+      CreatedByRole = CreatedByEnum.Client;
+    }
+    if (data.role == CreatedByEnum.Operator) {
+      CreatedByRole = CreatedByEnum.Operator;
+    }
 
     const organization = await this.prisma.organization.create({
       data: {
@@ -256,10 +265,7 @@ export class OrganizationService {
           data.role == CreatedByEnum.Moderator
             ? OrganizationStatusEnum.Accepted
             : OrganizationStatusEnum.Check,
-        createdBy:
-          data.role == CreatedByEnum.Moderator
-            ? CreatedByEnum.Moderator
-            : CreatedByEnum.Client,
+        createdBy: CreatedByRole,
         PaymentTypes: {
           create: [
             {
@@ -576,9 +582,15 @@ export class OrganizationService {
     data: UnconfirmOrganizationFilterDto
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
     const include = buildIncludeVersion(includeConfigVersion, data);
+    console.log(data.createdBy, 'createdBy');
+
     const where = {
       status: 0,
-      createdBy: data.createdBy,
+      name: data.search
+        ? { contains: data.search, mode: Prisma.QueryMode.insensitive }
+        : undefined,
+      createdBy:
+        data.createdBy == CreatedByEnum.All ? undefined : data.createdBy,
     };
     if (data.all) {
       const organizations = await this.prisma.organizationVersion.findMany({
