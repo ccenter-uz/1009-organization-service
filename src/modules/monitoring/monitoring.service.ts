@@ -28,6 +28,8 @@ export class MonitoringService {
   async findAll(
     data: MonitoringFilterDto
   ): Promise<MonitoringInterfaces.ResponseWithPagination> {
+    console.log(data.onlyOrgs, 'ONLY ORGS');
+
     if (data.all) {
       const monitoringData = await this.prisma.apiLogs.findMany({
         orderBy: { createdAt: 'desc' },
@@ -63,6 +65,12 @@ export class MonitoringService {
 
     if (data.organizationId) {
       where.organizationId = data.organizationId;
+    }
+
+    if (data.onlyOrgs) {
+      where.organizationName = {
+        not: null,
+      };
     }
 
     const count = await this.prisma.apiLogs.count({
