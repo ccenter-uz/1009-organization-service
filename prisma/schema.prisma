@@ -1266,8 +1266,8 @@ model AdditionalContent {
   updatedAt    DateTime? @updatedAt @map("updated_at")
   deletedAt    DateTime? @map("deleted_at")
 
-  Additional                           Additional                             @relation(fields: [additionalId], references: [id])
-  AdditionalContentNameTranslations    AdditionalContentNameTranslations[]
+  Additional                           Additional                             @relation(fields: [additionalId], references: [id], onDelete: Cascade)
+  AdditionalContentNameTranslations    AdditionalContentNameTranslations[] 
   AdditionalContentContentTranslations AdditionalContentContentTranslations[]
 
   @@map("additional_content")
@@ -1281,7 +1281,7 @@ model AdditionalContentNameTranslations {
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt           DateTime? @updatedAt @map("updated_at")
 
-  AdditionalContent AdditionalContent @relation(fields: [additionalContentId], references: [id])
+  AdditionalContent AdditionalContent @relation(fields: [additionalContentId], references: [id], onDelete: Cascade)
 
   @@map("additional_content_name_translations")
 }
@@ -1294,7 +1294,7 @@ model AdditionalContentContentTranslations {
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt           DateTime? @updatedAt @map("updated_at")
 
-  AdditionalContent AdditionalContent @relation(fields: [additionalContentId], references: [id])
+  AdditionalContent AdditionalContent @relation(fields: [additionalContentId], references: [id], onDelete: Cascade)
 
   @@map("additional_content_content_translations")
 }
@@ -1322,7 +1322,7 @@ model AdditionalTableNameTranslations {
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt         DateTime? @updatedAt @map("updated_at")
 
-  AdditionalTable AdditionalTable @relation(fields: [additionalTableId], references: [id])
+  AdditionalTable AdditionalTable @relation(fields: [additionalTableId], references: [id], onDelete: Cascade)
 
   @@map("additional_table_name_translations")
 }
@@ -1335,7 +1335,7 @@ model AdditionalTableContentTranslations {
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt         DateTime? @updatedAt @map("updated_at")
 
-  AdditionalTable AdditionalTable @relation(fields: [additionalTableId], references: [id])
+  AdditionalTable AdditionalTable @relation(fields: [additionalTableId], references: [id], onDelete: Cascade)
 
   @@map("additional_table_content_translations")
 }
