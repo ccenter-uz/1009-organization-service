@@ -1331,14 +1331,14 @@ model AdditionalMentionTranslations {
 
 model AdditionalContent {
   id           Int       @id @default(autoincrement())
-  additionalId Int       @map("additional_category_id")
+  additionalId Int       @map("additional_id")
   status       Int       @default(1) @db.SmallInt()
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt    DateTime? @updatedAt @map("updated_at")
   deletedAt    DateTime? @map("deleted_at")
 
-  Additional                           Additional                             @relation(fields: [additionalId], references: [id])
-  AdditionalContentNameTranslations    AdditionalContentNameTranslations[]
+  Additional                           Additional                             @relation(fields: [additionalId], references: [id], onDelete: Cascade)
+  AdditionalContentNameTranslations    AdditionalContentNameTranslations[] 
   AdditionalContentContentTranslations AdditionalContentContentTranslations[]
 
   @@map("additional_content")
@@ -1352,20 +1352,20 @@ model AdditionalContentNameTranslations {
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt           DateTime? @updatedAt @map("updated_at")
 
-  AdditionalContent AdditionalContent @relation(fields: [additionalContentId], references: [id])
+  AdditionalContent AdditionalContent @relation(fields: [additionalContentId], references: [id], onDelete: Cascade)
 
   @@map("additional_content_name_translations")
 }
 
 model AdditionalContentContentTranslations {
   id                  Int       @id @default(autoincrement())
-  additionalContentId Int       @map("additional_id")
+  additionalContentId Int       @map("additional_content_id")
   languageCode        String    @map("language_code")
   name                String
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt           DateTime? @updatedAt @map("updated_at")
 
-  AdditionalContent AdditionalContent @relation(fields: [additionalContentId], references: [id])
+  AdditionalContent AdditionalContent @relation(fields: [additionalContentId], references: [id], onDelete: Cascade)
 
   @@map("additional_content_content_translations")
 }
@@ -1393,20 +1393,20 @@ model AdditionalTableNameTranslations {
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt         DateTime? @updatedAt @map("updated_at")
 
-  AdditionalTable AdditionalTable @relation(fields: [additionalTableId], references: [id])
+  AdditionalTable AdditionalTable @relation(fields: [additionalTableId], references: [id], onDelete: Cascade)
 
   @@map("additional_table_name_translations")
 }
 
 model AdditionalTableContentTranslations {
   id                Int       @id @default(autoincrement())
-  additionalTableId Int       @map("additional_id")
+  additionalTableId Int       @map("additional_table_id")
   languageCode      String    @map("language_code")
   name              String
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt         DateTime? @updatedAt @map("updated_at")
 
-  AdditionalTable AdditionalTable @relation(fields: [additionalTableId], references: [id])
+  AdditionalTable AdditionalTable @relation(fields: [additionalTableId], references: [id], onDelete: Cascade)
 
   @@map("additional_table_content_translations")
 }

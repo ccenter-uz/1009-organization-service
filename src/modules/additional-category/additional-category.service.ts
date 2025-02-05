@@ -16,6 +16,9 @@ import {
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { AdditionalCategoryFilterDto } from 'types/organization/additional-category/dto/filter-additional-category.dto';
+import { Prisma } from '@prisma/client';
+import { getSingleData } from '@/common/helper/sql-rows-for-select/get-single-data.dto';
+import { getAllAdditional } from '@/common/helper/sql-rows-for-select/get-ordered-additional-data.dto';
 
 @Injectable()
 export class AdditionalCategoryService {
@@ -68,30 +71,41 @@ export class AdditionalCategoryService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+                  EXISTS (
+                    SELECT 1
+                    FROM additional_category_translations ct
+                    WHERE ct.additional_category_id = c.id
+                      AND ct.language_code = ${data.langCode}
+                      AND ct.name ILIKE ${`%${data.search}%`}
+                  )
+                `);
+      } else {
+        conditions.push(Prisma.sql`
+                  EXISTS (
+                    SELECT 1
+                    FROM additional_category_translations ct
+                    WHERE ct.additional_category_id = c.id
+                      AND ct.name ILIKE ${`%${data.search}%`}
+                    ORDER BY ct.language_code   
+                    LIMIT 1
+                  )
+                `);
+      }
+    }
     if (data.all) {
-      const additionalCategories = await this.prisma.additionalCategory.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-        },
-        include: {
-          AdditionalCategoryTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
+      const additionalCategories = await getSingleData(
+        'AdditionalCategory',
+        'additional_category',
+        this.prisma,
+        data,
+        conditions
+      );
 
       const formattedCategories = [];
 
@@ -143,26 +157,15 @@ export class AdditionalCategoryService {
       page: data.page,
       perPage: data.limit,
     });
-
-    const additionalCategories = await this.prisma.additionalCategory.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        AdditionalCategoryTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    
+    const additionalCategories = await getSingleData(
+      'AdditionalCategory',
+      'additional_category',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
 
     const formattedCategories = [];
 

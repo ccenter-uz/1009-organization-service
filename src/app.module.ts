@@ -35,8 +35,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { CronJobModule } from './common/cron/cron.module';
 import { AdditionalCategoryModule } from './modules/additional-category/additional-category.module';
 import { AdditionalModule } from './modules/additional/additional.module';
-import { AdditionalContentModule } from './modules/additional-content/additional-content.module';
-import { AdditionalTableModule } from './modules/additional-table/additional-table.module';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { NeighborhoodModule } from './modules/neighborhood/neighborhood.module';
@@ -75,8 +73,6 @@ import { NeighborhoodModule } from './modules/neighborhood/neighborhood.module';
     FtpModule,
     AdditionalCategoryModule,
     AdditionalModule,
-    AdditionalContentModule,
-    AdditionalTableModule,
     MonitoringModule,
     // CronJobModule,
   ],
