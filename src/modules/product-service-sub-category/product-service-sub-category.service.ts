@@ -99,10 +99,10 @@ export class ProductServiceSubCategoryService {
     }
     if (data.all) {
       const ProductServiceSubCategories = await getSubCategoryOrderedData(
-        'SubCategory',
-        'sub_category',
-        'Category',
-        'category',
+        'ProductServiceSubCategory',
+        'product_service_sub_category',
+        'ProductServiceCategory',
+        'product_service_category',
         this.prisma,
         data,
         conditions
@@ -115,9 +115,18 @@ export class ProductServiceSubCategoryService {
         const translations = subCategory.ProductServiceSubCategoryTranslations;
         const name = formatLanguageResponse(translations);
 
+        const category = ProductServiceSubCategories[i].ProductServiceCategory;
+        const categoryTranslations =
+          category.ProductServiceCategoryTranslations;
+        const categoryName = formatLanguageResponse(categoryTranslations);
+        delete ProductServiceSubCategories[i].ProductServiceCategory
+          .ProductServiceCategoryTranslations;
         delete subCategory.ProductServiceSubCategoryTranslations;
-
-        formattedSubCategories.push({ ...subCategory, name });
+        formattedSubCategories.push({
+          ...subCategory,
+          name,
+          ProductServiceCategory: { ...category, name: { ...categoryName } },
+        });
       }
 
       return {
@@ -163,9 +172,10 @@ export class ProductServiceSubCategoryService {
       'product_service_category',
       this.prisma,
       data,
-      conditions
+      conditions,
+      pagination
     );
-    
+
     const formattedSubCategories = [];
 
     for (let i = 0; i < ProductServiceSubCategories.length; i++) {
