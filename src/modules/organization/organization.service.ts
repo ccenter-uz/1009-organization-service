@@ -55,6 +55,7 @@ import formatOrganizationResponseVersion, {
 import { UnconfirmOrganizationFilterDto } from 'types/organization/organization/dto/filter-unconfirm-organization.dto';
 import { PassageService } from '../passage/passage.service';
 import { Prisma } from '@prisma/client';
+import { NeighborhoodService } from '../neighborhood/neighborhood.service';
 
 @Injectable()
 export class OrganizationService {
@@ -72,6 +73,7 @@ export class OrganizationService {
     private readonly VillageService: VillageService,
     private readonly AvenueService: AvenueService,
     private readonly ResidentialAreaService: ResidentialAreaService,
+    private readonly NeighborhoodService: NeighborhoodService,
     private readonly AreaService: AreaService,
     private readonly StreetService: StreetService,
     private readonly LaneService: LaneService,
@@ -126,6 +128,13 @@ export class OrganizationService {
     if (data.residentialId) {
       residential = await this.ResidentialAreaService.findOne({
         id: data.residentialId,
+      });
+    }
+
+    let neighborhood;
+    if (data.neighborhoodId) {
+      neighborhood = await this.NeighborhoodService.findOne({
+        id: data.neighborhoodId,
       });
     }
 
@@ -236,6 +245,7 @@ export class OrganizationService {
         villageId: village?.id,
         avenueId: avenue?.id,
         residentialId: residential?.id,
+        neighborhoodId: neighborhood?.id,
         areaId: area?.id,
         streetId: street?.id,
         laneId: lane?.id,
@@ -792,6 +802,7 @@ export class OrganizationService {
         villageId: organizationVersion.villageId,
         avenueId: organizationVersion.avenueId,
         residentialId: organizationVersion.residentialId,
+        neighborhoodId: organizationVersion.neighborhoodId,
         areaId: organizationVersion.areaId,
         streetId: organizationVersion.streetId,
         laneId: organizationVersion.laneId,
