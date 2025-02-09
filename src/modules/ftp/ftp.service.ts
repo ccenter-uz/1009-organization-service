@@ -1,5 +1,5 @@
 import { SegmentService } from './../segment/segment.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import excelDateToDateTime from '@/common/helper/excelDateConverter';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatedByEnum, OrganizationStatusEnum } from 'types/global';
@@ -7,13 +7,19 @@ import { ExcelData } from 'types/organization/organization/dto/create-exel.dto';
 
 @Injectable()
 export class FtpService {
+  private logger = new Logger(FtpService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly segment: SegmentService
   ) {}
 
   async createExcelData(newRows: ExcelData[] | []): Promise<string> {
+    const methodName: string = this.createExcelData.name;
+
     try {
+      this.logger.debug(`Method: ${methodName} - Request: `, newRows);
+
       newRows.forEach(async (row) => {
         const foundSegment = await this.prisma.segment.findFirst({
           where: {
@@ -102,6 +108,7 @@ export class FtpService {
             organizationId: res.id,
           },
         });
+        this.logger.debug(`Method: ${methodName} - Response: `, res);
       });
     } catch (error) {
       console.error('Error processing CSV files:', error.message);

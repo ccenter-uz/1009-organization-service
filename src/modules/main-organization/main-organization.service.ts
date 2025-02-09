@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
 
@@ -18,12 +18,16 @@ import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dt
 
 @Injectable()
 export class MainOrganizationService {
+  private logger = new Logger(MainOrganizationService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async create(
     data: MainOrganizationCreateDto
   ): Promise<MainOrganizationInterfaces.Response> {
-    
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const mainOrganization = await this.prisma.mainOrganization.create({
       data: {
         staffNumber: data.staffNumber,
@@ -32,12 +36,16 @@ export class MainOrganizationService {
       },
     });
 
+    this.logger.debug(`Method: ${methodName} - Response: `, mainOrganization);    
+
     return mainOrganization;
   }
 
   async findAll(
     data: ListQueryWithOrderDto
   ): Promise<MainOrganizationInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
       const mainOrganization = await this.prisma.mainOrganization.findMany({
         where: {
@@ -62,6 +70,7 @@ export class MainOrganizationService {
                 { name: 'asc' },
               ],
       });
+      this.logger.debug(`Method: ${methodName} - Response: `, mainOrganization);
 
       return {
         data: mainOrganization,
@@ -113,7 +122,7 @@ export class MainOrganizationService {
       take: pagination.take,
       skip: pagination.skip,
     });
-
+    this.logger.debug(`Method: ${methodName} -  Response: `, mainOrganization);
     return {
       data: mainOrganization,
       totalPage: pagination.totalPage,
@@ -122,6 +131,8 @@ export class MainOrganizationService {
   }
 
   async findOne(data: GetOneDto): Promise<MainOrganizationInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const mainOrganization = await this.prisma.mainOrganization.findFirst({
       where: {
         id: data.id,
@@ -132,16 +143,19 @@ export class MainOrganizationService {
     if (!mainOrganization) {
       throw new NotFoundException('Main Organization is not found');
     }
-
+    this.logger.debug(`Method: ${methodName} - Response: `, mainOrganization);
     return mainOrganization;
   }
 
   async update(
     data: MainOrganizationUpdateDto
   ): Promise<MainOrganizationInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const mainOrganization = await this.findOne({ id: data.id });
 
-    return await this.prisma.mainOrganization.update({
+    const updatedMainOrganization = await this.prisma.mainOrganization.update({
       where: {
         id: mainOrganization.id,
       },
@@ -151,25 +165,61 @@ export class MainOrganizationService {
         orderNumber: data.orderNumber,
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedMainOrganization
+    );
+
+    return updatedMainOrganization;
   }
 
   async remove(data: DeleteDto): Promise<MainOrganizationInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.mainOrganization.delete({
-        where: { id: data.id },
-      });
+      const deletedMainOrganization = await this.prisma.mainOrganization.delete(
+        {
+          where: { id: data.id },
+        }
+      );
+
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        deletedMainOrganization
+      );
+
+      return deletedMainOrganization;
     }
 
-    return await this.prisma.mainOrganization.update({
+    const updatedMainOrganization = await this.prisma.mainOrganization.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedMainOrganization
+    );
+
+    return updatedMainOrganization;
   }
 
   async restore(data: GetOneDto): Promise<MainOrganizationInterfaces.Response> {
-    return this.prisma.mainOrganization.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedMainOrganization = this.prisma.mainOrganization.update({
       where: { id: data.id, status: DefaultStatus.INACTIVE },
       data: { status: DefaultStatus.ACTIVE },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedMainOrganization
+    );
+
+    return updatedMainOrganization;
   }
 }
