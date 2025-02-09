@@ -39,6 +39,7 @@ import {
 } from 'types/organization/organization-version';
 import { OrganizationService } from '../organization/organization.service';
 import { PhoneTypeService } from '../phone-type/phone-type.service';
+import { NeighborhoodService } from '../neighborhood/neighborhood.service';
 
 @Injectable()
 export class OrganizationVersionService {
@@ -58,6 +59,7 @@ export class OrganizationVersionService {
     private readonly villageService: VillageService,
     private readonly avenueService: AvenueService,
     private readonly residentialAreaService: ResidentialAreaService,
+    private readonly NeighborhoodService: NeighborhoodService,
     private readonly areaService: AreaService,
     private readonly streetService: StreetService,
     private readonly laneService: LaneService,
@@ -131,6 +133,7 @@ export class OrganizationVersionService {
         villageId: data.villageId,
         avenueId: data.avenueId,
         residentialId: data.residentialId,
+        neighborhoodId: data.neighborhoodId,
         areaId: data.areaId,
         streetId: data.streetId,
         laneId: data.laneId,
@@ -480,6 +483,12 @@ export class OrganizationVersionService {
         id: data.residentialId,
       });
     }
+
+    if(data.neighborhoodId) {
+      await this.NeighborhoodService.findOne({
+        id: data.neighborhoodId,
+      });
+    }
     if (data.areaId) {
       await this.areaService.findOne({
         id: data.areaId,
@@ -616,6 +625,7 @@ export class OrganizationVersionService {
           villageId: data.villageId || null,
           avenueId: data.avenueId || null,
           residentialId: data.residentialId || null,
+          neighborhoodId: data.neighborhoodId || null,
           areaId: data.areaId || null,
           streetId: data.streetId || null,
           laneId: data.laneId || null,
