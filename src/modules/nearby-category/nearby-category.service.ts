@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
 
@@ -19,12 +19,16 @@ import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dt
 
 @Injectable()
 export class NearbyCategoryService {
+  private logger = new Logger(NearbyCategoryService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async create(
     data: NearbyCategoryCreateDto
   ): Promise<NearbyCategoryInterfaces.Response> {
-    
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const nearbyCategory = await this.prisma.nearbyCategory.create({
       data: {
         staffNumber: data.staffNumber,
@@ -32,13 +36,16 @@ export class NearbyCategoryService {
         orderNumber: data.orderNumber,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, nearbyCategory);
+
     return nearbyCategory;
   }
 
   async findAll(
     data: ListQueryWithOrderDto
   ): Promise<NearbyCategoryInterfaces.ResponseWithPagination> {
-
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
       const nearbyCategry = await this.prisma.nearbyCategory.findMany({
         where: {
@@ -63,6 +70,7 @@ export class NearbyCategoryService {
                 { name: 'asc' },
               ],
       });
+      this.logger.debug(`Method: ${methodName} - Response: `, nearbyCategry);
 
       return {
         data: nearbyCategry,
@@ -114,6 +122,7 @@ export class NearbyCategoryService {
       take: pagination.take,
       skip: pagination.skip,
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, nearby);
 
     return {
       data: nearby,
@@ -123,6 +132,9 @@ export class NearbyCategoryService {
   }
 
   async findOne(data: GetOneDto): Promise<NearbyCategoryInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const nearbyCategry = await this.prisma.nearbyCategory.findFirst({
       where: {
         id: data.id,
@@ -133,6 +145,7 @@ export class NearbyCategoryService {
     if (!nearbyCategry) {
       throw new NotFoundException('Nearby Category is not found');
     }
+    this.logger.debug(`Method: ${methodName} - Response: `, nearbyCategry);
 
     return nearbyCategry;
   }
@@ -140,9 +153,12 @@ export class NearbyCategoryService {
   async update(
     data: NearbyCategoryUpdateDto
   ): Promise<NearbyCategoryInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const nearbyCategry = await this.findOne({ id: data.id });
 
-    return await this.prisma.nearbyCategory.update({
+    const updatedNearbyCategory = await this.prisma.nearbyCategory.update({
       where: {
         id: nearbyCategry.id,
       },
@@ -152,25 +168,55 @@ export class NearbyCategoryService {
         orderNumber: data.orderNumber,
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedNearbyCategory
+    );
+    return updatedNearbyCategory;
   }
 
   async remove(data: DeleteDto): Promise<NearbyCategoryInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.nearbyCategory.delete({
+      const deletedNearbyCategory = await this.prisma.nearbyCategory.delete({
         where: { id: data.id },
       });
+
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        deletedNearbyCategory
+      );
+      return deletedNearbyCategory;
     }
 
-    return await this.prisma.nearbyCategory.update({
+    const updatedNearbyCategory = await this.prisma.nearbyCategory.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedNearbyCategory
+    );
+    return updatedNearbyCategory;
   }
 
   async restore(data: GetOneDto): Promise<NearbyCategoryInterfaces.Response> {
-    return this.prisma.nearbyCategory.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedNearbyCategory = this.prisma.nearbyCategory.update({
       where: { id: data.id, status: DefaultStatus.INACTIVE },
       data: { status: DefaultStatus.ACTIVE },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedNearbyCategory
+    );
+    return updatedNearbyCategory;
   }
 }

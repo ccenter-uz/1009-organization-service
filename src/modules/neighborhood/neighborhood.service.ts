@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
@@ -22,6 +22,8 @@ import { Prisma } from '@prisma/client';
 import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 @Injectable()
 export class NeighborhoodService {
+  private logger = new Logger(NeighborhoodService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -32,6 +34,9 @@ export class NeighborhoodService {
   async create(
     data: NeighborhoodCreateDto
   ): Promise<NeighborhoodInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -120,12 +125,17 @@ export class NeighborhoodService {
         NeighborhoodOldNameTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, residentialArea);
+
     return residentialArea;
   }
 
   async findAll(
     data: CityRegionFilterDto
   ): Promise<NeighborhoodInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
       let neighborhoods = await getOrderedDataWithDistrict(
         'Neighborhood',
@@ -135,7 +145,7 @@ export class NeighborhoodService {
       );
 
       const formattedNeighborhood = [];
-console.log(neighborhoods.length, 'ichida');
+      console.log(neighborhoods.length, 'ichida');
 
       for (let i = 0; i < neighborhoods.length; i++) {
         const neighborhoodData = neighborhoods[i];
@@ -151,8 +161,7 @@ console.log(neighborhoods.length, 'ichida');
         delete neighborhoodData.NeighborhoodNewNameTranslations;
         delete neighborhoodData.NeighborhoodOldNameTranslations;
 
-        const regionTranslations =
-          neighborhoodData.region.RegionTranslations;
+        const regionTranslations = neighborhoodData.region.RegionTranslations;
         const regionName = formatLanguageResponse(regionTranslations);
         delete neighborhoodData.region.RegionTranslations;
         const region = { ...neighborhoodData.region, name: regionName };
@@ -199,6 +208,10 @@ console.log(neighborhoods.length, 'ichida');
           district,
         });
       }
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedNeighborhood
+      );
 
       return {
         data: formattedNeighborhood,
@@ -305,7 +318,10 @@ console.log(neighborhoods.length, 'ichida');
         district,
       });
     }
-
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedNeighborhood
+    );
     return {
       data: formattedNeighborhood,
       totalPage: pagination.totalPage,
@@ -314,6 +330,8 @@ console.log(neighborhoods.length, 'ichida');
   }
 
   async findOne(data: GetOneDto): Promise<NeighborhoodInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const residentialArea = await this.prisma.neighborhood.findFirst({
       where: {
         id: data.id,
@@ -472,6 +490,7 @@ console.log(neighborhoods.length, 'ichida');
       newName: districtNameNew,
       oldName: districtNameOld,
     };
+    this.logger.debug(`Method: ${methodName} - Response: `, residentialArea);
 
     return {
       ...residentialArea,
@@ -487,6 +506,9 @@ console.log(neighborhoods.length, 'ichida');
   async update(
     data: NeighborhoodUpdateDto
   ): Promise<NeighborhoodInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const neighborhood = await this.findOne({ id: data.id });
 
     if (data.regionId) {
@@ -567,7 +589,7 @@ console.log(neighborhoods.length, 'ichida');
       });
     }
 
-    return await this.prisma.neighborhood.update({
+    const updatedNeighborhood = await this.prisma.neighborhood.update({
       where: {
         id: neighborhood.id,
       },
@@ -601,11 +623,21 @@ console.log(neighborhoods.length, 'ichida');
         NeighborhoodOldNameTranslations: true,
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedNeighborhood
+    );
+
+    return updatedNeighborhood;
   }
 
   async remove(data: DeleteDto): Promise<NeighborhoodInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.neighborhood.delete({
+      const deletedNeighborhood = await this.prisma.neighborhood.delete({
         where: { id: data.id },
         include: {
           NeighborhoodTranslations: {
@@ -628,9 +660,16 @@ console.log(neighborhoods.length, 'ichida');
           },
         },
       });
+
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        deletedNeighborhood
+      );
+
+      return deletedNeighborhood;
     }
 
-    return await this.prisma.neighborhood.update({
+    const updatedNeighborhood = await this.prisma.neighborhood.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -654,10 +693,20 @@ console.log(neighborhoods.length, 'ichida');
         },
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedNeighborhood
+    );
+
+    return updatedNeighborhood;
   }
 
   async restore(data: GetOneDto): Promise<NeighborhoodInterfaces.Response> {
-    return this.prisma.neighborhood.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedNeighborhood = this.prisma.neighborhood.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -684,5 +733,12 @@ console.log(neighborhoods.length, 'ichida');
         },
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedNeighborhood
+    );
+
+    return updatedNeighborhood;
   }
 }

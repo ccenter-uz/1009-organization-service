@@ -5,7 +5,7 @@ import {
   NeighborhoodCommands as Commands,
   NeighborhoodCreateDto,
   NeighborhoodUpdateDto,
-  NeighborhoodInterfaces
+  NeighborhoodInterfaces,
 } from 'types/organization/neighborhood';
 import {
   DeleteDto,
@@ -17,6 +17,7 @@ import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 
 @Controller('neighborhood')
 export class NeighborhoodController {
+
   constructor(private readonly residentialAreaService: NeighborhoodService) {}
 
   @Post()
@@ -53,9 +54,7 @@ export class NeighborhoodController {
 
   @Delete()
   @MessagePattern({ cmd: Commands.DELETE })
-  remove(
-    @Payload() data: DeleteDto
-  ): Promise<NeighborhoodInterfaces.Response> {
+  remove(@Payload() data: DeleteDto): Promise<NeighborhoodInterfaces.Response> {
     return this.residentialAreaService.remove(data);
   }
 

@@ -1,5 +1,5 @@
 import { ProductServiceSubCategoryFilterDto } from './../../../types/organization/product-service-sub-category/dto/filter-product-service-sub-category.dto';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
@@ -19,6 +19,7 @@ import { getSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/g
 import { Prisma } from '@prisma/client';
 @Injectable()
 export class ProductServiceSubCategoryService {
+  private logger = new Logger(ProductServiceSubCategoryService.name);
   constructor(
     private readonly prisma: PrismaService,
     private readonly ProductServiceCategoryService: ProductServiceCategoryService
@@ -27,6 +28,9 @@ export class ProductServiceSubCategoryService {
   async create(
     data: ProductServiceSubCategoryCreateDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const ProductServiceCategory =
       await this.ProductServiceCategoryService.findOne({
         id: data.productServiceCategoryId,
@@ -58,12 +62,17 @@ export class ProductServiceSubCategoryService {
         ProductServiceSubCategoryTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, subCategory);
+
     return subCategory;
   }
 
   async findAll(
     data: ProductServiceSubCategoryFilterDto
   ): Promise<ProductServiceSubCategoryInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const conditions: Prisma.Sql[] = [];
     if (data.status === 0 || data.status === 1)
       conditions.push(Prisma.sql`c.status = ${data.status}`);
@@ -128,6 +137,10 @@ export class ProductServiceSubCategoryService {
           ProductServiceCategory: { ...category, name: { ...categoryName } },
         });
       }
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedSubCategories
+      );
 
       return {
         data: formattedSubCategories,
@@ -195,6 +208,10 @@ export class ProductServiceSubCategoryService {
         ProductServiceCategory: { ...category, name: { ...categoryName } },
       });
     }
+    this.logger.debug(
+      `Method: ${methodName} -  Response: `,
+      formattedSubCategories
+    );
 
     return {
       data: formattedSubCategories,
@@ -206,6 +223,8 @@ export class ProductServiceSubCategoryService {
   async findOne(
     data: GetOneDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const ProductServiceSubCategory =
       await this.prisma.productServiceSubCategory.findFirst({
         where: {
@@ -234,12 +253,20 @@ export class ProductServiceSubCategoryService {
       ProductServiceSubCategory.ProductServiceSubCategoryTranslations
     );
     delete ProductServiceSubCategory.ProductServiceSubCategoryTranslations;
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      ProductServiceSubCategory
+    );
+
     return { ...ProductServiceSubCategory, name };
   }
 
   async update(
     data: ProductServiceSubCategoryUpdateDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const ProductServiceSubCategory = await this.findOne({ id: data.id });
 
     if (data.productServiceCategoryId) {
@@ -271,35 +298,71 @@ export class ProductServiceSubCategoryService {
       });
     }
 
-    return await this.prisma.productServiceSubCategory.update({
-      where: {
-        id: ProductServiceSubCategory.id,
-      },
-      data: {
-        staffNumber: data.staffNumber || ProductServiceSubCategory.staffNumber,
-        orderNumber: data.orderNumber,
-        productServiceCategoryId:
-          data.productServiceCategoryId ||
-          ProductServiceSubCategory.productServiceCategoryId,
-
-        ProductServiceSubCategoryTranslations: {
-          updateMany:
-            translationUpdates.length > 0 ? translationUpdates : undefined,
+    const updatedProductCategory =
+      await this.prisma.productServiceSubCategory.update({
+        where: {
+          id: ProductServiceSubCategory.id,
         },
-      },
-      include: {
-        ProductServiceCategory: true,
-        ProductServiceSubCategoryTranslations: true,
-      },
-    });
+        data: {
+          staffNumber:
+            data.staffNumber || ProductServiceSubCategory.staffNumber,
+          orderNumber: data.orderNumber,
+          productServiceCategoryId:
+            data.productServiceCategoryId ||
+            ProductServiceSubCategory.productServiceCategoryId,
+
+          ProductServiceSubCategoryTranslations: {
+            updateMany:
+              translationUpdates.length > 0 ? translationUpdates : undefined,
+          },
+        },
+        include: {
+          ProductServiceCategory: true,
+          ProductServiceSubCategoryTranslations: true,
+        },
+      });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedProductCategory
+    );
+
+    return updatedProductCategory;
   }
 
   async remove(
     data: DeleteDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.productServiceSubCategory.delete({
-        where: { id: data.id },
+      const deletedProductCategory =
+        await this.prisma.productServiceSubCategory.delete({
+          where: { id: data.id },
+          include: {
+            ProductServiceCategory: true,
+            ProductServiceSubCategoryTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        });
+
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        deletedProductCategory
+      );
+
+      return deletedProductCategory;
+    }
+
+    const updatedProductCategory =
+      await this.prisma.productServiceSubCategory.update({
+        where: { id: data.id, status: DefaultStatus.ACTIVE },
+        data: { status: DefaultStatus.INACTIVE },
         include: {
           ProductServiceCategory: true,
           ProductServiceSubCategoryTranslations: {
@@ -310,41 +373,45 @@ export class ProductServiceSubCategoryService {
           },
         },
       });
-    }
 
-    return await this.prisma.productServiceSubCategory.update({
-      where: { id: data.id, status: DefaultStatus.ACTIVE },
-      data: { status: DefaultStatus.INACTIVE },
-      include: {
-        ProductServiceCategory: true,
-        ProductServiceSubCategoryTranslations: {
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-    });
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedProductCategory
+    );
+
+    return updatedProductCategory;
   }
 
   async restore(
     data: GetOneDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
-    return this.prisma.productServiceSubCategory.update({
-      where: {
-        id: data.id,
-        status: DefaultStatus.INACTIVE,
-      },
-      data: { status: DefaultStatus.ACTIVE },
-      include: {
-        ProductServiceCategory: true,
-        ProductServiceSubCategoryTranslations: {
-          select: {
-            languageCode: true,
-            name: true,
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedProductCategory = this.prisma.productServiceSubCategory.update(
+      {
+        where: {
+          id: data.id,
+          status: DefaultStatus.INACTIVE,
+        },
+        data: { status: DefaultStatus.ACTIVE },
+        include: {
+          ProductServiceCategory: true,
+          ProductServiceSubCategoryTranslations: {
+            select: {
+              languageCode: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      }
+    );
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedProductCategory
+    );
+
+    return updatedProductCategory;
   }
 }

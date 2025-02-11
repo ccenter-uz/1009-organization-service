@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   forwardRef,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -59,6 +60,8 @@ import { NeighborhoodService } from '../neighborhood/neighborhood.service';
 
 @Injectable()
 export class OrganizationService {
+  private logger = new Logger(OrganizationService.name);
+
   constructor(
     @Inject(forwardRef(() => OrganizationVersionService))
     private readonly organizationVersionService: OrganizationVersionService,
@@ -87,6 +90,9 @@ export class OrganizationService {
   async create(
     data: OrganizationCreateDto
   ): Promise<OrganizationInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const mainOrganization = await this.mainOrganizationService.findOne({
       id: data.mainOrganizationId,
     });
@@ -307,14 +313,16 @@ export class OrganizationService {
         ProductServices: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, organization);
     await this.organizationVersionService.create(organization);
-
     return organization;
   }
 
   async findAll(
     data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
     const where: any = {};
 
@@ -437,6 +445,7 @@ export class OrganizationService {
         }
         result.push(formattedOrganization);
       }
+      this.logger.debug(`Method: ${methodName} - Response: `, result);
 
       return {
         data: result,
@@ -496,6 +505,8 @@ export class OrganizationService {
       }
       result.push(formattedOrganization);
     }
+    this.logger.debug(`Method: ${methodName} - Response: `, result);
+
     return {
       data: result,
       totalPage: pagination.totalPage,
@@ -506,6 +517,8 @@ export class OrganizationService {
   async findMy(
     data: MyOrganizationFilterDto
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findMy.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildIncludeVersion(includeConfigVersion, data);
     const where = {
       staffNumber: data.staffNumber,
@@ -531,6 +544,8 @@ export class OrganizationService {
         }
         result.push(formattedOrganization);
       }
+      this.logger.debug(`Method: ${methodName} - Response: `, result);
+
       return {
         data: result,
         totalPage: 1,
@@ -580,6 +595,7 @@ export class OrganizationService {
       }
       result.push(formattedOrganization);
     }
+    this.logger.debug(`Method: ${methodName} - Response: `, result);
 
     return {
       data: result,
@@ -591,8 +607,9 @@ export class OrganizationService {
   async findUnconfirm(
     data: UnconfirmOrganizationFilterDto
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findUnconfirm.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildIncludeVersion(includeConfigVersion, data);
-    console.log(data.createdBy, 'createdBy');
 
     const where = {
       status: 0,
@@ -620,6 +637,8 @@ export class OrganizationService {
         );
         result.push(formattedOrganization);
       }
+      this.logger.debug(`Method: ${methodName} - Response: `, result);
+
       return {
         data: result,
         totalPage: 1,
@@ -664,6 +683,7 @@ export class OrganizationService {
 
       result.push(formattedOrganization);
     }
+    this.logger.debug(`Method: ${methodName} - Response: `, result);
 
     return {
       data: result,
@@ -673,6 +693,8 @@ export class OrganizationService {
   }
 
   async findOne(data: GetOneDto): Promise<OrganizationInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
 
     const organization = await this.prisma.organization.findFirst({
@@ -699,10 +721,18 @@ export class OrganizationService {
     if (data.role !== 'moderator') {
       delete formattedOrganization.secret;
     }
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedOrganization
+    );
+
     return formattedOrganization;
   }
 
   async update(id: number): Promise<OrganizationInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, id);
     const organizationVersion = await this.prisma.organizationVersion.findFirst(
       {
         where: {
@@ -853,11 +883,14 @@ export class OrganizationService {
         Nearbees: true,
       },
     });
-
+    this.logger.debug(`Method: ${methodName} - Response: `, UpdateOrganization);
     return UpdateOrganization;
   }
 
   async updateCheck(data: ConfirmDto): Promise<any> {
+    const methodName: string = this.updateCheck.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.role == CreatedByEnum.Moderator) {
       if (data.status == OrganizationStatusEnum.Accepted) {
         const organizationVersion =
@@ -870,7 +903,25 @@ export class OrganizationService {
           throw new NotFoundException('Orgnization  is not found');
         }
         if (organizationVersion.method == OrganizationMethodEnum.Update) {
-          await this.prisma.organizationVersion.update({
+          const UpdateVersion = await this.prisma.organizationVersion.update({
+            where: {
+              id: organizationVersion.id,
+            },
+            data: {
+              status: OrganizationStatusEnum.Accepted,
+              rejectReason: data.rejectReason,
+            },
+          });
+          this.logger.debug(
+            `Method: ${methodName} - Response: `,
+            UpdateVersion
+          );
+
+          return await this.update(data.id);
+        } else if (
+          organizationVersion.method == OrganizationMethodEnum.Create
+        ) {
+          const UpdateVersion = await this.prisma.organizationVersion.update({
             where: {
               id: organizationVersion.id,
             },
@@ -880,19 +931,10 @@ export class OrganizationService {
             },
           });
 
-          return await this.update(data.id);
-        } else if (
-          organizationVersion.method == OrganizationMethodEnum.Create
-        ) {
-          await this.prisma.organizationVersion.update({
-            where: {
-              id: organizationVersion.id,
-            },
-            data: {
-              status: OrganizationStatusEnum.Accepted,
-              rejectReason: data.rejectReason,
-            },
-          });
+          this.logger.debug(
+            `Method: ${methodName} - Response: `,
+            UpdateVersion
+          );
           return await this.prisma.organization.update({
             where: {
               id: organizationVersion.organizationId,
@@ -904,7 +946,7 @@ export class OrganizationService {
         } else if (
           organizationVersion.method == OrganizationMethodEnum.Delete
         ) {
-          await this.prisma.organizationVersion.update({
+          const UpdateVersion = await this.prisma.organizationVersion.update({
             where: {
               id: organizationVersion.id,
             },
@@ -913,6 +955,11 @@ export class OrganizationService {
               rejectReason: data.rejectReason,
             },
           });
+
+          this.logger.debug(
+            `Method: ${methodName} - Response: `,
+            UpdateVersion
+          );
           return await this.prisma.organization.update({
             where: {
               id: organizationVersion.organizationId,
@@ -924,7 +971,7 @@ export class OrganizationService {
         } else if (
           organizationVersion.method == OrganizationMethodEnum.Restore
         ) {
-          await this.prisma.organizationVersion.update({
+          const UpdateVersion = await this.prisma.organizationVersion.update({
             where: {
               id: organizationVersion.id,
             },
@@ -933,6 +980,11 @@ export class OrganizationService {
               rejectReason: data.rejectReason,
             },
           });
+
+          this.logger.debug(
+            `Method: ${methodName} - Response: `,
+            UpdateVersion
+          );
           return await this.prisma.organization.update({
             where: {
               id: organizationVersion.organizationId,
@@ -953,7 +1005,7 @@ export class OrganizationService {
           throw new NotFoundException('Orgnization  is not found');
         }
 
-        return await this.prisma.organizationVersion.update({
+        const UpdateVersion = await this.prisma.organizationVersion.update({
           where: {
             id: organizationVersion.id,
           },
@@ -962,6 +1014,10 @@ export class OrganizationService {
             rejectReason: data.rejectReason,
           },
         });
+
+        this.logger.debug(`Method: ${methodName} - Response: `, UpdateVersion);
+
+        return UpdateVersion;
       }
     }
   }
@@ -969,6 +1025,9 @@ export class OrganizationService {
   async remove(
     data: OrganizationDeleteDto
   ): Promise<OrganizationInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (!data.delete) {
       const organizationVersion =
         await this.prisma.organizationVersion.findFirst({
@@ -980,7 +1039,7 @@ export class OrganizationService {
         throw new NotFoundException('Orgnization  is not found');
       }
       if (data.role == CreatedByEnum.Moderator) {
-        await this.prisma.organizationVersion.update({
+        const UpdateVersion = await this.prisma.organizationVersion.update({
           where: {
             id: organizationVersion.id,
           },
@@ -997,7 +1056,10 @@ export class OrganizationService {
             NearbeesVersion: true,
           },
         });
-        return await this.prisma.organization.update({
+
+        this.logger.debug(`Method: ${methodName} - Request: `, UpdateVersion);
+
+        const UpdateOrg = await this.prisma.organization.update({
           where: {
             id: organizationVersion.id,
           },
@@ -1013,8 +1075,11 @@ export class OrganizationService {
             Nearbees: true,
           },
         });
+        this.logger.debug(`Method: ${methodName} - Request: `, UpdateOrg);
+
+        return UpdateOrg;
       } else {
-        return await this.prisma.organizationVersion.update({
+        const UpdateVersion = await this.prisma.organizationVersion.update({
           where: {
             id: organizationVersion.id,
           },
@@ -1031,6 +1096,9 @@ export class OrganizationService {
             NearbeesVersion: true,
           },
         });
+        this.logger.debug(`Method: ${methodName} - Response: `, UpdateVersion);
+
+        return UpdateVersion;
       }
     }
   }
@@ -1038,6 +1106,9 @@ export class OrganizationService {
   async restore(
     data: OrganizationRestoreDto
   ): Promise<OrganizationInterfaces.Response> {
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const organizationVersion = await this.prisma.organizationVersion.findFirst(
       {
         where: {
@@ -1049,7 +1120,7 @@ export class OrganizationService {
       throw new NotFoundException('Orgnization  is not found');
     }
     if (data.role == CreatedByEnum.Moderator) {
-      await this.prisma.organizationVersion.update({
+      const UpdateOrgVersion = await this.prisma.organizationVersion.update({
         where: {
           id: organizationVersion.id,
         },
@@ -1065,7 +1136,9 @@ export class OrganizationService {
           NearbeesVersion: true,
         },
       });
-      return await this.prisma.organization.update({
+      this.logger.debug(`Method: ${methodName} - Response: `, UpdateOrgVersion);
+
+      const UpdateOrg = await this.prisma.organization.update({
         where: {
           id: organizationVersion.id,
         },
@@ -1080,8 +1153,11 @@ export class OrganizationService {
           Nearbees: true,
         },
       });
+
+      this.logger.debug(`Method: ${methodName} - Response: `, UpdateOrg);
+      return UpdateOrg;
     } else {
-      return await this.prisma.organizationVersion.update({
+      const UpdateOrgVersion = await this.prisma.organizationVersion.update({
         where: {
           id: organizationVersion.id,
         },
@@ -1097,6 +1173,8 @@ export class OrganizationService {
           NearbeesVersion: true,
         },
       });
+      this.logger.debug(`Method: ${methodName} - Response: `, UpdateOrgVersion);
+      return UpdateOrgVersion;
     }
   }
 }

@@ -113,7 +113,7 @@ export class AdditionalService {
       },
     });
 
-    this.logger.debug(`Method: ${methodName} - Response: `, data);
+    this.logger.debug(`Method: ${methodName} - Response: `, additional);
 
     return additional;
   }
