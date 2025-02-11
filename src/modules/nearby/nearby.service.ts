@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   NearbyCreateDto,
@@ -21,6 +21,8 @@ import { getNearbyOrderedData } from '@/common/helper/sql-rows-for-select/get-ne
 import { Prisma } from '@prisma/client';
 @Injectable()
 export class NearbyService {
+  private logger = new Logger(NearbyService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -29,6 +31,9 @@ export class NearbyService {
   ) {}
 
   async create(data: NearbyCreateDto): Promise<NearbyInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -67,12 +72,16 @@ export class NearbyService {
         NearbyTranslations: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, nearby);
+
     return nearby;
   }
 
   async findAll(
     data: NearbyFilterDto
   ): Promise<NearbyInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const conditions: Prisma.Sql[] = [];
     if (data.status === 0 || data.status === 1)
       conditions.push(Prisma.sql`c.status = ${data.status}`);
@@ -117,7 +126,7 @@ export class NearbyService {
         conditions
       );
 
-      const formattedDistrict = [];
+      const formattedNearby = [];
 
       for (let i = 0; i < nearby.length; i++) {
         const nearbyData: any = nearby[i];
@@ -139,16 +148,17 @@ export class NearbyService {
 
         nearbyData.category = nearbyData.nearbycategory;
         delete nearbyData.nearbycategory;
-        formattedDistrict.push({
+        formattedNearby.push({
           ...nearbyData,
           name,
           region,
           city,
         });
       }
+      this.logger.debug(`Method: ${methodName} - Response: `, formattedNearby);
 
       return {
-        data: formattedDistrict,
+        data: formattedNearby,
         totalDocs: nearby.length,
         totalPage: 1,
       };
@@ -195,7 +205,7 @@ export class NearbyService {
       conditions,
       pagination
     );
-    
+
     const formattedNearby = [];
 
     for (let i = 0; i < nearby.length; i++) {
@@ -227,7 +237,7 @@ export class NearbyService {
         city,
       });
     }
-
+    this.logger.debug(`Method: ${methodName} - Response: `, formattedNearby);
     return {
       data: formattedNearby,
       totalPage: pagination.totalPage,
@@ -236,6 +246,9 @@ export class NearbyService {
   }
 
   async findOne(data: GetOneDto): Promise<NearbyInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const nearby: any = await this.prisma.nearby.findFirst({
       where: {
         id: data.id,
@@ -317,11 +330,15 @@ export class NearbyService {
 
     nearby.category = nearby.NearbyCategory;
     delete nearby.NearbyCategory;
+    this.logger.debug(`Method: ${methodName} - Response: `, nearby);
 
     return { ...nearby, name, region, city };
   }
 
   async update(data: NearbyUpdateDto): Promise<NearbyInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const nearby = await this.findOne({ id: data.id });
     if (data.nearbyCategoryId) {
       await this.nearbyCategoryService.findOne({ id: data.nearbyCategoryId });
@@ -358,7 +375,7 @@ export class NearbyService {
       });
     }
 
-    return await this.prisma.nearby.update({
+    const updatedNearby = await this.prisma.nearby.update({
       where: {
         id: nearby.id,
       },
@@ -377,11 +394,18 @@ export class NearbyService {
         NearbyTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedNearby);
+
+    return updatedNearby;
   }
 
   async remove(data: DeleteDto): Promise<NearbyInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.nearby.delete({
+      const deletedNearby = await this.prisma.nearby.delete({
         where: { id: data.id },
         include: {
           NearbyTranslations: {
@@ -392,9 +416,13 @@ export class NearbyService {
           },
         },
       });
+
+      this.logger.debug(`Method: ${methodName} - Response: `, deletedNearby);
+
+      return deletedNearby;
     }
 
-    return await this.prisma.nearby.update({
+    const updatedNearby = await this.prisma.nearby.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -406,10 +434,17 @@ export class NearbyService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedNearby);
+
+    return updatedNearby;
   }
 
   async restore(data: GetOneDto): Promise<NearbyInterfaces.Response> {
-    return this.prisma.nearby.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedNearby = this.prisma.nearby.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -424,5 +459,9 @@ export class NearbyService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedNearby);
+
+    return updatedNearby;
   }
 }

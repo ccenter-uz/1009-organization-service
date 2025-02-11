@@ -157,7 +157,7 @@ export class AdditionalCategoryService {
       page: data.page,
       perPage: data.limit,
     });
-    
+
     const additionalCategories = await getSingleData(
       'AdditionalCategory',
       'additional_category',

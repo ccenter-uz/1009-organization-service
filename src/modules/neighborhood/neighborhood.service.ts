@@ -13,16 +13,17 @@ import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
 import {
-  AvenueCreateDto,
-  AvenueInterfaces,
-  AvenueUpdateDto,
-} from 'types/organization/avenue';
+  NeighborhoodCreateDto,
+  NeighborhoodUpdateDto,
+  NeighborhoodInterfaces,
+} from 'types/organization/neighborhood';
 import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 import { Prisma } from '@prisma/client';
 import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 @Injectable()
-export class AvenueService {
-  private logger = new Logger(AvenueService.name);
+export class NeighborhoodService {
+  private logger = new Logger(NeighborhoodService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -30,18 +31,22 @@ export class AvenueService {
     private readonly districtService: DistrictService
   ) {}
 
-  async create(data: AvenueCreateDto): Promise<AvenueInterfaces.Response> {
+  async create(
+    data: NeighborhoodCreateDto
+  ): Promise<NeighborhoodInterfaces.Response> {
     const methodName: string = this.create.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
+
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
+
     let district;
+
     if (data.districtId) {
       district = await this.districtService.findOne({
         id: data.districtId,
@@ -51,7 +56,7 @@ export class AvenueService {
     const names: any = {};
 
     if (data.newName) {
-      names.AvenueNewNameTranslations = {
+      names.NeighborhoodNewNameTranslations = {
         create: [
           {
             languageCode: LanguageRequestEnum.RU,
@@ -70,7 +75,7 @@ export class AvenueService {
     }
 
     if (data.oldName) {
-      names.AvenueOldNameTranslations = {
+      names.NeighborhoodOldNameTranslations = {
         create: [
           {
             languageCode: LanguageRequestEnum.RU,
@@ -87,7 +92,8 @@ export class AvenueService {
         ],
       };
     }
-    const avenue = await this.prisma.avenue.create({
+
+    const residentialArea = await this.prisma.neighborhood.create({
       data: {
         regionId: region.id,
         cityId: city.id,
@@ -95,7 +101,7 @@ export class AvenueService {
         index: data.index,
         staffNumber: data.staffNumber,
         orderNumber: data.orderNumber,
-        AvenueTranslations: {
+        NeighborhoodTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -114,56 +120,60 @@ export class AvenueService {
         ...names,
       },
       include: {
-        AvenueTranslations: true,
-        AvenueNewNameTranslations: true,
-        AvenueOldNameTranslations: true,
+        NeighborhoodTranslations: true,
+        NeighborhoodNewNameTranslations: true,
+        NeighborhoodOldNameTranslations: true,
       },
     });
-    this.logger.debug(`Method: ${methodName} - Response: `, avenue);
 
-    return avenue;
+    this.logger.debug(`Method: ${methodName} - Response: `, residentialArea);
+
+    return residentialArea;
   }
 
   async findAll(
     data: CityRegionFilterDto
-  ): Promise<AvenueInterfaces.ResponseWithPagination> {
+  ): Promise<NeighborhoodInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
-
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
-      let avenues = await getOrderedDataWithDistrict(
-        'Avenue',
-        'avenue',
+      let neighborhoods = await getOrderedDataWithDistrict(
+        'Neighborhood',
+        'neighborhood',
         this.prisma,
         data
       );
-      const formattedAvenue = [];
 
-      for (let i = 0; i < avenues.length; i++) {
-        const avenueData = avenues[i];
-        const translations = avenueData.AvenueTranslations;
+      const formattedNeighborhood = [];
+      console.log(neighborhoods.length, 'ichida');
+
+      for (let i = 0; i < neighborhoods.length; i++) {
+        const neighborhoodData = neighborhoods[i];
+        const translations = neighborhoodData.NeighborhoodTranslations;
         const name = formatLanguageResponse(translations);
-        const translationsNew = avenueData.AvenueNewNameTranslations;
+        const translationsNew =
+          neighborhoodData.NeighborhoodNewNameTranslations;
         const nameNew = formatLanguageResponse(translationsNew);
-        const translationsOld = avenueData.AvenueOldNameTranslations;
+        const translationsOld =
+          neighborhoodData.NeighborhoodOldNameTranslations;
         const nameOld = formatLanguageResponse(translationsOld);
-        delete avenueData.AvenueTranslations;
-        delete avenueData.AvenueNewNameTranslations;
-        delete avenueData.AvenueOldNameTranslations;
+        delete neighborhoodData.NeighborhoodTranslations;
+        delete neighborhoodData.NeighborhoodNewNameTranslations;
+        delete neighborhoodData.NeighborhoodOldNameTranslations;
 
-        const regionTranslations = avenueData.region.RegionTranslations;
+        const regionTranslations = neighborhoodData.region.RegionTranslations;
         const regionName = formatLanguageResponse(regionTranslations);
-        delete avenueData.region.RegionTranslations;
-        const region = { ...avenueData.region, name: regionName };
-        delete avenueData.region;
+        delete neighborhoodData.region.RegionTranslations;
+        const region = { ...neighborhoodData.region, name: regionName };
+        delete neighborhoodData.region;
 
-        const cityTranslations = avenueData.city.CityTranslations;
+        const cityTranslations = neighborhoodData.city.CityTranslations;
         const cityName = formatLanguageResponse(cityTranslations);
-        delete avenueData.city.CityTranslations;
-        const city = { ...avenueData.city, name: cityName };
-        delete avenueData.city;
+        delete neighborhoodData.city.CityTranslations;
+        const city = { ...neighborhoodData.city, name: cityName };
+        delete neighborhoodData.city;
 
-        const districtData = avenueData?.district;
+        const districtData = neighborhoodData?.district;
         let districtName: string | object;
         let districtNameNew: string | object;
         let districtNameOld: string | object;
@@ -183,15 +193,13 @@ export class AvenueService {
         }
 
         const district = {
-          ...avenueData.district,
+          ...districtData,
           name: districtName,
-          districtNameNew,
-          districtNameOld,
+          newName: districtNameNew,
+          oldName: districtNameOld,
         };
-        delete avenueData.district;
-
-        formattedAvenue.push({
-          ...avenueData,
+        formattedNeighborhood.push({
+          ...neighborhoodData,
           name,
           newName: nameNew,
           oldName: nameOld,
@@ -200,16 +208,17 @@ export class AvenueService {
           district,
         });
       }
-
-      this.logger.debug(`Method: ${methodName} - Response: `, formattedAvenue);
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedNeighborhood
+      );
 
       return {
-        data: formattedAvenue,
-        totalDocs: avenues.length,
+        data: formattedNeighborhood,
+        totalDocs: neighborhoods.length,
         totalPage: 1,
       };
     }
-
     const where: any = {
       ...(data.status == 2
         ? {}
@@ -219,9 +228,8 @@ export class AvenueService {
       cityId: data.cityId,
       regionId: data.regionId,
     };
-
     if (data.search) {
-      where.AvenueTranslations = {
+      where.NeighborhoodTranslations = {
         some: {
           languageCode: data.langCode,
           name: {
@@ -231,7 +239,7 @@ export class AvenueService {
         },
       };
     }
-    const count = await this.prisma.avenue.count({
+    const count = await this.prisma.neighborhood.count({
       where,
     });
 
@@ -241,42 +249,41 @@ export class AvenueService {
       perPage: data.limit,
     });
 
-    let avenues = await getOrderedDataWithDistrict(
-      'Avenue',
-      'avenue',
+    let neighborhoods = await getOrderedDataWithDistrict(
+      'Neighborhood',
+      'neighborhood',
       this.prisma,
       data,
       pagination
     );
+    const formattedNeighborhood = [];
 
-    const formattedAvenue = [];
-
-    for (let i = 0; i < avenues.length; i++) {
-      const avenueData = avenues[i];
-      const translations = avenueData.AvenueTranslations;
+    for (let i = 0; i < neighborhoods.length; i++) {
+      const neighborhoodData = neighborhoods[i];
+      const translations = neighborhoodData.NeighborhoodTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = avenueData.AvenueNewNameTranslations;
+      const translationsNew = neighborhoodData.NeighborhoodNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = avenueData.AvenueOldNameTranslations;
+      const translationsOld = neighborhoodData.NeighborhoodOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
 
-      delete avenueData.AvenueTranslations;
-      delete avenueData.AvenueNewNameTranslations;
-      delete avenueData.AvenueOldNameTranslations;
+      delete neighborhoodData.NeighborhoodTranslations;
+      delete neighborhoodData.NeighborhoodNewNameTranslations;
+      delete neighborhoodData.NeighborhoodOldNameTranslations;
 
-      const regionTranslations = avenueData.region.RegionTranslations;
+      const regionTranslations = neighborhoodData.region.RegionTranslations;
       const regionName = formatLanguageResponse(regionTranslations);
-      delete avenueData.region.RegionTranslations;
-      const region = { ...avenueData.region, name: regionName };
-      delete avenueData.region;
+      delete neighborhoodData.region.RegionTranslations;
+      const region = { ...neighborhoodData.region, name: regionName };
+      delete neighborhoodData.region;
 
-      const cityTranslations = avenueData.city.CityTranslations;
+      const cityTranslations = neighborhoodData.city.CityTranslations;
       const cityName = formatLanguageResponse(cityTranslations);
-      delete avenueData.city.CityTranslations;
-      const city = { ...avenueData.city, name: cityName };
-      delete avenueData.city;
+      delete neighborhoodData.city.CityTranslations;
+      const city = { ...neighborhoodData.city, name: cityName };
+      delete neighborhoodData.city;
 
-      const districtData = avenueData?.district;
+      const districtData = neighborhoodData?.district;
       let districtName: string | object;
       let districtNameNew: string | object;
       let districtNameOld: string | object;
@@ -296,15 +303,13 @@ export class AvenueService {
       }
 
       const district = {
-        ...avenueData.district,
+        ...districtData,
         name: districtName,
-        districtNameNew,
-        districtNameOld,
+        newName: districtNameNew,
+        oldName: districtNameOld,
       };
-      delete avenueData.district;
-
-      formattedAvenue.push({
-        ...avenueData,
+      formattedNeighborhood.push({
+        ...neighborhoodData,
         name,
         newName: nameNew,
         oldName: nameOld,
@@ -313,26 +318,27 @@ export class AvenueService {
         district,
       });
     }
-    this.logger.debug(`Method: ${methodName} - Response: `, formattedAvenue);
-
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedNeighborhood
+    );
     return {
-      data: formattedAvenue,
+      data: formattedNeighborhood,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
   }
 
-  async findOne(data: GetOneDto): Promise<AvenueInterfaces.Response> {
+  async findOne(data: GetOneDto): Promise<NeighborhoodInterfaces.Response> {
     const methodName: string = this.findOne.name;
-
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const avenue = await this.prisma.avenue.findFirst({
+    const residentialArea = await this.prisma.neighborhood.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
       include: {
-        AvenueTranslations: {
+        NeighborhoodTranslations: {
           where: data.allLang
             ? {}
             : {
@@ -343,7 +349,7 @@ export class AvenueService {
             name: true,
           },
         },
-        AvenueNewNameTranslations: {
+        NeighborhoodNewNameTranslations: {
           where: data.allLang
             ? {}
             : {
@@ -354,7 +360,7 @@ export class AvenueService {
             name: true,
           },
         },
-        AvenueOldNameTranslations: {
+        NeighborhoodOldNameTranslations: {
           where: data.allLang
             ? {}
             : {
@@ -434,29 +440,34 @@ export class AvenueService {
         },
       },
     });
-    if (!avenue) {
-      throw new NotFoundException('Avenue is not found');
+    if (!residentialArea) {
+      throw new NotFoundException('Neighborhood is not found');
     }
-    const name = formatLanguageResponse(avenue.AvenueTranslations);
-    const nameNew = formatLanguageResponse(avenue.AvenueNewNameTranslations);
-    const nameOld = formatLanguageResponse(avenue.AvenueOldNameTranslations);
-    delete avenue.AvenueNewNameTranslations;
-    delete avenue.AvenueOldNameTranslations;
-    delete avenue.AvenueTranslations;
-
-    const regionTranslations = avenue.region.RegionTranslations;
+    const name = formatLanguageResponse(
+      residentialArea.NeighborhoodTranslations
+    );
+    const nameNew = formatLanguageResponse(
+      residentialArea.NeighborhoodNewNameTranslations
+    );
+    const nameOld = formatLanguageResponse(
+      residentialArea.NeighborhoodOldNameTranslations
+    );
+    delete residentialArea.NeighborhoodNewNameTranslations;
+    delete residentialArea.NeighborhoodOldNameTranslations;
+    delete residentialArea.NeighborhoodTranslations;
+    const regionTranslations = residentialArea.region.RegionTranslations;
     const regionName = formatLanguageResponse(regionTranslations);
-    delete avenue.region.RegionTranslations;
-    const region = { ...avenue.region, name: regionName };
-    delete avenue.region;
+    delete residentialArea.region.RegionTranslations;
+    const region = { ...residentialArea.region, name: regionName };
+    delete residentialArea.region;
 
-    const cityTranslations = avenue.city.CityTranslations;
+    const cityTranslations = residentialArea.city.CityTranslations;
     const cityName = formatLanguageResponse(cityTranslations);
-    delete avenue.city.CityTranslations;
-    const city = { ...avenue.city, name: cityName };
-    delete avenue.city;
+    delete residentialArea.city.CityTranslations;
+    const city = { ...residentialArea.city, name: cityName };
+    delete residentialArea.city;
 
-    const districtData = avenue?.district;
+    const districtData = residentialArea?.district;
     let districtName: string | object;
     let districtNameNew: string | object;
     let districtNameOld: string | object;
@@ -474,16 +485,15 @@ export class AvenueService {
     }
 
     const district = {
-      ...avenue.district,
+      ...districtData,
       name: districtName,
-      districtNameNew,
-      districtNameOld,
+      newName: districtNameNew,
+      oldName: districtNameOld,
     };
-    delete avenue.district;
-    this.logger.debug(`Method: ${methodName} - Response: `, avenue);
+    this.logger.debug(`Method: ${methodName} - Response: `, residentialArea);
 
     return {
-      ...avenue,
+      ...residentialArea,
       name,
       newName: nameNew,
       oldName: nameOld,
@@ -493,10 +503,13 @@ export class AvenueService {
     };
   }
 
-  async update(data: AvenueUpdateDto): Promise<AvenueInterfaces.Response> {
+  async update(
+    data: NeighborhoodUpdateDto
+  ): Promise<NeighborhoodInterfaces.Response> {
     const methodName: string = this.update.name;
+
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const avenue = await this.findOne({ id: data.id });
+    const neighborhood = await this.findOne({ id: data.id });
 
     if (data.regionId) {
       await this.regionService.findOne({ id: data.regionId });
@@ -576,28 +589,28 @@ export class AvenueService {
       });
     }
 
-    const updateAvenue = await this.prisma.avenue.update({
+    const updatedNeighborhood = await this.prisma.neighborhood.update({
       where: {
-        id: avenue.id,
+        id: neighborhood.id,
       },
       data: {
-        regionId: data.regionId || avenue.regionId,
-        cityId: data.cityId || avenue.cityId,
+        regionId: data.regionId || neighborhood.regionId,
+        cityId: data.cityId || neighborhood.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || avenue.staffNumber,
-        index: data.index || avenue.index,
+        staffNumber: data.staffNumber || neighborhood.staffNumber,
+        index: data.index || neighborhood.index,
         orderNumber: data.orderNumber,
-        AvenueTranslations: {
+        NeighborhoodTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
         },
-        AvenueNewNameTranslations: {
+        NeighborhoodNewNameTranslations: {
           updateMany:
             translationNewNameUpdates.length > 0
               ? translationNewNameUpdates
               : undefined,
         },
-        AvenueOldNameTranslations: {
+        NeighborhoodOldNameTranslations: {
           updateMany:
             translationOldNameUpdates.length > 0
               ? translationOldNameUpdates
@@ -605,38 +618,41 @@ export class AvenueService {
         },
       },
       include: {
-        AvenueTranslations: true,
-        AvenueNewNameTranslations: true,
-        AvenueOldNameTranslations: true,
+        NeighborhoodTranslations: true,
+        NeighborhoodNewNameTranslations: true,
+        NeighborhoodOldNameTranslations: true,
       },
     });
 
-    this.logger.debug(`Method: ${methodName} - Response: `, updateAvenue);
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedNeighborhood
+    );
 
-    return updateAvenue;
+    return updatedNeighborhood;
   }
 
-  async remove(data: DeleteDto): Promise<AvenueInterfaces.Response> {
+  async remove(data: DeleteDto): Promise<NeighborhoodInterfaces.Response> {
     const methodName: string = this.remove.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      const avenue = await this.prisma.avenue.delete({
+      const deletedNeighborhood = await this.prisma.neighborhood.delete({
         where: { id: data.id },
         include: {
-          AvenueTranslations: {
+          NeighborhoodTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          AvenueNewNameTranslations: {
+          NeighborhoodNewNameTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          AvenueOldNameTranslations: {
+          NeighborhoodOldNameTranslations: {
             select: {
               languageCode: true,
               name: true,
@@ -646,29 +662,30 @@ export class AvenueService {
       });
 
       this.logger.debug(
-        `Method: ${methodName} - Rresponse when delete true: `,
-        avenue
+        `Method: ${methodName} - Response: `,
+        deletedNeighborhood
       );
-      return avenue;
+
+      return deletedNeighborhood;
     }
 
-    const avenueUpdate = await this.prisma.avenue.update({
+    const updatedNeighborhood = await this.prisma.neighborhood.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
-        AvenueTranslations: {
+        NeighborhoodTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        AvenueNewNameTranslations: {
+        NeighborhoodNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        AvenueOldNameTranslations: {
+        NeighborhoodOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
@@ -678,36 +695,37 @@ export class AvenueService {
     });
 
     this.logger.debug(
-      `Method: ${methodName} - Rresponse when delete false: `,
-      avenueUpdate
+      `Method: ${methodName} - Response: `,
+      updatedNeighborhood
     );
-    return avenueUpdate;
+
+    return updatedNeighborhood;
   }
 
-  async restore(data: GetOneDto): Promise<AvenueInterfaces.Response> {
+  async restore(data: GetOneDto): Promise<NeighborhoodInterfaces.Response> {
     const methodName: string = this.restore.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const avenueUpdate = await this.prisma.avenue.update({
+    const updatedNeighborhood = this.prisma.neighborhood.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-        AvenueTranslations: {
+        NeighborhoodTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        AvenueNewNameTranslations: {
+        NeighborhoodNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        AvenueOldNameTranslations: {
+        NeighborhoodOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
@@ -715,7 +733,12 @@ export class AvenueService {
         },
       },
     });
-    this.logger.debug(`Method: ${methodName} - Rresponse: `, avenueUpdate);
-    return avenueUpdate;
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedNeighborhood
+    );
+
+    return updatedNeighborhood;
   }
 }

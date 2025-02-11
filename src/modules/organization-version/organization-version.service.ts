@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   forwardRef,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -38,9 +39,12 @@ import {
 } from 'types/organization/organization-version';
 import { OrganizationService } from '../organization/organization.service';
 import { PhoneTypeService } from '../phone-type/phone-type.service';
+import { NeighborhoodService } from '../neighborhood/neighborhood.service';
 
 @Injectable()
 export class OrganizationVersionService {
+  private logger = new Logger(MainOrganizationService.name);
+
   constructor(
     @Inject(forwardRef(() => OrganizationService))
     private readonly organizationService: OrganizationService,
@@ -55,6 +59,7 @@ export class OrganizationVersionService {
     private readonly villageService: VillageService,
     private readonly avenueService: AvenueService,
     private readonly residentialAreaService: ResidentialAreaService,
+    private readonly NeighborhoodService: NeighborhoodService,
     private readonly areaService: AreaService,
     private readonly streetService: StreetService,
     private readonly laneService: LaneService,
@@ -67,6 +72,9 @@ export class OrganizationVersionService {
   async create(
     data: OrganizationVersionInterfaces.Request
   ): Promise<OrganizationVersionInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     let phones = data['Phone'] || [];
     const createdPhonesVersion = [];
 
@@ -125,6 +133,7 @@ export class OrganizationVersionService {
         villageId: data.villageId,
         avenueId: data.avenueId,
         residentialId: data.residentialId,
+        neighborhoodId: data.neighborhoodId,
         areaId: data.areaId,
         streetId: data.streetId,
         laneId: data.laneId,
@@ -178,6 +187,10 @@ export class OrganizationVersionService {
         NearbeesVersion: true,
       },
     });
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      organizationVersion
+    );
 
     return organizationVersion;
   }
@@ -185,6 +198,8 @@ export class OrganizationVersionService {
   async findAll(
     data: LanguageRequestDto
   ): Promise<OrganizationVersionInterfaces.ResponseWithoutPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const organizations = await this.prisma.organization.findMany({
       orderBy: { name: 'asc' },
       include: {
@@ -231,6 +246,7 @@ export class OrganizationVersionService {
         },
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, organizations);
 
     return {
       data: organizations,
@@ -241,6 +257,9 @@ export class OrganizationVersionService {
   async findAllByPagination(
     data: ListQueryDto
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAllByPagination.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const where: any = { status: DefaultStatus.ACTIVE };
     if (data.search) {
       where.StreetTranslations = {
@@ -327,6 +346,7 @@ export class OrganizationVersionService {
         old_name: nameOld,
       });
     }
+    this.logger.debug(`Method: ${methodName} - Response: `, formattedStreet);
 
     return {
       data: formattedStreet,
@@ -338,6 +358,8 @@ export class OrganizationVersionService {
   async findOne(
     data: GetOneDto
   ): Promise<OrganizationVersionInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const organization = await this.prisma.organization.findFirst({
       where: {
         id: data.id,
@@ -390,6 +412,7 @@ export class OrganizationVersionService {
     if (!organization) {
       throw new NotFoundException('Street is not found');
     }
+    this.logger.debug(`Method: ${methodName} - Response: `, organization);
 
     return { ...organization };
   }
@@ -397,6 +420,9 @@ export class OrganizationVersionService {
   async update(
     data: OrganizationVersionUpdateDto
   ): Promise<OrganizationVersionInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const organizationVersion = await this.prisma.organizationVersion.findFirst(
       {
         where: {
@@ -455,6 +481,12 @@ export class OrganizationVersionService {
     if (data.residentialId) {
       await this.residentialAreaService.findOne({
         id: data.residentialId,
+      });
+    }
+
+    if(data.neighborhoodId) {
+      await this.NeighborhoodService.findOne({
+        id: data.neighborhoodId,
       });
     }
     if (data.areaId) {
@@ -593,6 +625,7 @@ export class OrganizationVersionService {
           villageId: data.villageId || null,
           avenueId: data.avenueId || null,
           residentialId: data.residentialId || null,
+          neighborhoodId: data.neighborhoodId || null,
           areaId: data.areaId || null,
           streetId: data.streetId || null,
           laneId: data.laneId || null,
@@ -651,6 +684,10 @@ export class OrganizationVersionService {
     if (status == OrganizationStatusEnum.Accepted) {
       await this.organizationService.update(data.id);
     }
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      UpdateOrganizationVersion
+    );
     return UpdateOrganizationVersion;
   }
 

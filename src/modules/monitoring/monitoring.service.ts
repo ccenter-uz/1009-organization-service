@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import {
@@ -9,6 +9,7 @@ import { Roles } from 'types/global';
 
 @Injectable()
 export class MonitoringService {
+  private logger = new Logger(MonitoringService.name);
   constructor(private readonly prisma: PrismaService) {}
 
   // async create(
@@ -28,10 +29,14 @@ export class MonitoringService {
   async findAll(
     data: MonitoringFilterDto
   ): Promise<MonitoringInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     if (data.all) {
       const monitoringData = await this.prisma.apiLogs.findMany({
         orderBy: { createdAt: 'desc' },
       });
+      this.logger.debug(`Method: ${methodName} - Response: `, monitoringData);
 
       return {
         data: monitoringData,
@@ -65,6 +70,12 @@ export class MonitoringService {
       where.organizationId = data.organizationId;
     }
 
+    if (data.onlyOrgs) {
+      where.organizationName = {
+        not: null,
+      };
+    }
+
     const count = await this.prisma.apiLogs.count({
       where,
     });
@@ -81,6 +92,7 @@ export class MonitoringService {
       take: pagination.take,
       skip: pagination.skip,
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, monitoringData);
 
     return {
       data: monitoringData,

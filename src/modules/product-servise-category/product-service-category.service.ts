@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import {
@@ -20,11 +20,15 @@ import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dt
 
 @Injectable()
 export class ProductServiceCategoryService {
+  private logger = new Logger(ProductServiceCategoryService.name);
   constructor(private readonly prisma: PrismaService) {}
 
   async create(
     data: ProductServiseCategoryCreateDto
   ): Promise<ProductServiseCategoryInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const productServiceCategory =
       await this.prisma.productServiceCategory.create({
         data: {
@@ -51,12 +55,20 @@ export class ProductServiceCategoryService {
           ProductServiceCategoryTranslations: true,
         },
       });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      productServiceCategory
+    );
+
     return productServiceCategory;
   }
 
   async findAll(
     data: ListQueryWithOrderDto
   ): Promise<ProductServiseCategoryInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const conditions: Prisma.Sql[] = [];
     if (data.status === 0 || data.status === 1)
       conditions.push(Prisma.sql`c.status = ${data.status}`);
@@ -104,6 +116,10 @@ export class ProductServiceCategoryService {
 
           return { ...productServiceCategory, name };
         }
+      );
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedCategories
       );
 
       return {
@@ -162,6 +178,10 @@ export class ProductServiceCategoryService {
         return { ...productServiceCategory, name };
       }
     );
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedCategories
+    );
 
     return {
       data: formattedCategories,
@@ -173,6 +193,8 @@ export class ProductServiceCategoryService {
   async findOne(
     data: GetOneDto
   ): Promise<ProductServiseCategoryInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const productServiceCategory =
       await this.prisma.productServiceCategory.findFirst({
         where: {
@@ -202,6 +224,10 @@ export class ProductServiceCategoryService {
       productServiceCategory.ProductServiceCategoryTranslations
     );
     delete productServiceCategory.ProductServiceCategoryTranslations;
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      productServiceCategory
+    );
 
     return { ...productServiceCategory, name };
   }
@@ -209,9 +235,12 @@ export class ProductServiceCategoryService {
   async update(
     data: ProductServiseCategoryUpdateDto
   ): Promise<ProductServiseCategoryInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const productServiceCategory = await this.findOne({ id: data.id });
 
-    return await this.prisma.productServiceCategory.update({
+    const updatedCategory = await this.prisma.productServiceCategory.update({
       where: {
         id: productServiceCategory.id,
       },
@@ -239,13 +268,20 @@ export class ProductServiceCategoryService {
         ProductServiceCategoryTranslations: true, // Include translations in the response
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
+
+    return updatedCategory;
   }
 
   async remove(
     data: DeleteDto
   ): Promise<ProductServiseCategoryInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.productServiceCategory.delete({
+      const deletedCategory = await this.prisma.productServiceCategory.delete({
         where: { id: data.id },
         include: {
           ProductServiceCategoryTranslations: {
@@ -256,9 +292,13 @@ export class ProductServiceCategoryService {
           },
         },
       });
+
+      this.logger.debug(`Method: ${methodName} - Response: `, deletedCategory);
+
+      return deletedCategory;
     }
 
-    return await this.prisma.productServiceCategory.update({
+    const updatedCategory = await this.prisma.productServiceCategory.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -270,12 +310,19 @@ export class ProductServiceCategoryService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
+
+    return updatedCategory;
   }
 
   async restore(
     data: GetOneDto
   ): Promise<ProductServiseCategoryInterfaces.Response> {
-    return this.prisma.productServiceCategory.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedCategory = this.prisma.productServiceCategory.update({
       where: { id: data.id, status: DefaultStatus.INACTIVE },
       data: { status: DefaultStatus.ACTIVE },
       include: {
@@ -287,5 +334,9 @@ export class ProductServiceCategoryService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
+
+    return updatedCategory;
   }
 }

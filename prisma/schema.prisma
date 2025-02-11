@@ -181,6 +181,7 @@ model Region {
   Area                Area[]
   Avenue              Avenue[]
   ResidentialArea     ResidentialArea[]
+  Neighborhood     Neighborhood[]
   Impasse             Impasse[]
   Street              Street[]
   Village             Village[]
@@ -220,6 +221,7 @@ model City {
   Area                Area[]
   Avenue              Avenue[]
   ResidentialArea     ResidentialArea[]
+  Neighborhood         Neighborhood[]
   Impasse             Impasse[]
   Street              Street[]
   Village             Village[]
@@ -264,6 +266,7 @@ model District {
   Area                        Area[]
   Avenue                      Avenue[]
   ResidentialArea             ResidentialArea[]
+  Neighborhood                Neighborhood[]
   Impasse                     Impasse[]
   Street                      Street[]
   Village                     Village[]
@@ -614,6 +617,70 @@ model ResidentialAreaNewNameTranslations {
   @@map("residential_area_new_name_translations")
 }
 
+model Neighborhood {
+  id          Int       @id @default(autoincrement())
+  regionId    Int       @map("region_id")
+  cityId      Int       @map("city_id")
+  index       String    @db.VarChar(1000)
+  status      Int       @default(1) @db.SmallInt()
+  staffNumber String?   @map("staff_number") @db.VarChar(40)
+  districtId  Int?      @map("district_id")
+  orderNumber Int?      @map("order_number")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  region                             Region                               @relation(fields: [regionId], references: [id])
+  city                               City                                 @relation(fields: [cityId], references: [id])
+  district                           District?                            @relation(fields: [districtId], references: [id])
+  NeighborhoodTranslations        NeighborhoodTranslations[]
+  NeighborhoodOldNameTranslations NeighborhoodOldNameTranslations[]
+  NeighborhoodNewNameTranslations NeighborhoodNewNameTranslations[]
+  Organization                       Organization[]
+  OrganizationVersion                OrganizationVersion[]
+
+  @@map("neighborhood")
+}
+
+model NeighborhoodTranslations {
+  id                Int       @id @default(autoincrement())
+  neighborhoodId    Int       @map("neighborhood_id")
+  languageCode      String    @map("language_code")
+  name              String
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt         DateTime? @updatedAt @map("updated_at")
+
+  Neighborhood   Neighborhood  @relation(fields: [neighborhoodId], references: [id])
+
+  @@map("neighborhood_translations")
+}
+
+model NeighborhoodOldNameTranslations {
+  id                Int       @id @default(autoincrement())
+  neighborhoodId Int       @map("neighborhood_id")
+  languageCode      String    @map("language_code")
+  name              String
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt         DateTime? @updatedAt @map("updated_at")
+
+  Neighborhood Neighborhood @relation(fields: [neighborhoodId], references: [id])
+
+  @@map("neighborhood_old_name_translations")
+}
+
+model NeighborhoodNewNameTranslations {
+  id                Int       @id @default(autoincrement())
+  neighborhoodId    Int       @map("neighborhood_id")
+  languageCode      String    @map("language_code")
+  name              String
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt         DateTime? @updatedAt @map("updated_at")
+
+  Neighborhood Neighborhood @relation(fields: [neighborhoodId], references: [id])
+
+  @@map("neighborhood_new_name_translations")
+}
+
 model Impasse {
   id          Int       @id @default(autoincrement())
   regionId    Int       @map("region_id")
@@ -926,6 +993,7 @@ model Organization {
   villageId          Int?      @map("village_id")
   avenueId           Int?      @map("avenue_id")
   residentialId      Int?      @map("residential_id")
+  neighborhoodId     Int?      @map("neighborhood_id")
   areaId             Int?      @map("area_id")
   streetId           Int?      @map("street_id")
   laneId             Int?      @map("lane_id")
@@ -946,6 +1014,7 @@ model Organization {
   Village             Village?              @relation(fields: [villageId], references: [id])
   Avenue              Avenue?               @relation(fields: [avenueId], references: [id])
   ResidentialArea     ResidentialArea?      @relation(fields: [residentialId], references: [id])
+  Neighborhood        Neighborhood?         @relation(fields: [neighborhoodId], references: [id])
   Area                Area?                 @relation(fields: [areaId], references: [id])
   Street              Street?               @relation(fields: [streetId], references: [id])
   Lane                Lane?                 @relation(fields: [laneId], references: [id])
@@ -1064,6 +1133,7 @@ model OrganizationVersion {
   villageId          Int?      @map("village_id") @db.Integer()
   avenueId           Int?      @map("avenue_id") @db.Integer()
   residentialId      Int?      @map("residential_id") @db.Integer()
+  neighborhoodId     Int?     @map("neighborhood_id")
   areaId             Int?      @map("area_id") @db.Integer()
   streetId           Int?      @map("street_id") @db.Integer()
   laneId             Int?      @map("lane_id") @db.Integer()
@@ -1087,6 +1157,7 @@ model OrganizationVersion {
   Village          Village?          @relation(fields: [villageId], references: [id])
   Avenue           Avenue?           @relation(fields: [avenueId], references: [id])
   ResidentialArea  ResidentialArea?  @relation(fields: [residentialId], references: [id])
+  Neighborhood     Neighborhood?     @relation(fields: [neighborhoodId], references: [id])
   Area             Area?             @relation(fields: [areaId], references: [id])
   Street           Street?           @relation(fields: [streetId], references: [id])
   Lane             Lane?             @relation(fields: [laneId], references: [id])
