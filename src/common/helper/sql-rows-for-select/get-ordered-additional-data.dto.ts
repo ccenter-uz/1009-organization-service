@@ -9,12 +9,16 @@ export async function getAllAdditional(
   const conditions: Prisma.Sql[] = [];
   if (data.status === 0 || data.status === 1)
     conditions.push(Prisma.sql`a.status = ${data.status}`);
-  
-  
- 
-   if (data.search) {
-      if (data.langCode) {
-          conditions.push(Prisma.sql`
+
+  if (data.additionalCategoryId) {
+    conditions.push(
+      Prisma.sql`a.additional_category_id = ${data.additionalCategoryId}`
+    );
+  }
+
+  if (data.search) {
+    if (data.langCode) {
+      conditions.push(Prisma.sql`
               EXISTS (
                   SELECT 1
                   FROM additional_translations at
@@ -23,8 +27,8 @@ export async function getAllAdditional(
                   AND at.name ILIKE ${`%${data.search}%`}
               )
           `);
-      } else {
-          conditions.push(Prisma.sql`
+    } else {
+      conditions.push(Prisma.sql`
               EXISTS (
                   SELECT 1
                   FROM additional_translations at
@@ -34,8 +38,8 @@ export async function getAllAdditional(
                   LIMIT 1
               )
           `);
-      }
     }
+  }
 
   const whereClause =
     conditions.length > 0
