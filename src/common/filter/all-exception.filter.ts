@@ -47,6 +47,12 @@ export class AllExceptionFilter implements ExceptionFilter {
       }`;
     }
 
+    // === PrismaClientValidationError (ошибки валидации данных) ===
+    else if (exception?.constructor?.name === 'PrismaClientValidationError') {
+      code = HttpStatus.BAD_REQUEST;
+      message = 'Prisma validation error: Check input data format.';
+    }
+
     const body = {
       statusCode: code,
       message: message,
