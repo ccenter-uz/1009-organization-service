@@ -67,7 +67,7 @@ export class AdditionalService {
             AdditionalTableContentTranslations: {
               create: Object.values(LanguageRequestEnum).map((lang) => ({
                 languageCode: lang,
-                name: tableItem.name[lang],
+                name: tableItem.content[lang],
               })),
             },
             AdditionalTableNameTranslations: {
@@ -84,7 +84,7 @@ export class AdditionalService {
             AdditionalContentContentTranslations: {
               create: Object.values(LanguageRequestEnum).map((lang) => ({
                 languageCode: lang,
-                name: contentItem.name[lang],
+                name: contentItem.content[lang],
               })),
             },
             AdditionalContentNameTranslations: {
@@ -186,7 +186,7 @@ export class AdditionalService {
       page: data.page,
       perPage: data.limit,
     });
-    
+
     const additionals = await getAllAdditional(this.prisma, data, pagination);
 
     const formattedCategories = [];
@@ -395,7 +395,7 @@ export class AdditionalService {
     delete formatedData.AdditionalCategory;
 
     for (let i = 0; i < additional.AdditionalContent.length; i++) {
-      const contentName = formatLanguageResponse(
+      const contentContent = formatLanguageResponse(
         additional.AdditionalContent?.[i]?.[
           'AdditionalContentContentTranslations'
         ]
@@ -403,7 +403,7 @@ export class AdditionalService {
       delete additional.AdditionalContent?.[i]?.[
         'AdditionalContentContentTranslations'
       ];
-      const contentContent = formatLanguageResponse(
+      const contentName = formatLanguageResponse(
         additional.AdditionalContent?.[i]?.['AdditionalContentNameTranslations']
       );
       delete additional.AdditionalContent?.[i]?.[
@@ -418,13 +418,13 @@ export class AdditionalService {
     }
 
     for (let i = 0; i < additional.AdditionalTable.length; i++) {
-      const tableName = formatLanguageResponse(
+      const tableContent = formatLanguageResponse(
         additional.AdditionalTable?.[i]?.['AdditionalTableContentTranslations']
       );
       delete additional.AdditionalTable?.[i]?.[
         'AdditionalTableContentTranslations'
       ];
-      const tableContent = formatLanguageResponse(
+      const tableName = formatLanguageResponse(
         additional.AdditionalTable?.[i]?.['AdditionalTableNameTranslations']
       );
       delete additional.AdditionalTable?.[i]?.[
@@ -486,7 +486,7 @@ export class AdditionalService {
             AdditionalTableContentTranslations: {
               create: Object.values(LanguageRequestEnum).map((lang) => ({
                 languageCode: lang,
-                name: tableItem.name[lang],
+                name: tableItem.content[lang],
               })),
             },
             AdditionalTableNameTranslations: {
@@ -503,7 +503,7 @@ export class AdditionalService {
             AdditionalContentContentTranslations: {
               create: Object.values(LanguageRequestEnum).map((lang) => ({
                 languageCode: lang,
-                name: contentItem.name[lang],
+                name: contentItem.content[lang],
               })),
             },
             AdditionalContentNameTranslations: {
