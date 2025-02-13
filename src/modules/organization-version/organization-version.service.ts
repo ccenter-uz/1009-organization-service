@@ -484,7 +484,7 @@ export class OrganizationVersionService {
       });
     }
 
-    if(data.neighborhoodId) {
+    if (data.neighborhoodId) {
       await this.NeighborhoodService.findOne({
         id: data.neighborhoodId,
       });
@@ -599,6 +599,7 @@ export class OrganizationVersionService {
     let PhotoLinkCreateVersionArray = [...data.PhotoLink];
 
     let PhotoLinks = data?.picture['pictures'];
+
     if (PhotoLinks.length > 0) {
       await this.prisma.pictureVersion.deleteMany({
         where: {
@@ -606,6 +607,12 @@ export class OrganizationVersionService {
         },
       });
       PhotoLinkCreateVersionArray.push(...PhotoLinks);
+    } else if (PhotoLinks.length == 0) {
+      await this.prisma.pictureVersion.deleteMany({
+        where: {
+          OrganizationVersionId: organizationVersion.id,
+        },
+      });
     }
     let status =
       data.role == CreatedByEnum.Moderator &&
