@@ -1,5 +1,6 @@
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { OrganizationStatusEnum, Roles } from 'types/global';
 
 export async function getAllAdditional(
   prisma: PrismaService,
@@ -7,6 +8,9 @@ export async function getAllAdditional(
   pagination?: { take: number; skip: number }
 ) {
   const conditions: Prisma.Sql[] = [];
+  if (data.role !== Roles.MODERATOR) {
+    conditions.push(Prisma.sql`a.status = 1`);
+  }
   if (data.status === 0 || data.status === 1)
     conditions.push(Prisma.sql`a.status = ${data.status}`);
 
