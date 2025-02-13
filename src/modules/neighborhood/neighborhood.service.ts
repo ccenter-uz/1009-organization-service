@@ -145,7 +145,6 @@ export class NeighborhoodService {
       );
 
       const formattedNeighborhood = [];
-      console.log(neighborhoods.length, 'ichida');
 
       for (let i = 0; i < neighborhoods.length; i++) {
         const neighborhoodData = neighborhoods[i];

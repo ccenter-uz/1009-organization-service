@@ -2,7 +2,11 @@ import { SegmentService } from './../segment/segment.service';
 import { Injectable, Logger } from '@nestjs/common';
 import excelDateToDateTime from '@/common/helper/excelDateConverter';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreatedByEnum, OrganizationStatusEnum } from 'types/global';
+import {
+  CreatedByEnum,
+  OrganizationMethodEnum,
+  OrganizationStatusEnum,
+} from 'types/global';
 import { ExcelData } from 'types/organization/organization/dto/create-exel.dto';
 
 @Injectable()
@@ -106,6 +110,7 @@ export class FtpService {
             createdBy: CreatedByEnum.Billing,
             status: OrganizationStatusEnum.Check,
             organizationId: res.id,
+            method: OrganizationMethodEnum.Create,
           },
         });
         this.logger.debug(`Method: ${methodName} - Response: `, res);
@@ -151,6 +156,7 @@ export class FtpService {
             deletedAt: row['STOP'] ? excelDateToDateTime(row['STOP']) : null,
             createdBy: CreatedByEnum.Billing,
             status: OrganizationStatusEnum.Deleted,
+            method: OrganizationMethodEnum.Delete,
           },
         });
       });
