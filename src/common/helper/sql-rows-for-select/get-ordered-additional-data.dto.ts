@@ -63,7 +63,6 @@ export async function getAllAdditional(
               )
             )::JSONB AS AdditionalTranslations  
           FROM additional_translations at
-          WHERE (${data.allLang} = TRUE OR ${data.langCode ? Prisma.sql`at.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
           GROUP BY at.additional_id
         ),
         AdditionalWarningTranslations AS (
@@ -76,7 +75,6 @@ export async function getAllAdditional(
               )
             )::JSONB AS AdditionalWarningTranslations  
           FROM additional_warning_translations awt
-          WHERE (${data.allLang} = TRUE OR ${data.langCode ? Prisma.sql`awt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
           GROUP BY awt.additional_id
         ),
         AdditionalMentionTranslations AS (
@@ -89,7 +87,6 @@ export async function getAllAdditional(
               )
             )::JSONB AS AdditionalMentionTranslations  
           FROM additional_mention_translations amt
-          WHERE (${data.allLang} = TRUE OR ${data.langCode ? Prisma.sql`amt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
           GROUP BY amt.additional_id
         ),
         AdditionalContent AS (
@@ -104,12 +101,22 @@ export async function getAllAdditional(
               'updatedAt', ac.updated_at,
               'deletedAt', ac.deleted_at,
               'name', (
-                SELECT JSONB_OBJECT_AGG(acnt.language_code, acnt.name)
+                SELECT JSON_AGG(
+                  JSONB_BUILD_OBJECT(
+                    'languageCode', acnt.language_code,
+                    'name', acnt.name
+                  )
+                )::JSONB
                 FROM additional_content_name_translations acnt
                 WHERE acnt.additional_content_id = ac.id 
               ),
               'content', (
-                SELECT JSONB_OBJECT_AGG(acct.language_code, acct.name)
+                SELECT JSON_AGG(
+                JSONB_BUILD_OBJECT(
+                  'languageCode', acct.language_code,
+                  'name', acct.name
+                )
+              )::JSONB
                 FROM additional_content_content_translations acct
                 WHERE acct.additional_content_id = ac.id
               )
@@ -128,15 +135,21 @@ export async function getAllAdditional(
             'updatedAt', atb.updated_at,
             'deletedAt', atb.deleted_at,
             'name', (
-              SELECT JSON_OBJECT_AGG(
-                atnt.language_code, atnt.name
-              ) FROM additional_table_name_translations atnt
+              SELECT JSON_AGG(
+              JSONB_BUILD_OBJECT(
+                'languageCode', atnt.language_code,
+                'name', atnt.name
+              )
+            )::JSONB FROM additional_table_name_translations atnt
               WHERE atnt.additional_table_id = atb.id
             ),
             'content', (
-              SELECT JSON_OBJECT_AGG(
-                atct.language_code, atct.name
-              ) FROM additional_table_content_translations atct
+              SELECT JSON_AGG(
+              JSONB_BUILD_OBJECT(
+                'languageCode', atct.language_code,
+                'name', atct.name
+              )
+            )::JSONB FROM additional_table_content_translations atct
               WHERE atct.additional_table_id = atb.id
             )
           )
@@ -144,7 +157,6 @@ export async function getAllAdditional(
       FROM additional_table atb
       GROUP BY atb.additional_id
     )
-
       SELECT
         a.*,
         (SELECT AdditionalTranslations FROM AdditionalTranslations WHERE additional_id = a.id) AS "AdditionalTranslations",
