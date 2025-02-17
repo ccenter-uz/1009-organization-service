@@ -4,10 +4,9 @@ export function formatLanguageResponse(translation: { languageCode: string, name
 
     return acc;
   }, {});
-
   if (Object.keys(name).length === 1) {
     name = Object.values(name)[0];
   }
-
+  
   return name
 }
