@@ -268,7 +268,7 @@ export class OrganizationService {
           account: data?.account ? data?.account : null,
           bankNumber: data?.bankNumber ? data?.bankNumber : null,
           address: data?.address ? data.address : null,
-          apartment: data.apartment,
+          apartment: data.apartment ? data.apartment : null,
           home: data.home,
           inn: data?.inn ? data?.inn : null,
           kvartal: data?.kvartal ? data?.kvartal : null,
