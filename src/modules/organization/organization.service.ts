@@ -93,9 +93,13 @@ export class OrganizationService {
     const methodName: string = this.create.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const mainOrganization = await this.mainOrganizationService.findOne({
-      id: data.mainOrganizationId,
-    });
+    let mainOrganization
+    if(data.mainOrganizationId){
+      mainOrganization = await this.mainOrganizationService.findOne({
+        id: data.mainOrganizationId,
+      });
+    }
+   
 
     const subCategory = await this.subCategoryService.findOne({
       id: data.subCategoryId,
@@ -242,80 +246,86 @@ export class OrganizationService {
     if (data.role == CreatedByEnum.Operator) {
       CreatedByRole = CreatedByEnum.Operator;
     }
+    console.log('okk');
+    try {
+      const organization = await this.prisma.organization.create({
+        data: {
+          regionId: region.id,
+          cityId: city.id,
+          districtId: district?.id,
+          villageId: village?.id,
+          avenueId: avenue?.id,
+          residentialId: residential?.id,
+          neighborhoodId: neighborhood?.id,
+          areaId: area?.id,
+          streetId: street?.id,
+          laneId: lane?.id,
+          impasseId: impasse?.id,
+          segmentId: segment?.id ? segment.id : undefined,
+          mainOrganizationId: mainOrganization?.id ? mainOrganization?.id : null,
+          subCategoryId: subCategory.id,
+          description: data?.description ? data?.description : null,
+          account: data?.account ? data?.account : null,
+          bankNumber: data?.bankNumber ? data?.bankNumber : null,
+          address: data?.address ? data.address : null,
+          apartment: data.apartment,
+          home: data.home,
+          inn: data?.inn ? data?.inn : null,
+          kvartal: data?.kvartal ? data?.kvartal : null,
+          legalName: data?.legalName ? data.legalName : undefined,
+          mail: data?.mail ? data?.mail : null,
+          name: data.name,
+          secret: data?.secret ? data?.secret : null,
+          manager: data?.manager ? data?.manager : null,
+          index: data.index,
+          transport: data.transport,
+          workTime: data.workTime,
+          staffNumber: data.staffNumber,
+          passageId: passage?.id,
+          status:
+            data.role == CreatedByEnum.Moderator
+              ? OrganizationStatusEnum.Accepted
+              : OrganizationStatusEnum.Check,
+          createdBy: CreatedByRole,
+          PaymentTypes: {
+            create: [
+              {
+                Cash: data.paymentTypes.cash,
+                Terminal: data.paymentTypes.terminal,
+                Transfer: data.paymentTypes.transfer,
+              },
+            ],
+          },
+          Phone: {
+            create: phoneCreateArray,
+          },
+          Picture: {
+            create: data.PhotoLink,
+          },
+          Nearbees: {
+            create: nearbeesCreateArray,
+          },
+          ProductServices: {
+            create: productServiceCreateArray,
+          },
+        },
+        include: {
+          MainOrganization: true,
+          PaymentTypes: true,
+          Phone: true,
+          Picture: true,
+          Nearbees: true,
+          ProductServices: true,
+        },
+      });
+      this.logger.debug(`Method: ${methodName} - Response: `, organization);
 
-    const organization = await this.prisma.organization.create({
-      data: {
-        regionId: region.id,
-        cityId: city.id,
-        districtId: district?.id,
-        villageId: village?.id,
-        avenueId: avenue?.id,
-        residentialId: residential?.id,
-        neighborhoodId: neighborhood?.id,
-        areaId: area?.id,
-        streetId: street?.id,
-        laneId: lane?.id,
-        impasseId: impasse?.id,
-        segmentId: segment?.id ? segment.id : undefined,
-        mainOrganizationId: mainOrganization.id,
-        subCategoryId: subCategory.id,
-        description: data?.description ? data?.description : null,
-        account: data?.account ? data?.account : null,
-        bankNumber: data?.bankNumber ? data?.bankNumber : null,
-        address: data.address,
-        apartment: data.apartment,
-        home: data.home,
-        inn: data?.inn ? data?.inn : null,
-        kvartal: data?.kvartal ? data?.kvartal : null,
-        legalName: data?.legalName ? data.legalName : undefined,
-        mail: data?.mail ? data?.mail : null,
-        name: data.name,
-        secret: data.secret,
-        manager: data?.manager ? data?.manager : null,
-        index: data.index,
-        transport: data.transport,
-        workTime: data.workTime,
-        staffNumber: data.staffNumber,
-        passageId: passage?.id,
-        status:
-          data.role == CreatedByEnum.Moderator
-            ? OrganizationStatusEnum.Accepted
-            : OrganizationStatusEnum.Check,
-        createdBy: CreatedByRole,
-        PaymentTypes: {
-          create: [
-            {
-              Cash: data.paymentTypes.cash,
-              Terminal: data.paymentTypes.terminal,
-              Transfer: data.paymentTypes.transfer,
-            },
-          ],
-        },
-        Phone: {
-          create: phoneCreateArray,
-        },
-        Picture: {
-          create: data.PhotoLink,
-        },
-        Nearbees: {
-          create: nearbeesCreateArray,
-        },
-        ProductServices: {
-          create: productServiceCreateArray,
-        },
-      },
-      include: {
-        MainOrganization: true,
-        PaymentTypes: true,
-        Phone: true,
-        Picture: true,
-        Nearbees: true,
-        ProductServices: true,
-      },
-    });
-    this.logger.debug(`Method: ${methodName} - Response: `, organization);
-    await this.organizationVersionService.create(organization);
-    return organization;
+      await this.organizationVersionService.create(organization);
+      return organization;
+    } catch (error) {
+      console.log(error);
+      
+    }
   }
 
   async findAll(
