@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   SubCategoryCreateDto,
@@ -15,8 +15,12 @@ import {
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { CategoryService } from '../category/category.service';
+import { Prisma } from '@prisma/client';
+import { getSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/get-sub-category-ordered.dto';
 @Injectable()
 export class SubCategoryService {
+  private logger = new Logger(SubCategoryService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly categoryService: CategoryService
@@ -25,6 +29,9 @@ export class SubCategoryService {
   async create(
     data: SubCategoryCreateDto
   ): Promise<SubCategoryInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const category = await this.categoryService.findOne({
       id: data.categoryId,
     });
@@ -32,6 +39,7 @@ export class SubCategoryService {
       data: {
         staffNumber: data.staffNumber,
         categoryId: category.id,
+        orderNumber: data.orderNumber,
         SubCategoryTranslations: {
           create: [
             {
@@ -54,53 +62,56 @@ export class SubCategoryService {
         SubCategoryTranslations: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, subCategory);
+
     return subCategory;
   }
 
   async findAll(
     data: SubCategoryFilterDto
   ): Promise<SubCategoryInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+                  EXISTS (
+                    SELECT 1
+                    FROM sub_category_translations ct
+                    WHERE ct.sub_category_id = c.id
+                      AND ct.language_code = ${data.langCode}
+                      AND ct.name ILIKE ${`%${data.search}%`}
+                  )
+                `);
+      } else {
+        conditions.push(Prisma.sql`
+                  EXISTS (
+                    SELECT 1
+                    FROM sub_category_translations ct
+                    WHERE ct.sub_category_id = c.id
+                      AND ct.name ILIKE ${`%${data.search}%`}
+                    ORDER BY ct.language_code   
+                    LIMIT 1
+                  )
+                `);
+      }
+    }
+    if (data.categoryId) {
+      conditions.push(Prisma.sql`c.category_id = ${data.categoryId}`);
+    }
     if (data.all) {
-      const subCategories = await this.prisma.subCategory.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          categoryId: data.categoryId,
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-        },
-        include: {
-          category: {
-            include: {
-              CategoryTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          SubCategoryTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
-
+      const subCategories = await getSubCategoryOrderedData(
+        'SubCategory',
+        'sub_category',
+        'Category',
+        'category',
+        this.prisma,
+        data,
+        conditions
+      );
       const formattedSubCategories = [];
 
       for (let i = 0; i < subCategories.length; i++) {
@@ -110,9 +121,9 @@ export class SubCategoryService {
 
         delete subCategory.SubCategoryTranslations;
 
-        const category: any = subCategories[i].category;
-        const categorytTranslations = category.CategoryTranslations;
-        const categoryName = formatLanguageResponse(categorytTranslations);
+        const category: any = subCategories[i].Category;
+        const categoryTranslations = category.CategoryTranslations;
+        const categoryName = formatLanguageResponse(categoryTranslations);
 
         category.name = categoryName;
         delete category.CategoryTranslations;
@@ -121,6 +132,10 @@ export class SubCategoryService {
 
         formattedSubCategories.push({ ...subCategory, name, category });
       }
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedSubCategories
+      );
 
       return {
         data: formattedSubCategories,
@@ -159,40 +174,16 @@ export class SubCategoryService {
       perPage: data.limit,
     });
 
-    const subCategories = await this.prisma.subCategory.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        category: {
-          include: {
-            CategoryTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        SubCategoryTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const subCategories = await getSubCategoryOrderedData(
+      'SubCategory',
+      'sub_category',
+      'Category',
+      'category',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
 
     const formattedSubCategories = [];
 
@@ -201,9 +192,9 @@ export class SubCategoryService {
       const translations = subCategory.SubCategoryTranslations;
       const name = formatLanguageResponse(translations);
 
-      const category: any = subCategories[i].category;
-      const categorytTranslations = category.CategoryTranslations;
-      const categoryName = formatLanguageResponse(categorytTranslations);
+      const category: any = subCategories[i].Category;
+      const categoryTranslations = category.CategoryTranslations;
+      const categoryName = formatLanguageResponse(categoryTranslations);
 
       category.name = categoryName;
 
@@ -213,7 +204,10 @@ export class SubCategoryService {
 
       formattedSubCategories.push({ ...subCategory, name, category });
     }
-
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedSubCategories
+    );
     return {
       data: formattedSubCategories,
       totalPage: pagination.totalPage,
@@ -222,6 +216,8 @@ export class SubCategoryService {
   }
 
   async findOne(data: GetOneDto): Promise<SubCategoryInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const subCategory = await this.prisma.subCategory.findFirst({
       where: {
         id: data.id,
@@ -271,6 +267,7 @@ export class SubCategoryService {
 
     delete subCategory.SubCategoryTranslations;
     delete subCategory.SubCategoryTranslations;
+    this.logger.debug(`Method: ${methodName} - Response: `, subCategory);
 
     return { ...subCategory, name, category };
   }
@@ -278,6 +275,9 @@ export class SubCategoryService {
   async update(
     data: SubCategoryUpdateDto
   ): Promise<SubCategoryInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const subCategory = await this.findOne({ id: data.id });
 
     if (data.categoryId) {
@@ -307,7 +307,7 @@ export class SubCategoryService {
       });
     }
 
-    return await this.prisma.subCategory.update({
+    const updatedSubCategory = await this.prisma.subCategory.update({
       where: {
         id: subCategory.id,
       },
@@ -318,17 +318,25 @@ export class SubCategoryService {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
         },
+        orderNumber: data.orderNumber,
       },
       include: {
         category: true,
         SubCategoryTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedSubCategory);
+
+    return updatedSubCategory;
   }
 
   async remove(data: DeleteDto): Promise<SubCategoryInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.subCategory.delete({
+      const deletedSubCategory = await this.prisma.subCategory.delete({
         where: { id: data.id },
         include: {
           category: true,
@@ -340,9 +348,16 @@ export class SubCategoryService {
           },
         },
       });
+
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        deletedSubCategory
+      );
+
+      return deletedSubCategory;
     }
 
-    return await this.prisma.subCategory.update({
+    const updatedSubCategory = await this.prisma.subCategory.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -355,10 +370,16 @@ export class SubCategoryService {
         },
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedSubCategory);
+
+    return updatedSubCategory;
   }
 
   async restore(data: GetOneDto): Promise<SubCategoryInterfaces.Response> {
-    return this.prisma.subCategory.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedSubCategory = this.prisma.subCategory.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -374,5 +395,8 @@ export class SubCategoryService {
         },
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedSubCategory);
+
+    return updatedSubCategory;
   }
 }

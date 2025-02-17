@@ -13,7 +13,9 @@ import {
   LanguageRequestEnum,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
-import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
+import { Prisma } from '@prisma/client';
+import { getOrderedData } from '@/common/helper/sql-rows-for-select/get-ordered-data.dto';
 
 @Injectable()
 export class CategoryService {
@@ -31,6 +33,7 @@ export class CategoryService {
         staffNumber: data.staffNumber,
         cityId: data.cityId,
         regionId: data.regionId,
+        orderNumber: data.orderNumber,
         CategoryTranslations: {
           create: [
             {
@@ -82,65 +85,46 @@ export class CategoryService {
     data: CityRegionFilterDto
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
-
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
     if (data.all) {
-      const categories = await this.prisma.category.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-          cityId: data.cityId,
-          regionId: data.regionId,
-        },
-        include: {
-          city: {
-            include: {
-              CityTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              Region: {
-                include: {
-                  RegionTranslations: {
-                    where: data.allLang
-                      ? {}
-                      : {
-                          languageCode: data.langCode,
-                        },
-                    select: {
-                      languageCode: true,
-                      name: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          CategoryTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
+      const conditions: Prisma.Sql[] = [];
+      if (data.status === 0 || data.status === 1)
+        conditions.push(Prisma.sql`c.status = ${data.status}`);
+      if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
+      if (data.regionId)
+        conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+      if (data.search) {
+        if (data.langCode) {
+          conditions.push(Prisma.sql`
+            EXISTS (
+              SELECT 1
+              FROM category_translations ct
+              WHERE ct.category_id = c.id
+                AND ct.language_code = ${data.langCode}
+                AND ct.name ILIKE ${`%${data.search}%`}
+            )
+          `);
+        } else {
+          conditions.push(Prisma.sql`
+            EXISTS (
+              SELECT 1
+              FROM category_translations ct
+              WHERE ct.category_id = c.id
+                AND ct.name ILIKE ${`%${data.search}%`}
+              ORDER BY ct.language_code   
+              LIMIT 1
+            )
+          `);
+        }
+      }
+      const categories: any = await getOrderedData(
+        'Category',
+        'category',
+        this.prisma,
+        data,
+        conditions
+      );
 
       const formattedCategories = [];
 
@@ -216,55 +200,45 @@ export class CategoryService {
       perPage: data.limit,
     });
 
-    const categories = await this.prisma.category.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        city: {
-          include: {
-            CityTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            Region: {
-              include: {
-                RegionTranslations: {
-                  where: data.allLang
-                    ? {}
-                    : {
-                        languageCode: data.langCode,
-                      },
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        CategoryTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
+    if (data.regionId)
+      conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM category_translations ct
+            WHERE ct.category_id = c.id
+              AND ct.language_code = ${data.langCode}
+              AND ct.name ILIKE ${`%${data.search}%`}
+          )
+        `);
+      } else {
+        conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM category_translations ct
+            WHERE ct.category_id = c.id
+              AND ct.name ILIKE ${`%${data.search}%`}
+            ORDER BY ct.language_code  -- Сортировка по первому языковому коду
+            LIMIT 1
+          )
+        `);
+      }
+    }
+
+    const categories: any = await getOrderedData(
+      'Category',
+      'category',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
 
     const formattedCategories = [];
 
@@ -434,6 +408,7 @@ export class CategoryService {
         staffNumber: data.staffNumber || category.staffNumber,
         cityId: data.cityId,
         regionId: data.regionId,
+        orderNumber: data.orderNumber,
         CategoryTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,

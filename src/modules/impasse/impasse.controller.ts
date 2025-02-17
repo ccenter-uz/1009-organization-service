@@ -10,9 +10,8 @@ import {
 import {
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
-  ListQueryDto,
 } from 'types/global';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 
 @Controller('impasse')
 export class ImpasseController {
@@ -29,7 +28,7 @@ export class ImpasseController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: CityRegionFilterDto
   ): Promise<ImpasseInterfaces.ResponseWithoutPagination> {
     return this.impasseService.findAll(data);
   }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
@@ -17,9 +17,12 @@ import {
   StreetInterfaces,
   StreetUpdateDto,
 } from 'types/organization/street';
-import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
+import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 @Injectable()
 export class StreetService {
+  private logger = new Logger(StreetService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -28,6 +31,9 @@ export class StreetService {
   ) {}
 
   async create(data: StreetCreateDto): Promise<StreetInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -88,6 +94,7 @@ export class StreetService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         StreetTranslations: {
           create: [
             {
@@ -112,127 +119,23 @@ export class StreetService {
         StreetOldNameTranslations: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, street);
+
     return street;
   }
 
   async findAll(
     data: CityRegionFilterDto
   ): Promise<StreetInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
-      const streets = await this.prisma.street.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-          cityId: data.cityId,
-          regionId: data.regionId,
-        },
-        include: {
-          StreetTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          StreetOldNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          StreetNewNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          region: {
-            include: {
-              RegionTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          city: {
-            include: {
-              CityTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          district: {
-            include: {
-              DistrictTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictNewNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictOldNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
+      const streets = await getOrderedDataWithDistrict(
+        'Street',
+        'street',
+        this.prisma,
+        data
+      );
 
       const formattedStreet = [];
 
@@ -296,6 +199,7 @@ export class StreetService {
           district,
         });
       }
+      this.logger.debug(`Method: ${methodName} - Response: `, formattedStreet);
 
       return {
         data: formattedStreet,
@@ -333,114 +237,13 @@ export class StreetService {
       perPage: data.limit,
     });
 
-    const streets = await this.prisma.street.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        StreetTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        StreetNewNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        StreetOldNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        city: {
-          include: {
-            CityTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        district: {
-          include: {
-            DistrictTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictNewNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictOldNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const streets = await getOrderedDataWithDistrict(
+      'Street',
+      'street',
+      this.prisma,
+      data,
+      pagination
+    );
 
     const formattedStreet = [];
 
@@ -505,6 +308,7 @@ export class StreetService {
         district,
       });
     }
+    this.logger.debug(`Method: ${methodName} - Response: `, formattedStreet);
 
     return {
       data: formattedStreet,
@@ -514,6 +318,8 @@ export class StreetService {
   }
 
   async findOne(data: GetOneDto): Promise<StreetInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const street = await this.prisma.street.findFirst({
       where: {
         id: data.id,
@@ -668,6 +474,7 @@ export class StreetService {
       newName: districtNameNew,
       oldName: districtNameOld,
     };
+    this.logger.debug(`Method: ${methodName} - Response: `, street);
 
     return {
       ...street,
@@ -681,6 +488,9 @@ export class StreetService {
   }
 
   async update(data: StreetUpdateDto): Promise<StreetInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const street = await this.findOne({ id: data.id });
 
     if (data.regionId) {
@@ -761,7 +571,7 @@ export class StreetService {
       });
     }
 
-    return await this.prisma.street.update({
+    const updatedStreet = await this.prisma.street.update({
       where: {
         id: street.id,
       },
@@ -771,6 +581,7 @@ export class StreetService {
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || street.staffNumber,
         index: data.index || street.index,
+        orderNumber: data.orderNumber,
         StreetTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
@@ -794,11 +605,17 @@ export class StreetService {
         StreetOldNameTranslations: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedStreet);
+
+    return updatedStreet;
   }
 
   async remove(data: DeleteDto): Promise<StreetInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.street.delete({
+      const deletedStreet = await this.prisma.street.delete({
         where: { id: data.id },
         include: {
           StreetTranslations: {
@@ -821,9 +638,12 @@ export class StreetService {
           },
         },
       });
+      this.logger.debug(`Method: ${methodName} - Response: `, deletedStreet);
+
+      return deletedStreet;
     }
 
-    return await this.prisma.street.update({
+    const updatedStreet = await this.prisma.street.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -847,10 +667,17 @@ export class StreetService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedStreet);
+
+    return updatedStreet;
   }
 
   async restore(data: GetOneDto): Promise<StreetInterfaces.Response> {
-    return this.prisma.street.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedStreet = this.prisma.street.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -877,5 +704,9 @@ export class StreetService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedStreet);
+
+    return updatedStreet;
   }
 }

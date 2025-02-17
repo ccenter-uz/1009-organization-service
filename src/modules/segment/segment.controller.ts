@@ -13,6 +13,7 @@ import {
   SegmentInterfaces,
   SegmentUpdateDto,
 } from 'types/organization/segment';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Controller('segment')
 export class SegmentController {
@@ -29,11 +30,10 @@ export class SegmentController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: ListQueryDto
+    @Payload() data: ListQueryWithOrderDto
   ): Promise<SegmentInterfaces.ResponseWithoutPagination> {
     return this.categoryService.findAll(data);
   }
-
 
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })

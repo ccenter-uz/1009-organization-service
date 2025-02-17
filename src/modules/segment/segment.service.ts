@@ -1,29 +1,33 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
-  LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
-import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import {
   SegmentCreateDto,
   SegmentInterfaces,
   SegmentUpdateDto,
 } from 'types/organization/segment';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Injectable()
 export class SegmentService {
+  private logger = new Logger(SegmentService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: SegmentCreateDto): Promise<SegmentInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const segment = await this.prisma.segment.create({
       data: {
         name: data.name,
+        orderNumber: data.orderNumber,
       },
       select: {
         id: true,
@@ -34,15 +38,32 @@ export class SegmentService {
         updatedAt: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, segment);
+
     return segment;
   }
 
   async findAll(
-    data: ListQueryDto
+    data: ListQueryWithOrderDto
   ): Promise<SegmentInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
       const segments = await this.prisma.segment.findMany({
-        orderBy: { createdAt: 'desc' },
+        orderBy:
+          data.order === 'name'
+            ? [
+                { name: 'asc' },
+                {
+                  orderNumber: 'asc',
+                },
+              ]
+            : [
+                {
+                  orderNumber: 'asc',
+                },
+                { name: 'asc' },
+              ],
         where: {
           ...(data.status !== 2
             ? {
@@ -51,6 +72,7 @@ export class SegmentService {
             : {}),
         },
       });
+      this.logger.debug(`Method: ${methodName} - Response: `, segments);
 
       return {
         data: segments,
@@ -82,10 +104,24 @@ export class SegmentService {
 
     const categories = await this.prisma.segment.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy:
+        data.order === 'name'
+          ? [
+              { name: 'asc' },
+              {
+                orderNumber: 'asc',
+              },
+            ]
+          : [
+              {
+                orderNumber: 'asc',
+              },
+              { name: 'asc' },
+            ],
       take: pagination.take,
       skip: pagination.skip,
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, categories);
 
     return {
       data: categories,
@@ -95,6 +131,8 @@ export class SegmentService {
   }
 
   async findOne(data: GetOneDto): Promise<SegmentInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const segment = await this.prisma.segment.findFirst({
       where: {
         id: data.id,
@@ -106,19 +144,24 @@ export class SegmentService {
     if (!segment) {
       throw new NotFoundException('Segment is not found');
     }
+    this.logger.debug(`Method: ${methodName} - Response: `, segment);
 
     return segment;
   }
 
   async update(data: SegmentUpdateDto): Promise<SegmentInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const category = await this.findOne({ id: data.id });
 
-    return await this.prisma.segment.update({
+    const updatedSegment = await this.prisma.segment.update({
       where: {
         id: category.id,
       },
       data: {
         name: data.name,
+        orderNumber: data.orderNumber,
       },
       select: {
         id: true,
@@ -129,11 +172,18 @@ export class SegmentService {
         updatedAt: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedSegment);
+
+    return updatedSegment;
   }
 
   async remove(data: DeleteDto): Promise<SegmentInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.segment.delete({
+      const deletedSegment = await this.prisma.segment.delete({
         where: { id: data.id },
         select: {
           id: true,
@@ -144,9 +194,13 @@ export class SegmentService {
           updatedAt: true,
         },
       });
+
+      this.logger.debug(`Method: ${methodName} - Response: `, deletedSegment);
+
+      return deletedSegment;
     }
 
-    return await this.prisma.segment.update({
+    const updatedSegment = await this.prisma.segment.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       select: {
@@ -158,10 +212,17 @@ export class SegmentService {
         updatedAt: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedSegment);
+
+    return updatedSegment;
   }
 
   async restore(data: GetOneDto): Promise<SegmentInterfaces.Response> {
-    return this.prisma.segment.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedSegment = this.prisma.segment.update({
       where: { id: data.id, status: DefaultStatus.INACTIVE },
       data: { status: DefaultStatus.ACTIVE },
       select: {
@@ -173,5 +234,9 @@ export class SegmentService {
         updatedAt: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedSegment);
+
+    return updatedSegment;
   }
 }

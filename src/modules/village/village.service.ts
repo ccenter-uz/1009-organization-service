@@ -1,11 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
   LanguageRequestEnum,
-  ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
@@ -17,10 +16,13 @@ import {
   VillageInterfaces,
   VillageUpdateDto,
 } from 'types/organization/village';
-import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
+import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 
 @Injectable()
 export class VillageService {
+  private logger = new Logger(VillageService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -29,6 +31,9 @@ export class VillageService {
   ) {}
 
   async create(data: VillageCreateDto): Promise<VillageInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -89,6 +94,7 @@ export class VillageService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         VillageTranslations: {
           create: [
             {
@@ -113,6 +119,7 @@ export class VillageService {
         VillageOldNameTranslations: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, village);
 
     return village;
   }
@@ -120,121 +127,15 @@ export class VillageService {
   async findAll(
     data: CityRegionFilterDto
   ): Promise<VillageInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
-      const villages = await this.prisma.village.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-          cityId: data.cityId,
-          regionId: data.regionId,
-        },
-        include: {
-          VillageTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          VillageOldNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          VillageNewNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          region: {
-            include: {
-              RegionTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          city: {
-            include: {
-              CityTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          district: {
-            include: {
-              DistrictTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictNewNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictOldNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
+      const villages = await getOrderedDataWithDistrict(
+        'Village',
+        'village',
+        this.prisma,
+        data
+      );
 
       const formattedVillage = [];
 
@@ -299,6 +200,8 @@ export class VillageService {
           district,
         });
       }
+      this.logger.debug(`Method: ${methodName} - Response: `, formattedVillage);
+
       return {
         data: formattedVillage,
         totalDocs: villages.length,
@@ -337,114 +240,13 @@ export class VillageService {
       perPage: data.limit,
     });
 
-    const villages = await this.prisma.village.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        VillageTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        VillageNewNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        VillageOldNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        city: {
-          include: {
-            CityTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        district: {
-          include: {
-            DistrictTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictNewNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictOldNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const villages = await getOrderedDataWithDistrict(
+      'Village',
+      'village',
+      this.prisma,
+      data,
+      pagination
+    );
 
     const formattedVillage = [];
 
@@ -510,6 +312,7 @@ export class VillageService {
         district,
       });
     }
+    this.logger.debug(`Method: ${methodName} - Response: `, formattedVillage);
 
     return {
       data: formattedVillage,
@@ -519,6 +322,8 @@ export class VillageService {
   }
 
   async findOne(data: GetOneDto): Promise<VillageInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const village = await this.prisma.village.findFirst({
       where: {
         id: data.id,
@@ -674,6 +479,7 @@ export class VillageService {
       districtNameOld,
     };
     delete village.district;
+    this.logger.debug(`Method: ${methodName} - Response: `, village);
 
     return {
       ...village,
@@ -687,6 +493,9 @@ export class VillageService {
   }
 
   async update(data: VillageUpdateDto): Promise<VillageInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const village = await this.findOne({ id: data.id });
 
     if (data.regionId) {
@@ -768,7 +577,7 @@ export class VillageService {
       });
     }
 
-    return await this.prisma.village.update({
+    const updatedVillage = await this.prisma.village.update({
       where: {
         id: village.id,
       },
@@ -778,6 +587,7 @@ export class VillageService {
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || village.staffNumber,
         index: data.index || village.index,
+        orderNumber: data.orderNumber,
         VillageTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
@@ -801,11 +611,17 @@ export class VillageService {
         VillageOldNameTranslations: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedVillage);
+
+    return updatedVillage;
   }
 
   async remove(data: DeleteDto): Promise<VillageInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.village.delete({
+      const deletedVillage = await this.prisma.village.delete({
         where: { id: data.id },
         include: {
           VillageTranslations: {
@@ -828,9 +644,12 @@ export class VillageService {
           },
         },
       });
+      this.logger.debug(`Method: ${methodName} - Response: `, deletedVillage);
+
+      return deletedVillage;
     }
 
-    return await this.prisma.village.update({
+    const updatedVillage = await this.prisma.village.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -854,10 +673,17 @@ export class VillageService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedVillage);
+
+    return updatedVillage;
   }
 
   async restore(data: GetOneDto): Promise<VillageInterfaces.Response> {
-    return this.prisma.village.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedVillage = this.prisma.village.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -884,5 +710,9 @@ export class VillageService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedVillage);
+
+    return updatedVillage;
   }
 }

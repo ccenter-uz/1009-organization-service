@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
 
@@ -16,17 +16,26 @@ import {
   PhoneTypeInterfaces,
 } from 'types/organization/phone-type';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
+import { getSingleOrderedData } from '@/common/helper/sql-rows-for-select/get-single-ordered-data.dto';
+import { Prisma } from '@prisma/client';
+import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Injectable()
 export class PhoneTypeService {
+  private logger = new Logger(PhoneTypeService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async create(
     data: PhoneTypeCreateDto
   ): Promise<PhoneTypeInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const phoneTypes = await this.prisma.phoneTypes.create({
       data: {
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         PhoneTypesTranslations: {
           create: [
             {
@@ -48,36 +57,52 @@ export class PhoneTypeService {
         PhoneTypesTranslations: true, // Include translations in the response
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, phoneTypes);
+
     return phoneTypes;
   }
 
   async findAll(
-    data: ListQueryDto
+    data: ListQueryWithOrderDto
   ): Promise<PhoneTypeInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM phone_types_id_translations ct
+            WHERE ct.phone_types_id = c.id
+              AND ct.language_code = ${data.langCode}
+              AND ct.name ILIKE ${`%${data.search}%`}
+          )
+        `);
+      } else {
+        conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM phone_types_id_translations ct
+            WHERE ct.phone_types_id = c.id
+              AND ct.name ILIKE ${`%${data.search}%`}
+            ORDER BY ct.language_code   
+            LIMIT 1
+          )
+        `);
+      }
+    }
+
     if (data.all) {
-      const phoneType = await this.prisma.phoneTypes.findMany({
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-        },
-        include: {
-          PhoneTypesTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode, // langCode from request
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+      const phoneType = await getSingleOrderedData(
+        'PhoneTypes',
+        'phone_types',
+        this.prisma,
+        data,
+        conditions
+      );
 
       const formattedPhoneTypes = phoneType.map((productServiceCategory) => {
         const translations = productServiceCategory.PhoneTypesTranslations;
@@ -87,6 +112,10 @@ export class PhoneTypeService {
 
         return { ...productServiceCategory, name };
       });
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedPhoneTypes
+      );
 
       return {
         data: formattedPhoneTypes,
@@ -124,25 +153,14 @@ export class PhoneTypeService {
       perPage: data.limit,
     });
 
-    const phoneType = await this.prisma.phoneTypes.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        PhoneTypesTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode, // langCode from request
-              },
-          select: {
-            languageCode: true,
-            name: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const phoneType = await getSingleOrderedData(
+      'PhoneTypes',
+      'phone_types',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
 
     const formattedCategories = phoneType.map((productServiceCategory) => {
       const translations = productServiceCategory.PhoneTypesTranslations;
@@ -152,6 +170,10 @@ export class PhoneTypeService {
 
       return { ...productServiceCategory, name };
     });
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedCategories
+    );
     return {
       data: formattedCategories,
       totalPage: pagination.totalPage,
@@ -160,6 +182,8 @@ export class PhoneTypeService {
   }
 
   async findOne(data: GetOneDto): Promise<PhoneTypeInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const phoneType = await this.prisma.phoneTypes.findFirst({
       where: {
         id: data.id,
@@ -187,20 +211,26 @@ export class PhoneTypeService {
 
     const name = formatLanguageResponse(phoneType.PhoneTypesTranslations);
     delete phoneType.PhoneTypesTranslations;
+    this.logger.debug(`Method: ${methodName} - Response: `, phoneType);
+
     return { ...phoneType, name };
   }
 
   async update(
     data: PhoneTypeUpdateDto
   ): Promise<PhoneTypeInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const phoneType = await this.findOne({ id: data.id });
 
-    return await this.prisma.phoneTypes.update({
+    const updatedPhoneType = await this.prisma.phoneTypes.update({
       where: {
         id: phoneType.id,
       },
       data: {
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         PhoneTypesTranslations: {
           updateMany: [
             {
@@ -222,11 +252,18 @@ export class PhoneTypeService {
         PhoneTypesTranslations: true, // Include translations in the response
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedPhoneType);
+
+    return updatedPhoneType;
   }
 
   async remove(data: DeleteDto): Promise<PhoneTypeInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.phoneTypes.delete({
+      const deletedPhoneType = await this.prisma.phoneTypes.delete({
         where: { id: data.id },
         include: {
           PhoneTypesTranslations: {
@@ -237,9 +274,12 @@ export class PhoneTypeService {
           },
         },
       });
+      this.logger.debug(`Method: ${methodName} - Response: `, deletedPhoneType);
+
+      return deletedPhoneType;
     }
 
-    return await this.prisma.phoneTypes.update({
+    const updatedPhoneType = await this.prisma.phoneTypes.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -251,10 +291,17 @@ export class PhoneTypeService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedPhoneType);
+
+    return updatedPhoneType;
   }
 
   async restore(data: GetOneDto): Promise<PhoneTypeInterfaces.Response> {
-    return this.prisma.phoneTypes.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedPhoneType = this.prisma.phoneTypes.update({
       where: { id: data.id, status: DefaultStatus.INACTIVE },
       data: { status: DefaultStatus.ACTIVE },
       include: {
@@ -266,5 +313,9 @@ export class PhoneTypeService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedPhoneType);
+
+    return updatedPhoneType;
   }
 }

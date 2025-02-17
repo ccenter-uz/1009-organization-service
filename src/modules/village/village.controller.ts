@@ -8,7 +8,7 @@ import {
   VillageServiceCommands as Commands,
 } from 'types/organization/village';
 import { DeleteDto, GetOneDto, ListQueryDto } from 'types/global';
-import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 
 @Controller('village')
 export class VillageController {

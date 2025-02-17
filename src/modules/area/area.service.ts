@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
@@ -17,9 +17,13 @@ import {
   AreaInterfaces,
   AreaUpdateDto,
 } from 'types/organization/area';
-import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
+import { Prisma } from '@prisma/client';
+import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 @Injectable()
 export class AreaService {
+  private logger = new Logger(AreaService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -28,6 +32,9 @@ export class AreaService {
   ) {}
 
   async create(data: AreaCreateDto): Promise<AreaInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -88,6 +95,7 @@ export class AreaService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         AreaTranslations: {
           create: [
             {
@@ -112,128 +120,24 @@ export class AreaService {
         AreaOldNameTranslations: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, data);
+
     return area;
   }
 
   async findAll(
     data: CityRegionFilterDto
   ): Promise<AreaInterfaces.ResponseWithPagination> {
-    if (data.all) {
-      const areas = await this.prisma.area.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-          cityId: data.cityId,
-          regionId: data.regionId,
-        },
-        include: {
-          AreaTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          AreaOldNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          AreaNewNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
+    const methodName: string = this.findAll.name;
 
-          region: {
-            include: {
-              RegionTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          city: {
-            include: {
-              CityTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          district: {
-            include: {
-              DistrictTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictNewNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictOldNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    if (data.all) {
+      let areas = await getOrderedDataWithDistrict(
+        'Area',
+        'area',
+        this.prisma,
+        data
+      );
 
       const formattedArea = [];
 
@@ -298,6 +202,7 @@ export class AreaService {
         });
       }
 
+      this.logger.debug(`Method: ${methodName} -  Response: `, formattedArea);
       return {
         data: formattedArea,
         totalDocs: areas.length,
@@ -335,115 +240,13 @@ export class AreaService {
       perPage: data.limit,
     });
 
-    const areas = await this.prisma.area.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        AreaTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        AreaNewNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        AreaOldNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-
-        region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        city: {
-          include: {
-            CityTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        district: {
-          include: {
-            DistrictTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictNewNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictOldNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    let areas = await getOrderedDataWithDistrict(
+      'Area',
+      'area',
+      this.prisma,
+      data,
+      pagination
+    );
 
     const formattedArea = [];
 
@@ -509,6 +312,8 @@ export class AreaService {
       });
     }
 
+    this.logger.debug(`Method: ${methodName} - Response: `, formattedArea);
+
     return {
       data: formattedArea,
       totalPage: pagination.totalPage,
@@ -517,6 +322,9 @@ export class AreaService {
   }
 
   async findOne(data: GetOneDto): Promise<AreaInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const area = await this.prisma.area.findFirst({
       where: {
         id: data.id,
@@ -670,6 +478,7 @@ export class AreaService {
       newName: districtNameNew,
       oldName: districtNameOld,
     };
+    this.logger.debug(`Method: ${methodName} - Response: `, area);
 
     return {
       ...area,
@@ -683,6 +492,8 @@ export class AreaService {
   }
 
   async update(data: AreaUpdateDto): Promise<AreaInterfaces.Response> {
+    const methodName: string = this.update.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const area = await this.findOne({ id: data.id });
 
     if (data.regionId) {
@@ -763,7 +574,7 @@ export class AreaService {
       });
     }
 
-    return await this.prisma.area.update({
+    const updatedArea = await this.prisma.area.update({
       where: {
         id: area.id,
       },
@@ -773,6 +584,7 @@ export class AreaService {
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || area.staffNumber,
         index: data.index || area.index,
+        orderNumber: data.orderNumber,
         AreaTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
@@ -796,11 +608,16 @@ export class AreaService {
         AreaOldNameTranslations: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedArea);
+    return updatedArea;
   }
 
   async remove(data: DeleteDto): Promise<AreaInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.area.delete({
+      const area = await this.prisma.area.delete({
         where: { id: data.id },
         include: {
           AreaTranslations: {
@@ -823,9 +640,16 @@ export class AreaService {
           },
         },
       });
+
+      this.logger.debug(
+        `Method: ${methodName} - Rresponse when delete true: `,
+        area
+      );
+
+      return area;
     }
 
-    return await this.prisma.area.update({
+    const areaUpdate = await this.prisma.area.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -849,10 +673,19 @@ export class AreaService {
         },
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Rresponse when delete false: `,
+      areaUpdate
+    );
+    return areaUpdate;
   }
 
   async restore(data: GetOneDto): Promise<AreaInterfaces.Response> {
-    return this.prisma.area.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const areaUpdate = this.prisma.area.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -879,5 +712,9 @@ export class AreaService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Rresponse: `, areaUpdate);
+
+    return areaUpdate;
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
@@ -17,9 +17,13 @@ import {
   ResidentialAreaInterfaces,
   ResidentialAreaUpdateDto,
 } from 'types/organization/residential-area';
-import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
+import { Prisma } from '@prisma/client';
+import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 @Injectable()
 export class ResidentialAreaService {
+  private logger = new Logger(ResidentialAreaService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -30,6 +34,9 @@ export class ResidentialAreaService {
   async create(
     data: ResidentialAreaCreateDto
   ): Promise<ResidentialAreaInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -93,6 +100,7 @@ export class ResidentialAreaService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         ResidentialAreaTranslations: {
           create: [
             {
@@ -117,127 +125,24 @@ export class ResidentialAreaService {
         ResidentialAreaOldNameTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, residentialArea);
+
     return residentialArea;
   }
 
   async findAll(
     data: CityRegionFilterDto
   ): Promise<ResidentialAreaInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
-      const residentialAreas = await this.prisma.residentialArea.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-          cityId: data.cityId,
-          regionId: data.regionId,
-        },
-        include: {
-          ResidentialAreaTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          ResidentialAreaOldNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          ResidentialAreaNewNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          region: {
-            include: {
-              RegionTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          city: {
-            include: {
-              CityTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          district: {
-            include: {
-              DistrictTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictNewNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictOldNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
+      let residentialAreas = await getOrderedDataWithDistrict(
+        'ResidentialArea',
+        'residential_area',
+        this.prisma,
+        data
+      );
 
       const formattedResidentialArea = [];
 
@@ -304,6 +209,10 @@ export class ResidentialAreaService {
           district,
         });
       }
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedResidentialArea
+      );
 
       return {
         data: formattedResidentialArea,
@@ -341,115 +250,13 @@ export class ResidentialAreaService {
       perPage: data.limit,
     });
 
-    const residentialAreas = await this.prisma.residentialArea.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        ResidentialAreaTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        ResidentialAreaNewNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        ResidentialAreaOldNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        city: {
-          include: {
-            CityTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        district: {
-          include: {
-            DistrictTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictNewNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictOldNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-
+    let residentialAreas = await getOrderedDataWithDistrict(
+      'ResidentialArea',
+      'residential_area',
+      this.prisma,
+      data,
+      pagination
+    );
     const formattedResidentialArea = [];
 
     for (let i = 0; i < residentialAreas.length; i++) {
@@ -514,6 +321,10 @@ export class ResidentialAreaService {
         district,
       });
     }
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedResidentialArea
+    );
 
     return {
       data: formattedResidentialArea,
@@ -523,6 +334,8 @@ export class ResidentialAreaService {
   }
 
   async findOne(data: GetOneDto): Promise<ResidentialAreaInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const residentialArea = await this.prisma.residentialArea.findFirst({
       where: {
         id: data.id,
@@ -681,6 +494,7 @@ export class ResidentialAreaService {
       newName: districtNameNew,
       oldName: districtNameOld,
     };
+    this.logger.debug(`Method: ${methodName} - Response: `, residentialArea);
 
     return {
       ...residentialArea,
@@ -696,6 +510,9 @@ export class ResidentialAreaService {
   async update(
     data: ResidentialAreaUpdateDto
   ): Promise<ResidentialAreaInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const residentialArea = await this.findOne({ id: data.id });
 
     if (data.regionId) {
@@ -776,7 +593,7 @@ export class ResidentialAreaService {
       });
     }
 
-    return await this.prisma.residentialArea.update({
+    const updatedResidentialArea = await this.prisma.residentialArea.update({
       where: {
         id: residentialArea.id,
       },
@@ -786,6 +603,7 @@ export class ResidentialAreaService {
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || residentialArea.staffNumber,
         index: data.index || residentialArea.index,
+        orderNumber: data.orderNumber,
         ResidentialAreaTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
@@ -809,11 +627,20 @@ export class ResidentialAreaService {
         ResidentialAreaOldNameTranslations: true,
       },
     });
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedResidentialArea
+    );
+
+    return updatedResidentialArea;
   }
 
   async remove(data: DeleteDto): Promise<ResidentialAreaInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.residentialArea.delete({
+      const deletedResidentialArea = await this.prisma.residentialArea.delete({
         where: { id: data.id },
         include: {
           ResidentialAreaTranslations: {
@@ -836,9 +663,16 @@ export class ResidentialAreaService {
           },
         },
       });
+
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        deletedResidentialArea
+      );
+
+      return deletedResidentialArea;
     }
 
-    return await this.prisma.residentialArea.update({
+    const updatedResidentialArea = await this.prisma.residentialArea.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -862,10 +696,20 @@ export class ResidentialAreaService {
         },
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedResidentialArea
+    );
+
+    return updatedResidentialArea;
   }
 
   async restore(data: GetOneDto): Promise<ResidentialAreaInterfaces.Response> {
-    return this.prisma.residentialArea.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedResidentialArea = this.prisma.residentialArea.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -892,5 +736,11 @@ export class ResidentialAreaService {
         },
       },
     });
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedResidentialArea
+    );
+
+    return updatedResidentialArea;
   }
 }

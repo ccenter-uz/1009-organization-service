@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import {
@@ -10,17 +10,24 @@ import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
-  LanguageRequestDto,
   LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
+import { getSingleOrderedData } from '@/common/helper/sql-rows-for-select/get-single-ordered-data.dto';
+import { Prisma } from '@prisma/client';
+import { getSingleData } from '@/common/helper/sql-rows-for-select/get-single-data.dto';
 
 @Injectable()
 export class RegionService {
+  private logger = new Logger(RegionService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: RegionCreateDto): Promise<RegionInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.prisma.region.create({
       data: {
         RegionTranslations: {
@@ -44,36 +51,51 @@ export class RegionService {
         RegionTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, region);
     return region;
   }
 
   async findAll(
     data: ListQueryDto
   ): Promise<RegionInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+              EXISTS (
+                SELECT 1
+                FROM region_translations ct
+                WHERE ct.region_id = c.id
+                  AND ct.language_code = ${data.langCode}
+                  AND ct.name ILIKE ${`%${data.search}%`}
+              )
+            `);
+      } else {
+        conditions.push(Prisma.sql`
+              EXISTS (
+                SELECT 1
+                FROM region_translations ct
+                WHERE ct.region_id = c.id
+                  AND ct.name ILIKE ${`%${data.search}%`}
+                ORDER BY ct.language_code   
+                LIMIT 1
+              )
+            `);
+      }
+    }
     if (data.all) {
-      const regions = await this.prisma.region.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-        },
-        include: {
-          RegionTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
+      const regions = await getSingleData(
+        'Region',
+        'region',
+        this.prisma,
+        data,
+        conditions
+      );
 
       const formattedCategories = [];
 
@@ -86,6 +108,10 @@ export class RegionService {
 
         formattedCategories.push({ ...region, name });
       }
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedCategories
+      );
 
       return {
         data: formattedCategories,
@@ -121,25 +147,14 @@ export class RegionService {
       perPage: data.limit,
     });
 
-    const regions = await this.prisma.region.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        RegionTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const regions = await getSingleData(
+      'Region',
+      'region',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
 
     const formattedCategories = [];
 
@@ -152,7 +167,10 @@ export class RegionService {
 
       formattedCategories.push({ ...region, name });
     }
-
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedCategories
+    );
     return {
       data: formattedCategories,
       totalPage: pagination.totalPage,
@@ -161,6 +179,8 @@ export class RegionService {
   }
 
   async findOne(data: GetOneDto): Promise<RegionInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.prisma.region.findFirst({
       where: {
         id: data.id,
@@ -184,10 +204,15 @@ export class RegionService {
       throw new NotFoundException('Region is not found');
     }
     const name = formatLanguageResponse(region.RegionTranslations);
+    this.logger.debug(`Method: ${methodName} - Response: `, region);
+
     return { ...region, name };
   }
 
   async update(data: RegionUpdateDto): Promise<RegionInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.findOne({ id: data.id });
 
     const translationUpdates = [];
@@ -213,7 +238,7 @@ export class RegionService {
       });
     }
 
-    return await this.prisma.region.update({
+    const updateRegion = await this.prisma.region.update({
       where: {
         id: region.id,
       },
@@ -227,11 +252,18 @@ export class RegionService {
         RegionTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updateRegion);
+
+    return updateRegion;
   }
 
   async remove(data: DeleteDto): Promise<RegionInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.region.delete({
+      const updateRegion = await this.prisma.region.delete({
         where: { id: data.id },
         include: {
           RegionTranslations: {
@@ -242,9 +274,13 @@ export class RegionService {
           },
         },
       });
+
+      this.logger.debug(`Method: ${methodName} - Response: `, updateRegion);
+
+      return updateRegion;
     }
 
-    return await this.prisma.region.update({
+    const updateRegion = await this.prisma.region.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -256,10 +292,17 @@ export class RegionService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updateRegion);
+
+    return updateRegion;
   }
 
   async restore(data: GetOneDto): Promise<RegionInterfaces.Response> {
-    return this.prisma.region.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updateRegion = this.prisma.region.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -274,5 +317,8 @@ export class RegionService {
         },
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, updateRegion);
+
+    return updateRegion;
   }
 }

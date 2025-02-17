@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CityCreateDto,
@@ -15,14 +15,20 @@ import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { RegionService } from '../region/region.service';
 import { CityFilterDto } from 'types/organization/city/dto/filter-city.dto';
+import { Prisma } from '@prisma/client';
+import { getCityData } from '@/common/helper/sql-rows-for-select/get-city-data.dto';
 @Injectable()
 export class CityService {
+  private logger = new Logger(CityService.name);
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService
   ) {}
 
   async create(data: CityCreateDto): Promise<CityInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -51,52 +57,55 @@ export class CityService {
         CityTranslations: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, city);
+
     return city;
   }
 
   async findAll(
     data: CityFilterDto
   ): Promise<CityInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      if (data.langCode) {
+        conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM city_translations ct
+            WHERE ct.city_id = c.id
+              AND ct.language_code = ${data.langCode}
+              AND ct.name ILIKE ${`%${data.search}%`}
+          )
+        `);
+      } else {
+        conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM city_translations ct
+            WHERE ct.city_id = c.id
+              AND ct.name ILIKE ${`%${data.search}%`}
+            ORDER BY ct.language_code   
+            LIMIT 1
+          )
+        `);
+      }
+    }
+    if (data.regionId) {
+      conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+    }
     if (data.all) {
-      const cities = await this.prisma.city.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-          regionId: data.regionId,
-        },
-        include: {
-          Region: {
-            include: {
-              RegionTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          CityTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-        },
-      });
+      const cities = await getCityData(
+        'City',
+        'city',
+        this.prisma,
+        data,
+        conditions
+      );
 
       const formattedCity = [];
 
@@ -104,20 +113,23 @@ export class CityService {
         const formatedCity = cities[i];
         const translations = formatedCity.CityTranslations;
         const name = formatLanguageResponse(translations);
-  
+
         delete formatedCity.CityTranslations;
-  
+
         const regionTranslations = formatedCity.Region.RegionTranslations;
         const regionName = formatLanguageResponse(regionTranslations);
-  
+
         delete formatedCity.Region.RegionTranslations;
-  
+
         const region = { ...formatedCity.Region, name: regionName };
-  
+
         delete formatedCity.Region;
-  
+
         formattedCity.push({ ...formatedCity, name, region });
       }
+
+      this.logger.debug(`Method: ${methodName} -  Response: `, formattedCity);
+
       return {
         data: formattedCity,
         totalDocs: cities.length,
@@ -154,40 +166,14 @@ export class CityService {
       perPage: data.limit,
     });
 
-    const city = await this.prisma.city.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        Region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        CityTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    const city = await getCityData(
+      'City',
+      'city',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
 
     const formattedCity = [];
 
@@ -210,6 +196,8 @@ export class CityService {
       formattedCity.push({ ...formatedCity, name, region });
     }
 
+    this.logger.debug(`Method: ${methodName} - Response: `, formattedCity);
+
     return {
       data: formattedCity,
       totalPage: pagination.totalPage,
@@ -218,6 +206,10 @@ export class CityService {
   }
 
   async findOne(data: GetOneDto): Promise<CityInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     const city = await this.prisma.city.findFirst({
       where: {
         id: data.id,
@@ -242,10 +234,16 @@ export class CityService {
       throw new NotFoundException('city is not found');
     }
     const name = formatLanguageResponse(city.CityTranslations);
+    this.logger.debug(`Method: ${methodName} - Response: `, city);
+
     return { ...city, name };
   }
 
   async update(data: CityUpdateDto): Promise<CityInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     const city = await this.findOne({ id: data.id });
 
     if (data.regionId) {
@@ -275,7 +273,7 @@ export class CityService {
       });
     }
 
-    return await this.prisma.city.update({
+    const updatedCity = await this.prisma.city.update({
       where: {
         id: city.id,
       },
@@ -291,11 +289,19 @@ export class CityService {
         CityTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedCity);
+
+    return updatedCity;
   }
 
   async remove(data: DeleteDto): Promise<CityInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     if (data.delete) {
-      return await this.prisma.city.delete({
+      const city = await this.prisma.city.delete({
         where: { id: data.id },
         include: {
           Region: true,
@@ -307,9 +313,14 @@ export class CityService {
           },
         },
       });
+      this.logger.debug(
+        `Method: ${methodName} - Rresponse when delete true: `,
+        city
+      );
+      return city;
     }
 
-    return await this.prisma.city.update({
+    const city = await this.prisma.city.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -322,10 +333,20 @@ export class CityService {
         },
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Rresponse when delete true: `,
+      city
+    );
+    return city;
   }
 
   async restore(data: GetOneDto): Promise<CityInterfaces.Response> {
-    return this.prisma.city.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
+    const city = this.prisma.city.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -341,5 +362,10 @@ export class CityService {
         },
       },
     });
+    this.logger.debug(
+      `Method: ${methodName} - Rresponse when delete true: `,
+      city
+    );
+    return city;
   }
 }

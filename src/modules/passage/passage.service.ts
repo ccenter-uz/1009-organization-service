@@ -1,11 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
   DeleteDto,
   GetOneDto,
   LanguageRequestEnum,
-  ListQueryDto,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { createPagination } from '@/common/helper/pagination.helper';
@@ -17,9 +16,13 @@ import {
   PassageInterfaces,
   PassageUpdateDto,
 } from 'types/organization/passage';
-import { CityRegionFilterDto } from 'types/global-filters/city-region-filter';
+import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
+import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
+import { Prisma } from '@prisma/client';
 @Injectable()
 export class PassageService {
+  private logger = new Logger(PassageService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -28,6 +31,9 @@ export class PassageService {
   ) {}
 
   async create(data: PassageCreateDto): Promise<PassageInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -87,6 +93,7 @@ export class PassageService {
         ...(data.districtId ? { districtId: district.id } : {}),
         index: data.index,
         staffNumber: data.staffNumber,
+        orderNumber: data.orderNumber,
         PassageTranslations: {
           create: [
             {
@@ -111,127 +118,23 @@ export class PassageService {
         PassageOldNameTranslations: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, passage);
+
     return passage;
   }
 
   async findAll(
     data: CityRegionFilterDto
   ): Promise<PassageInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
-      const passages = await this.prisma.passage.findMany({
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-          cityId: data.cityId,
-          regionId: data.regionId,
-        },
-        include: {
-          PassageTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          PassageOldNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          PassageNewNameTranslations: {
-            where: data.allLang
-              ? {}
-              : {
-                  languageCode: data.langCode,
-                },
-            select: {
-              languageCode: true,
-              name: true,
-            },
-          },
-          region: {
-            include: {
-              RegionTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          city: {
-            include: {
-              CityTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          district: {
-            include: {
-              DistrictTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictNewNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictOldNameTranslations: {
-                where: data.allLang
-                  ? {}
-                  : {
-                      languageCode: data.langCode,
-                    },
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
+      let passages = await getOrderedDataWithDistrict(
+        'Passage',
+        'passage',
+        this.prisma,
+        data
+      );
 
       const formattedPassage = [];
 
@@ -296,6 +199,7 @@ export class PassageService {
           district,
         });
       }
+      this.logger.debug(`Method: ${methodName} - Response: `, formattedPassage);
 
       return {
         data: formattedPassage,
@@ -334,114 +238,13 @@ export class PassageService {
       perPage: data.limit,
     });
 
-    const passages = await this.prisma.passage.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        PassageTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        PassageNewNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        PassageOldNameTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            name: true,
-            languageCode: true,
-          },
-        },
-        region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        city: {
-          include: {
-            CityTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        district: {
-          include: {
-            DistrictTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictNewNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictOldNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      take: pagination.take,
-      skip: pagination.skip,
-    });
+    let passages = await getOrderedDataWithDistrict(
+      'Passage',
+      'passage',
+      this.prisma,
+      data,
+      pagination
+    );
 
     const formattedPassage = [];
 
@@ -507,6 +310,7 @@ export class PassageService {
         district,
       });
     }
+    this.logger.debug(`Method: ${methodName} - Response: `, formattedPassage);
 
     return {
       data: formattedPassage,
@@ -516,6 +320,8 @@ export class PassageService {
   }
 
   async findOne(data: GetOneDto): Promise<PassageInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const passage = await this.prisma.passage.findFirst({
       where: {
         id: data.id,
@@ -670,6 +476,7 @@ export class PassageService {
       districtNameOld,
     };
     delete passage.district;
+    this.logger.debug(`Method: ${methodName} - Response: `, passage);
 
     return {
       ...passage,
@@ -683,6 +490,9 @@ export class PassageService {
   }
 
   async update(data: PassageUpdateDto): Promise<PassageInterfaces.Response> {
+    const methodName: string = this.update.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     const passage = await this.findOne({ id: data.id });
 
     if (data.regionId) {
@@ -763,7 +573,7 @@ export class PassageService {
       });
     }
 
-    return await this.prisma.passage.update({
+    const updatedPassage = await this.prisma.passage.update({
       where: {
         id: passage.id,
       },
@@ -773,6 +583,7 @@ export class PassageService {
         districtId: data.districtId || null,
         staffNumber: data.staffNumber || passage.staffNumber,
         index: data.index || passage.index,
+        orderNumber: data.orderNumber,
         PassageTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
@@ -796,11 +607,18 @@ export class PassageService {
         PassageOldNameTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedPassage);
+
+    return updatedPassage;
   }
 
   async remove(data: DeleteDto): Promise<PassageInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.passage.delete({
+      const deletedPassage = await this.prisma.passage.delete({
         where: { id: data.id },
         include: {
           PassageTranslations: {
@@ -823,9 +641,13 @@ export class PassageService {
           },
         },
       });
+
+      this.logger.debug(`Method: ${methodName} - Response: `, deletedPassage);
+
+      return deletedPassage;
     }
 
-    return await this.prisma.passage.update({
+    const updatedPassage = await this.prisma.passage.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -849,10 +671,17 @@ export class PassageService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedPassage);
+
+    return updatedPassage;
   }
 
   async restore(data: GetOneDto): Promise<PassageInterfaces.Response> {
-    return this.prisma.passage.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedMainOrganization = await this.prisma.passage.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -879,5 +708,12 @@ export class PassageService {
         },
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedMainOrganization
+    );
+
+    return updatedMainOrganization;
   }
 }
