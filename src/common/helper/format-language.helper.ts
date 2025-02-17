@@ -1,7 +1,4 @@
 export function formatLanguageResponse(translation: { languageCode: string, name: string }[]) {
-  
-  console.log("INPUT:",translation);
-
   let name = translation.reduce((acc, translation) => {
     acc[translation.languageCode] = translation.name;
 
