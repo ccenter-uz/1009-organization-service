@@ -637,9 +637,9 @@ export class OrganizationVersionService {
           streetId: data.streetId || null,
           laneId: data.laneId || null,
           impasseId: data.impasseId || null,
-          segmentId: data.segmentId || organizationVersion.segmentId,
+          segmentId: data.segmentId || null,
           mainOrganizationId:
-            data.mainOrganizationId || organizationVersion.mainOrganizationId,
+            data.mainOrganizationId || null,
           subCategoryId:
             data.subCategoryId || organizationVersion.subCategoryId,
           account: data.account || null,
