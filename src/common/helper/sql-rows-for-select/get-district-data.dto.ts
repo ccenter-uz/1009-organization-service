@@ -60,9 +60,7 @@ export async function getDistrictData(
                         )
                     )::JSONB AS Translations  
                 FROM ${Prisma.raw(name + '_translations')} ct
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`ct.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY ct.${Prisma.raw(`${name}_id`)}
+               GROUP BY ct.${Prisma.raw(`${name}_id`)}
             ),
             ${Prisma.raw(CapitalizaName)}NewNameTranslations AS (
                 SELECT
@@ -74,8 +72,6 @@ export async function getDistrictData(
                         )
                     )::JSONB AS NewNameTranslations  
                 FROM ${Prisma.raw(name + '_new_name_translations')} cnt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`cnt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
                 GROUP BY cnt.${Prisma.raw(`${name}_id`)}
             ),
             ${Prisma.raw(CapitalizaName)}OldNameTranslations AS (
@@ -88,9 +84,7 @@ export async function getDistrictData(
                         )
                     )::JSONB AS OldNameTranslations  
                 FROM ${Prisma.raw(name + '_old_name_translations')} cot
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`cot.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY cot.${Prisma.raw(`${name}_id`)}
+             GROUP BY cot.${Prisma.raw(`${name}_id`)}
             ),
             CityTranslations AS (
                 SELECT
@@ -102,9 +96,7 @@ export async function getDistrictData(
                         )
                     )::JSONB AS Translations  
                 FROM city_translations cyt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`cyt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY cyt.city_id
+               GROUP BY cyt.city_id
             ),
             RegionTranslations AS (
                 SELECT
@@ -116,9 +108,7 @@ export async function getDistrictData(
                         )
                     )::JSONB AS Translations  
                 FROM region_translations rt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`rt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY rt.region_id
+               GROUP BY rt.region_id
             )
         SELECT
             c.*,

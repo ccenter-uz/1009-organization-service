@@ -27,9 +27,7 @@ export async function getNearbyOrderedData(
                         )
                     )::JSONB AS Translations  
                 FROM ${Prisma.raw(name + '_translations')} ct
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`ct.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY ct.${Prisma.raw(`${name}_id`)}
+               GROUP BY ct.${Prisma.raw(`${name}_id`)}
             ),
             CityTranslations AS (
                 SELECT
@@ -41,9 +39,7 @@ export async function getNearbyOrderedData(
                         )
                     )::JSONB AS Translations  
                 FROM city_translations cyt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`cyt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY cyt.city_id
+               GROUP BY cyt.city_id
             ),
             RegionTranslations AS (
                 SELECT
@@ -55,9 +51,7 @@ export async function getNearbyOrderedData(
                         )
                     )::JSONB AS Translations  
                 FROM region_translations rt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`rt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY rt.region_id
+               GROUP BY rt.region_id
             )
         SELECT
             c.*,  
