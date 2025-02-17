@@ -86,7 +86,10 @@ export async function getNearbyOrderedData(
             ? Prisma.raw(`ORDER BY
             (
                 SELECT jsonb_extract_path_text(
-                    Translations::jsonb->0, 'name'
+                    jsonb_path_query_first(
+                        Translations, 
+                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
+                    )::jsonb, 'name'
                 )
                 FROM ${CapitalizaName}Translations
                 WHERE ${`${name}_id`} = c.id
@@ -96,8 +99,11 @@ export async function getNearbyOrderedData(
                 c.order_number ASC, 
                 (
                     SELECT jsonb_extract_path_text(
-                        Translations::jsonb->0, 'name'
-                    )
+                    jsonb_path_query_first(
+                        Translations, 
+                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
+                    )::jsonb, 'name'
+                    )   
                     FROM ${CapitalizaName}Translations
                     WHERE ${name}_id = c.id
                 ) ASC
