@@ -27,9 +27,7 @@ export async function getSingleOrderedData(
                         )
                     )::JSONB AS Translations  
                 FROM ${Prisma.raw(name + (name === 'phone_types' ? '_id_translations' : '_translations'))} ct
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`ct.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY ct.${Prisma.raw(`${name}_id`)}
+              GROUP BY ct.${Prisma.raw(`${name}_id`)}
             )
         SELECT
             c.*,  
