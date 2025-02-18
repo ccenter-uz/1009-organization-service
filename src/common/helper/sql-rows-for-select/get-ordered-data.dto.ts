@@ -14,7 +14,6 @@ export async function getOrderedData(
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
       : Prisma.empty;
 
-
   const result: any = await prisma.$queryRaw(
     Prisma.sql`
         WITH
@@ -83,11 +82,15 @@ export async function getOrderedData(
         GROUP BY 
             c.id, city.id, region.id
         ${
-            data.order === 'name'
+          data.order === 'name'
             ? Prisma.raw(`ORDER BY
             (
                 SELECT jsonb_extract_path_text(
-                    Translations::jsonb->0, 'name'
+                    jsonb_path_query_first(
+                        Translations, 
+                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
+                    )::jsonb, 
+                    'name'
                 )
                 FROM ${CapitalizaName}Translations
                 WHERE ${`${name}_id`} = c.id
@@ -97,8 +100,11 @@ export async function getOrderedData(
                 c.order_number ASC, 
                 (
                     SELECT jsonb_extract_path_text(
-                        Translations::jsonb->0, 'name'
-                    )
+                    jsonb_path_query_first(
+                        Translations, 
+                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
+                    )::jsonb, 'name'
+                )
                     FROM ${CapitalizaName}Translations
                     WHERE ${name}_id = c.id
                 ) ASC

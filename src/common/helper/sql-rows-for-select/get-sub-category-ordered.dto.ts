@@ -65,7 +65,10 @@ export async function getSubCategoryOrderedData(
             ? Prisma.raw(`ORDER BY
             (
                 SELECT jsonb_extract_path_text(
-                    Translations::jsonb->0, 'name'
+                    jsonb_path_query_first(
+                        Translations, 
+                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
+                    )::jsonb, 'name'
                 )
                 FROM ${CapitalizeName}Translations
                 WHERE ${`${name}_id`} = c.id
@@ -75,7 +78,10 @@ export async function getSubCategoryOrderedData(
                 c.order_number ASC, 
                 (
                     SELECT jsonb_extract_path_text(
-                        Translations::jsonb->0, 'name'
+                    jsonb_path_query_first(
+                        Translations, 
+                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
+                    )::jsonb, 'name'
                     )
                     FROM ${CapitalizeName}Translations
                     WHERE ${name}_id = c.id
