@@ -13,7 +13,7 @@ export async function getDistrictData(
     conditions.push(Prisma.sql`c.status = ${data.status}`);
   if (data.search) {
     if (data.langCode) {
-        conditions.push(Prisma.sql`
+      conditions.push(Prisma.sql`
             EXISTS (
                 SELECT 1
                 FROM district_translations ct
@@ -23,7 +23,7 @@ export async function getDistrictData(
             )
         `);
     } else {
-        conditions.push(Prisma.sql`
+      conditions.push(Prisma.sql`
             EXISTS (
                 SELECT 1
                 FROM district_translations ct
@@ -143,7 +143,10 @@ export async function getDistrictData(
             ? Prisma.raw(`ORDER BY
             (
                 SELECT jsonb_extract_path_text(
-                    Translations::jsonb->0, 'name'
+                    jsonb_path_query_first(
+                        Translations, 
+                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
+                    )::jsonb, 'name'
                 )
                 FROM ${CapitalizaName}Translations
                 WHERE ${`${name}_id`} = c.id
@@ -153,8 +156,11 @@ export async function getDistrictData(
                 c.order_number ASC,
                 (
                     SELECT jsonb_extract_path_text(
-                        Translations::jsonb->0, 'name'
-                    )
+                    jsonb_path_query_first(
+                        Translations, 
+                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
+                    )::jsonb, 'name'
+                )
                     FROM ${CapitalizaName}Translations
                     WHERE ${name}_id = c.id
                 ) ASC
