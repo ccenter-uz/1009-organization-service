@@ -222,7 +222,6 @@ export class AreaService {
     if (data.search) {
       where.AreaTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',

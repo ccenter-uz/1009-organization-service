@@ -219,7 +219,6 @@ export class ImpasseService {
     if (data.search) {
       where.ImpasseTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',

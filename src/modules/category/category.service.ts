@@ -86,44 +86,14 @@ export class CategoryService {
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-
+   
     if (data.all) {
-      const conditions: Prisma.Sql[] = [];
-      if (data.status === 0 || data.status === 1)
-        conditions.push(Prisma.sql`c.status = ${data.status}`);
-      if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
-      if (data.regionId)
-        conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
-      if (data.search) {
-        if (data.langCode) {
-          conditions.push(Prisma.sql`
-            EXISTS (
-              SELECT 1
-              FROM category_translations ct
-              WHERE ct.category_id = c.id
-                AND ct.language_code = ${data.langCode}
-                AND ct.name ILIKE ${`%${data.search}%`}
-            )
-          `);
-        } else {
-          conditions.push(Prisma.sql`
-            EXISTS (
-              SELECT 1
-              FROM category_translations ct
-              WHERE ct.category_id = c.id
-                AND ct.name ILIKE ${`%${data.search}%`}
-              ORDER BY ct.language_code   
-              LIMIT 1
-            )
-          `);
-        }
-      }
+      
       const categories: any = await getOrderedData(
         'Category',
         'category',
         this.prisma,
         data,
-        conditions
       );
 
       const formattedCategories = [];
@@ -180,11 +150,9 @@ export class CategoryService {
       cityId: data.cityId,
       regionId: data.regionId,
     };
-
     if (data.search) {
       where.CategoryTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',
@@ -200,43 +168,13 @@ export class CategoryService {
       perPage: data.limit,
     });
 
-    const conditions: Prisma.Sql[] = [];
-    if (data.status === 0 || data.status === 1)
-      conditions.push(Prisma.sql`c.status = ${data.status}`);
-    if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
-    if (data.regionId)
-      conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
-    if (data.search) {
-      if (data.langCode) {
-        conditions.push(Prisma.sql`
-          EXISTS (
-            SELECT 1
-            FROM category_translations ct
-            WHERE ct.category_id = c.id
-              AND ct.language_code = ${data.langCode}
-              AND ct.name ILIKE ${`%${data.search}%`}
-          )
-        `);
-      } else {
-        conditions.push(Prisma.sql`
-          EXISTS (
-            SELECT 1
-            FROM category_translations ct
-            WHERE ct.category_id = c.id
-              AND ct.name ILIKE ${`%${data.search}%`}
-            ORDER BY ct.language_code  -- Сортировка по первому языковому коду
-            LIMIT 1
-          )
-        `);
-      }
-    }
+   
 
     const categories: any = await getOrderedData(
       'Category',
       'category',
       this.prisma,
       data,
-      conditions,
       pagination
     );
 

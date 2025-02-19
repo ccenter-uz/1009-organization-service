@@ -220,7 +220,6 @@ export class PassageService {
     if (data.search) {
       where.PassageTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',

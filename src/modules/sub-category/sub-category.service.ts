@@ -76,18 +76,7 @@ export class SubCategoryService {
     if (data.status === 0 || data.status === 1)
       conditions.push(Prisma.sql`c.status = ${data.status}`);
     if (data.search) {
-      if (data.langCode) {
-        conditions.push(Prisma.sql`
-                  EXISTS (
-                    SELECT 1
-                    FROM sub_category_translations ct
-                    WHERE ct.sub_category_id = c.id
-                      AND ct.language_code = ${data.langCode}
-                      AND ct.name ILIKE ${`%${data.search}%`}
-                  )
-                `);
-      } else {
-        conditions.push(Prisma.sql`
+      conditions.push(Prisma.sql`
                   EXISTS (
                     SELECT 1
                     FROM sub_category_translations ct
@@ -97,7 +86,6 @@ export class SubCategoryService {
                     LIMIT 1
                   )
                 `);
-      }
     }
     if (data.categoryId) {
       conditions.push(Prisma.sql`c.category_id = ${data.categoryId}`);

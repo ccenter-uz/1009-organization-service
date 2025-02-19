@@ -201,7 +201,6 @@ export class DistrictService {
     if (data.search) {
       where.DistrictTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',

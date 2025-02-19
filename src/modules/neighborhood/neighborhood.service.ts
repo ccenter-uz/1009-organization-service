@@ -230,7 +230,6 @@ export class NeighborhoodService {
     if (data.search) {
       where.NeighborhoodTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',

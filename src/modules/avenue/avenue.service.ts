@@ -223,7 +223,6 @@ export class AvenueService {
     if (data.search) {
       where.AvenueTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',

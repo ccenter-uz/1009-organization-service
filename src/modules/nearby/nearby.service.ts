@@ -82,48 +82,13 @@ export class NearbyService {
   ): Promise<NearbyInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const conditions: Prisma.Sql[] = [];
-    if (data.status === 0 || data.status === 1)
-      conditions.push(Prisma.sql`c.status = ${data.status}`);
-    if (data.search) {
-      if (data.langCode) {
-        conditions.push(Prisma.sql`
-          EXISTS (
-            SELECT 1
-            FROM nearby_translations ct
-            WHERE ct.nearby_id = c.id
-              AND ct.language_code = ${data.langCode}
-              AND ct.name ILIKE ${`%${data.search}%`}
-          )
-        `);
-      } else {
-        conditions.push(Prisma.sql`
-          EXISTS (
-            SELECT 1
-            FROM nearby_translations ct
-            WHERE ct.nearby_id = c.id
-              AND ct.name ILIKE ${`%${data.search}%`}
-            ORDER BY ct.language_code   
-            LIMIT 1
-          )
-        `);
-      }
-    }
-    if (data.nearbyCategoryId) {
-      conditions.push(
-        Prisma.sql`c.nearby_category_id = ${data.nearbyCategoryId}`
-      );
-    }
-    if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
-    if (data.regionId)
-      conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+    
     if (data.all) {
       const nearby = await getNearbyOrderedData(
         'Nearby',
         'nearby',
         this.prisma,
-        data,
-        conditions
+        data
       );
 
       const formattedNearby = [];
@@ -178,7 +143,6 @@ export class NearbyService {
     if (data.search) {
       where.NearbyTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',
@@ -202,7 +166,6 @@ export class NearbyService {
       'nearby',
       this.prisma,
       data,
-      conditions,
       pagination
     );
 

@@ -171,7 +171,6 @@ export class AdditionalService {
     if (data.search) {
       where.AdditionalTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',

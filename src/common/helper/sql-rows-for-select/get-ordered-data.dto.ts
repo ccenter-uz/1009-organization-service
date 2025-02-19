@@ -6,9 +6,26 @@ export async function getOrderedData(
   name: string,
   prisma: PrismaService,
   data: any,
-  conditions?: Prisma.Sql[],
   pagination?: { take: number; skip: number }
 ) {
+  const conditions: Prisma.Sql[] = [];
+  if (data.status === 0 || data.status === 1)
+    conditions.push(Prisma.sql`c.status = ${data.status}`);
+  if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
+  if (data.regionId)
+    conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+  if (data.search) {
+    conditions.push(Prisma.sql`
+              EXISTS (
+                SELECT 1
+                FROM category_translations ct
+                WHERE ct.category_id = c.id
+                  AND ct.name ILIKE ${`%${data.search}%`}
+                ORDER BY ct.language_code   
+                LIMIT 1
+              )
+            `);
+  }
   const whereClause =
     conditions.length > 0
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`

@@ -221,7 +221,6 @@ export class LaneService {
     if (data.search) {
       where.LaneTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',

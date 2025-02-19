@@ -232,7 +232,6 @@ export class ResidentialAreaService {
     if (data.search) {
       where.ResidentialAreaTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',
