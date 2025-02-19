@@ -221,7 +221,6 @@ export class VillageService {
     if (data.search) {
       where.VillageTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',

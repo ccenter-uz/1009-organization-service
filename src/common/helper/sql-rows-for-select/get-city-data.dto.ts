@@ -6,9 +6,27 @@ export async function getCityData(
   name: string,
   prisma: PrismaService,
   data: any,
-  conditions?: Prisma.Sql[],
   pagination?: { take: number; skip: number }
 ) {
+  const conditions: Prisma.Sql[] = [];
+  if (data.status === 0 || data.status === 1)
+    conditions.push(Prisma.sql`c.status = ${data.status}`);
+  if (data.search) {
+    conditions.push(Prisma.sql`
+          EXISTS (
+            SELECT 1
+            FROM city_translations ct
+            WHERE ct.city_id = c.id
+              AND ct.name ILIKE ${`%${data.search}%`}
+            ORDER BY ct.language_code   
+            LIMIT 1
+          )
+        `);
+  }
+  if (data.regionId) {
+    conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+  }
+
   const whereClause =
     conditions && conditions.length > 0
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
