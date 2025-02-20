@@ -93,13 +93,12 @@ export class OrganizationService {
     const methodName: string = this.create.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    let mainOrganization
-    if(data.mainOrganizationId){
+    let mainOrganization;
+    if (data.mainOrganizationId) {
       mainOrganization = await this.mainOrganizationService.findOne({
         id: data.mainOrganizationId,
       });
     }
-   
 
     const subCategory = await this.subCategoryService.findOne({
       id: data.subCategoryId,
@@ -247,6 +246,8 @@ export class OrganizationService {
       CreatedByRole = CreatedByEnum.Operator;
     }
     console.log('okk');
+    console.log('addresss:',data?.address);
+    
     try {
       const organization = await this.prisma.organization.create({
         data: {
@@ -262,12 +263,14 @@ export class OrganizationService {
           laneId: lane?.id,
           impasseId: impasse?.id,
           segmentId: segment?.id ? segment.id : undefined,
-          mainOrganizationId: mainOrganization?.id ? mainOrganization?.id : null,
+          mainOrganizationId: mainOrganization?.id
+            ? mainOrganization?.id
+            : null,
           subCategoryId: subCategory.id,
           description: data?.description ? data?.description : null,
           account: data?.account ? data?.account : null,
           bankNumber: data?.bankNumber ? data?.bankNumber : null,
-          address: data?.address ? data.address : null,
+          address: data?.address ? data?.address : null,
           apartment: data.apartment ? data.apartment : null,
           home: data.home,
           inn: data?.inn ? data?.inn : null,
@@ -324,7 +327,6 @@ export class OrganizationService {
       return organization;
     } catch (error) {
       console.log(error);
-      
     }
   }
 
@@ -465,21 +467,18 @@ export class OrganizationService {
     }
 
     const whereWithLang: any = {
-      ...{
-        status: data.status,
-      },
+      ...(data.status
+        ? {
+            status: data.status,
+          }
+        : {}),
       ...where,
     };
 
     if (data.search) {
-      whereWithLang.StreetTranslations = {
-        some: {
-          languageCode: data.langCode,
-          name: {
-            contains: data.search,
-            mode: 'insensitive',
-          },
-        },
+      whereWithLang.name = {
+        contains: data.search,
+        mode: 'insensitive',
       };
     }
 
