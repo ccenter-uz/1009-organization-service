@@ -199,14 +199,38 @@ export class DistrictService {
       cityId: data.cityId,
     };
     if (data.search) {
-      where.DistrictTranslations = {
-        some: {
-          name: {
-            contains: data.search,
-            mode: 'insensitive',
+      where.OR = [
+        {
+          DistrictTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
           },
         },
-      };
+        {
+          DistrictNewNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          DistrictOldNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+      ];
     }
     const count = await this.prisma.district.count({
       where,

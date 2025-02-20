@@ -220,14 +220,38 @@ export class AreaService {
       regionId: data.regionId,
     };
     if (data.search) {
-      where.AreaTranslations = {
-        some: {
-          name: {
-            contains: data.search,
-            mode: 'insensitive',
+      where.OR = [
+        {
+          AreaTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
           },
         },
-      };
+        {
+          AreaNewNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          AreaOldNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+      ];
     }
     const count = await this.prisma.area.count({
       where,
