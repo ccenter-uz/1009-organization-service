@@ -218,14 +218,38 @@ export class PassageService {
       regionId: data.regionId,
     };
     if (data.search) {
-      where.PassageTranslations = {
-        some: {
-          name: {
-            contains: data.search,
-            mode: 'insensitive',
+      where.OR = [
+        {
+          PassageTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
           },
         },
-      };
+        {
+          PassageNewNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          PassageOldNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+      ];
     }
     const count = await this.prisma.passage.count({
       where,

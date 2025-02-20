@@ -13,15 +13,41 @@ export async function getDistrictData(
     conditions.push(Prisma.sql`c.status = ${data.status}`);
   if (data.search) {
     conditions.push(Prisma.sql`
-            EXISTS (
-                SELECT 1
-                FROM district_translations ct
-                WHERE ct.district_id = c.id
+        (
+        EXISTS (
+            SELECT 1
+            FROM district_translations ct
+            WHERE ct.district_id = c.id
                 AND ct.name ILIKE ${`%${data.search}%`}
-                ORDER BY ct.language_code   
-                LIMIT 1
+                AND ct.name ILIKE ${`%${data.search}%`}
+                AND ct.name ILIKE ${`%${data.search}%`}
+            ORDER BY ct.language_code   
+            LIMIT 1
             )
-        `);
+        OR
+        EXISTS (
+        SELECT 1
+        FROM district_old_name_translations cont
+        WHERE cont.district_id = c.id
+            AND cont.name ILIKE ${`%${data.search}%`}
+            AND cont.name ILIKE ${`%${data.search}%`}
+            AND cont.name ILIKE ${`%${data.search}%`}
+        ORDER BY cont.language_code   
+        LIMIT 1
+        )
+        OR
+        EXISTS (
+        SELECT 1
+        FROM district_new_name_translations cnnt
+        WHERE cnnt.district_id = c.id
+            AND cnnt.name ILIKE ${`%${data.search}%`}
+            AND cnnt.name ILIKE ${`%${data.search}%`}
+            AND cnnt.name ILIKE ${`%${data.search}%`}
+        ORDER BY cnnt.language_code   
+        LIMIT 1
+        )
+        )
+    `);
   }
   if (data.regionId) {
     conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
