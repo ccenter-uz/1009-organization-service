@@ -15,18 +15,6 @@ export async function getOrderedDataWithDistrict(
   if (data.regionId)
     conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
   if (data.search) {
-    // conditions.push(Prisma.sql`
-    //                 EXISTS (
-    //                   SELECT 1
-    //                   FROM ${Prisma.raw(name)}_translations ct
-    //                   WHERE ct.${Prisma.raw(name)}_id = c.id
-    //                     AND ct.name ILIKE ${`%${data.search}%`}
-    //                     AND ct.name ILIKE ${`%${data.search}%`}
-    //                     AND ct.name ILIKE ${`%${data.search}%`}
-    //                   ORDER BY ct.language_code   
-    //                   LIMIT 1
-    //                 )
-    //               `);
     conditions.push(Prisma.sql`
         (
         EXISTS (
