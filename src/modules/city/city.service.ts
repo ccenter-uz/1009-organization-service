@@ -68,43 +68,13 @@ export class CityService {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-    const conditions: Prisma.Sql[] = [];
-    if (data.status === 0 || data.status === 1)
-      conditions.push(Prisma.sql`c.status = ${data.status}`);
-    if (data.search) {
-      if (data.langCode) {
-        conditions.push(Prisma.sql`
-          EXISTS (
-            SELECT 1
-            FROM city_translations ct
-            WHERE ct.city_id = c.id
-              AND ct.language_code = ${data.langCode}
-              AND ct.name ILIKE ${`%${data.search}%`}
-          )
-        `);
-      } else {
-        conditions.push(Prisma.sql`
-          EXISTS (
-            SELECT 1
-            FROM city_translations ct
-            WHERE ct.city_id = c.id
-              AND ct.name ILIKE ${`%${data.search}%`}
-            ORDER BY ct.language_code   
-            LIMIT 1
-          )
-        `);
-      }
-    }
-    if (data.regionId) {
-      conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
-    }
+   
     if (data.all) {
       const cities = await getCityData(
         'City',
         'city',
         this.prisma,
         data,
-        conditions
       );
 
       const formattedCity = [];
@@ -148,7 +118,6 @@ export class CityService {
     if (data.search) {
       where.CityTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',
@@ -171,7 +140,6 @@ export class CityService {
       'city',
       this.prisma,
       data,
-      conditions,
       pagination
     );
 

@@ -77,18 +77,7 @@ export class ProductServiceSubCategoryService {
     if (data.status === 0 || data.status === 1)
       conditions.push(Prisma.sql`c.status = ${data.status}`);
     if (data.search) {
-      if (data.langCode) {
-        conditions.push(Prisma.sql`
-                      EXISTS (
-                        SELECT 1
-                        FROM product_service_sub_category_translations ct
-                        WHERE ct.product_service_sub_category_id = c.id
-                          AND ct.language_code = ${data.langCode}
-                          AND ct.name ILIKE ${`%${data.search}%`}
-                      )
-                    `);
-      } else {
-        conditions.push(Prisma.sql`
+      conditions.push(Prisma.sql`
                       EXISTS (
                         SELECT 1
                         FROM product_service_sub_category_translations ct
@@ -98,9 +87,7 @@ export class ProductServiceSubCategoryService {
                         LIMIT 1
                       )
                     `);
-      }
     }
-    //productServiceCategoryId: data.categoryId,
     if (data.categoryId) {
       conditions.push(
         Prisma.sql`c.product_service_category_id = ${data.categoryId}`
@@ -160,7 +147,6 @@ export class ProductServiceSubCategoryService {
     if (data.search) {
       where.ProductServiceSubCategoryTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',

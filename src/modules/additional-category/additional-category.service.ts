@@ -15,10 +15,8 @@ import {
   StatusEnum,
 } from 'types/global';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
-import { AdditionalCategoryFilterDto } from 'types/organization/additional-category/dto/filter-additional-category.dto';
 import { Prisma } from '@prisma/client';
 import { getSingleData } from '@/common/helper/sql-rows-for-select/get-single-data.dto';
-import { getAllAdditional } from '@/common/helper/sql-rows-for-select/get-ordered-additional-data.dto';
 
 @Injectable()
 export class AdditionalCategoryService {
@@ -75,18 +73,7 @@ export class AdditionalCategoryService {
     if (data.status === 0 || data.status === 1)
       conditions.push(Prisma.sql`c.status = ${data.status}`);
     if (data.search) {
-      if (data.langCode) {
-        conditions.push(Prisma.sql`
-                  EXISTS (
-                    SELECT 1
-                    FROM additional_category_translations ct
-                    WHERE ct.additional_category_id = c.id
-                      AND ct.language_code = ${data.langCode}
-                      AND ct.name ILIKE ${`%${data.search}%`}
-                  )
-                `);
-      } else {
-        conditions.push(Prisma.sql`
+      conditions.push(Prisma.sql`
                   EXISTS (
                     SELECT 1
                     FROM additional_category_translations ct
@@ -96,7 +83,6 @@ export class AdditionalCategoryService {
                     LIMIT 1
                   )
                 `);
-      }
     }
     if (data.all) {
       const additionalCategories = await getSingleData(
@@ -142,7 +128,6 @@ export class AdditionalCategoryService {
     if (data.search) {
       where.AdditionalCategoryTranslations = {
         some: {
-          languageCode: data.langCode,
           name: {
             contains: data.search,
             mode: 'insensitive',

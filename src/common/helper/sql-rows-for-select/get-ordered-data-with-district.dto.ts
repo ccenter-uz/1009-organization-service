@@ -13,31 +13,45 @@ export async function getOrderedDataWithDistrict(
     conditions.push(Prisma.sql`c.status = ${data.status}`);
   if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
   if (data.regionId)
-    conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);  
+    conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
   if (data.search) {
-    if (data.langCode) {
-      conditions.push(Prisma.sql`
-                    EXISTS (
-                      SELECT 1
-                      FROM ${Prisma.raw(name)}_translations ct
-                      WHERE ct.${Prisma.raw(name)}_id = c.id
-                        AND ct.language_code = ${data.langCode}
-                        AND ct.name ILIKE ${`%${data.search}%`}
-                    )
-                  `);
-    } else {
-      conditions.push(Prisma.sql`
-                    EXISTS (
-                      SELECT 1
-                      FROM ${Prisma.raw(name)}_translations ct
-                      WHERE ct.${Prisma.raw(name)}_id = c.id
-                        AND ct.name ILIKE ${`%${data.search}%`}
-                      ORDER BY ct.language_code   
-                      LIMIT 1
-                    )
-                  `);
+    conditions.push(Prisma.sql`
+        (
+        EXISTS (
+            SELECT 1
+            FROM ${Prisma.raw(name)}_translations ct
+            WHERE ct.${Prisma.raw(name)}_id = c.id
+                AND ct.name ILIKE ${`%${data.search}%`}
+                AND ct.name ILIKE ${`%${data.search}%`}
+                AND ct.name ILIKE ${`%${data.search}%`}
+            ORDER BY ct.language_code   
+            LIMIT 1
+            )
+        OR
+        EXISTS (
+        SELECT 1
+        FROM ${Prisma.raw(name)}_old_name_translations cont
+        WHERE cont.${Prisma.raw(name)}_id = c.id
+            AND cont.name ILIKE ${`%${data.search}%`}
+            AND cont.name ILIKE ${`%${data.search}%`}
+            AND cont.name ILIKE ${`%${data.search}%`}
+        ORDER BY cont.language_code   
+        LIMIT 1
+        )
+        OR
+        EXISTS (
+        SELECT 1
+        FROM ${Prisma.raw(name)}_new_name_translations cnnt
+        WHERE cnnt.${Prisma.raw(name)}_id = c.id
+            AND cnnt.name ILIKE ${`%${data.search}%`}
+            AND cnnt.name ILIKE ${`%${data.search}%`}
+            AND cnnt.name ILIKE ${`%${data.search}%`}
+        ORDER BY cnnt.language_code   
+        LIMIT 1
+        )
+        )
+    `);
     }
-  }
 
   const whereClause =
     conditions?.length > 0

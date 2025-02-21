@@ -1,6 +1,6 @@
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { OrganizationStatusEnum, Roles } from 'types/global';
+import {  Roles } from 'types/global';
 
 export async function getAllAdditional(
   prisma: PrismaService,
@@ -21,18 +21,7 @@ export async function getAllAdditional(
   }
 
   if (data.search) {
-    if (data.langCode) {
-      conditions.push(Prisma.sql`
-              EXISTS (
-                  SELECT 1
-                  FROM additional_translations at
-                  WHERE at.additional_id = a.id
-                  AND at.language_code = ${data.langCode}
-                  AND at.name ILIKE ${`%${data.search}%`}
-              )
-          `);
-    } else {
-      conditions.push(Prisma.sql`
+    conditions.push(Prisma.sql`
               EXISTS (
                   SELECT 1
                   FROM additional_translations at
@@ -42,7 +31,6 @@ export async function getAllAdditional(
                   LIMIT 1
               )
           `);
-    }
   }
 
   const whereClause =
