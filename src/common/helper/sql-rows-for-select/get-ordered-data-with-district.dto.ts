@@ -14,6 +14,8 @@ export async function getOrderedDataWithDistrict(
   if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
   if (data.regionId)
     conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+  if (data.districtId)
+    conditions.push(Prisma.sql`c.district_id = ${data.districtId}`);
   if (data.search) {
     conditions.push(Prisma.sql`
         (
@@ -51,7 +53,7 @@ export async function getOrderedDataWithDistrict(
         )
         )
     `);
-    }
+  }
 
   const whereClause =
     conditions?.length > 0

@@ -31,6 +31,8 @@ export async function getNearbyOrderedData(
   if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
   if (data.regionId)
     conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+  if (data.districtId)
+    conditions.push(Prisma.sql`c.district_id = ${data.districtId}`);
   const whereClause =
     conditions.length > 0
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
