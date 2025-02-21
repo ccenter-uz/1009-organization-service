@@ -615,8 +615,7 @@ export class OrganizationVersionService {
       });
     }
     let status =
-      data.role == CreatedByEnum.Moderator &&
-      organizationVersion.staffNumber == data.staffNumber
+      data.role == CreatedByEnum.Moderator
         ? OrganizationStatusEnum.Accepted
         : OrganizationStatusEnum.Check;
 
