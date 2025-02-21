@@ -1,3 +1,7 @@
+import {
+  DistrictNewNameTranslations,
+  DistrictOldNameTranslations,
+} from './../../../node_modules/.prisma/client/index.d';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
@@ -33,6 +37,7 @@ export class CategoryService {
         staffNumber: data.staffNumber,
         cityId: data.cityId,
         regionId: data.regionId,
+        ...(data?.districtId ? { districtId: data.districtId } : {}),
         orderNumber: data.orderNumber,
         CategoryTranslations: {
           create: [
@@ -71,6 +76,29 @@ export class CategoryService {
                 },
               },
             },
+
+            District: {
+              include: {
+                DistrictNewNameTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
+                DistrictOldNameTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
+                DistrictTranslations: {
+                  select: {
+                    languageCode: true,
+                    name: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -86,14 +114,13 @@ export class CategoryService {
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-   
+
     if (data.all) {
-      
       const categories: any = await getOrderedData(
         'Category',
         'category',
         this.prisma,
-        data,
+        data
       );
 
       const formattedCategories = [];
@@ -127,6 +154,32 @@ export class CategoryService {
         } else {
           formattedCategories.push({ ...category, name });
         }
+
+        if (category.district) {
+
+          const districtName = formatLanguageResponse(
+            category.district.DistrictTranslations
+          );
+          const districtNewName = formatLanguageResponse(
+            category.district.DistrictNewNameTranslations
+          );
+          const districtOldName = formatLanguageResponse(
+            category.district.DistrictOldNameTranslations
+          );
+
+          const district = {
+            name: districtName,
+            newName: districtNewName,
+            oldName: districtOldName,
+          };
+          delete category.district.DistrictTranslations;
+          delete category.district.DistrictNewNameTranslations;
+          delete category.district.DistrictOldNameTranslations;
+          delete category.district;
+
+          formattedCategories.push({ ...formattedCategories, district });
+        }
+
       }
 
       this.logger.debug(
@@ -167,8 +220,6 @@ export class CategoryService {
       page: data.page,
       perPage: data.limit,
     });
-
-   
 
     const categories: any = await getOrderedData(
       'Category',
