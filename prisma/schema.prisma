@@ -276,6 +276,7 @@ model District {
   Organization                Organization[]
   OrganizationVersion         OrganizationVersion[]
   Category                    Category[]
+  Nearby                      Nearby[]
 
   @@map("district")
 }
@@ -348,6 +349,7 @@ model Nearby {
   NearbyCategory     NearbyCategory       @relation(fields: [nearbyCategoryId], references: [id])
   Region             Region               @relation(fields: [regionId], references: [id])
   City               City                 @relation(fields: [cityId], references: [id])
+  District           District?            @relation(fields: [districtId], references: [id])
   NearbyTranslations NearbyTranslations[]
   Nearbees           Nearbees[]
   NearbeesVersion    NearbeesVersion[]
