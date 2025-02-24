@@ -83,10 +83,10 @@ export default function formatOrganizationResponse(
 
   for (let [index, el] of Object.entries(organization['ProductServices'])) {
     const nameOfProductServiceCategory = formatLanguageResponse(
-      el['ProductServiceCategory']['ProductServiceCategoryTranslations']
+      el['ProductServiceCategory']?.['ProductServiceCategoryTranslations']
     );
     const nameOfProductServiceSubCategory = formatLanguageResponse(
-      el['ProductServiceSubCategory']['ProductServiceSubCategoryTranslations']
+      el['ProductServiceSubCategory']?.['ProductServiceSubCategoryTranslations']
     );
 
     formattedOrganization['ProductServices'][index][
@@ -95,11 +95,12 @@ export default function formatOrganizationResponse(
     formattedOrganization['ProductServices'][index][
       'ProductServiceCategory'
     ].name = nameOfProductServiceCategory;
+    ``;
 
-    delete formattedOrganization['ProductServices'][index][
+    delete formattedOrganization['ProductServices'][index]?.[
       'ProductServiceSubCategory'
     ]['ProductServiceSubCategoryTranslations'];
-    delete formattedOrganization['ProductServices'][index][
+    delete formattedOrganization['ProductServices'][index]?.[
       'ProductServiceCategory'
     ]['ProductServiceCategoryTranslations'];
   }
