@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DistrictCreateDto,
@@ -22,6 +22,8 @@ import { Prisma } from '@prisma/client';
 import { getDistrictData } from '@/common/helper/sql-rows-for-select/get-district-data.dto';
 @Injectable()
 export class DistrictService {
+  private logger = new Logger(DistrictService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -29,6 +31,9 @@ export class DistrictService {
   ) {}
 
   async create(data: DistrictCreateDto): Promise<DistrictInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -118,12 +123,17 @@ export class DistrictService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, district);
+
     return district;
   }
 
   async findAll(
     data: DistrictFilterDto
   ): Promise<DistrictInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
       const district = await getDistrictData(
         'District',
@@ -167,6 +177,10 @@ export class DistrictService {
           city,
         });
       }
+      this.logger.debug(
+        `Method: ${methodName} -  Response: `,
+        formattedDistrict
+      );
 
       return {
         data: formattedDistrict,
@@ -185,15 +199,38 @@ export class DistrictService {
       cityId: data.cityId,
     };
     if (data.search) {
-      where.DistrictTranslations = {
-        some: {
-          languageCode: data.langCode,
-          name: {
-            contains: data.search,
-            mode: 'insensitive',
+      where.OR = [
+        {
+          DistrictTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
           },
         },
-      };
+        {
+          DistrictNewNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          DistrictOldNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+      ];
     }
     const count = await this.prisma.district.count({
       where,
@@ -249,6 +286,7 @@ export class DistrictService {
         city,
       });
     }
+    this.logger.debug(`Method: ${methodName} - Response: `, formattedDistrict);
 
     return {
       data: formattedDistrict,
@@ -258,6 +296,9 @@ export class DistrictService {
   }
 
   async findOne(data: GetOneDto): Promise<DistrictInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const district = await this.prisma.district.findFirst({
       where: {
         id: data.id,
@@ -356,6 +397,7 @@ export class DistrictService {
     delete district.DistrictTranslations;
     delete district.DistrictNewNameTranslations;
     delete district.DistrictOldNameTranslations;
+    this.logger.debug(`Method: ${methodName} - Response: `, district);
 
     return {
       ...district,
@@ -368,6 +410,9 @@ export class DistrictService {
   }
 
   async update(data: DistrictUpdateDto): Promise<DistrictInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const district = await this.findOne({ id: data.id });
 
     if (data.regionId) {
@@ -444,7 +489,7 @@ export class DistrictService {
       });
     }
 
-    return await this.prisma.district.update({
+    const updatedDistrict = await this.prisma.district.update({
       where: {
         id: district.id,
       },
@@ -487,11 +532,17 @@ export class DistrictService {
         },
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedDistrict);
+
+    return updatedDistrict;
   }
 
   async remove(data: DeleteDto): Promise<DistrictInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.district.delete({
+      const deleteDistrict = await this.prisma.district.delete({
         where: { id: data.id },
         include: {
           DistrictTranslations: {
@@ -524,9 +575,13 @@ export class DistrictService {
           },
         },
       });
+
+      this.logger.debug(`Method: ${methodName} - Response: `, deleteDistrict);
+
+      return deleteDistrict;
     }
 
-    return await this.prisma.district.update({
+    const deleteDistrict = await this.prisma.district.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -560,10 +615,17 @@ export class DistrictService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, deleteDistrict);
+
+    return deleteDistrict;
   }
 
   async restore(data: GetOneDto): Promise<DistrictInterfaces.Response> {
-    return this.prisma.district.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedDistrict = this.prisma.district.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -600,5 +662,9 @@ export class DistrictService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedDistrict);
+
+    return updatedDistrict;
   }
 }

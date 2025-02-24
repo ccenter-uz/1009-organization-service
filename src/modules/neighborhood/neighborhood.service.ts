@@ -13,15 +13,16 @@ import { RegionService } from '../region/region.service';
 import { CityService } from '../city/city.service';
 import { DistrictService } from '../district/district.service';
 import {
-  ImpasseCreateDto,
-  ImpasseInterfaces,
-  ImpasseUpdateDto,
-} from 'types/organization/impasse';
+  NeighborhoodCreateDto,
+  NeighborhoodUpdateDto,
+  NeighborhoodInterfaces,
+} from 'types/organization/neighborhood';
 import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
+import { Prisma } from '@prisma/client';
 import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 @Injectable()
-export class ImpasseService {
-  private logger = new Logger(ImpasseService.name);
+export class NeighborhoodService {
+  private logger = new Logger(NeighborhoodService.name);
 
   constructor(
     private readonly prisma: PrismaService,
@@ -30,26 +31,32 @@ export class ImpasseService {
     private readonly districtService: DistrictService
   ) {}
 
-  async create(data: ImpasseCreateDto): Promise<ImpasseInterfaces.Response> {
+  async create(
+    data: NeighborhoodCreateDto
+  ): Promise<NeighborhoodInterfaces.Response> {
     const methodName: string = this.create.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
+
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
+
     let district;
+
     if (data.districtId) {
       district = await this.districtService.findOne({
         id: data.districtId,
       });
     }
+
     const names: any = {};
 
     if (data.newName) {
-      names.ImpasseNewNameTranslations = {
+      names.NeighborhoodNewNameTranslations = {
         create: [
           {
             languageCode: LanguageRequestEnum.RU,
@@ -68,7 +75,7 @@ export class ImpasseService {
     }
 
     if (data.oldName) {
-      names.ImpasseOldNameTranslations = {
+      names.NeighborhoodOldNameTranslations = {
         create: [
           {
             languageCode: LanguageRequestEnum.RU,
@@ -85,7 +92,8 @@ export class ImpasseService {
         ],
       };
     }
-    const impasse = await this.prisma.impasse.create({
+
+    const residentialArea = await this.prisma.neighborhood.create({
       data: {
         regionId: region.id,
         cityId: city.id,
@@ -93,7 +101,7 @@ export class ImpasseService {
         index: data.index,
         staffNumber: data.staffNumber,
         orderNumber: data.orderNumber,
-        ImpasseTranslations: {
+        NeighborhoodTranslations: {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
@@ -112,56 +120,59 @@ export class ImpasseService {
         ...names,
       },
       include: {
-        ImpasseTranslations: true,
-        ImpasseNewNameTranslations: true,
-        ImpasseOldNameTranslations: true,
+        NeighborhoodTranslations: true,
+        NeighborhoodNewNameTranslations: true,
+        NeighborhoodOldNameTranslations: true,
       },
     });
-    this.logger.debug(`Method: ${methodName} - Response: `, impasse);
 
-    return impasse;
+    this.logger.debug(`Method: ${methodName} - Response: `, residentialArea);
+
+    return residentialArea;
   }
 
   async findAll(
     data: CityRegionFilterDto
-  ): Promise<ImpasseInterfaces.ResponseWithPagination> {
+  ): Promise<NeighborhoodInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
-      let impasses = await getOrderedDataWithDistrict(
-        'Impasse',
-        'impasse',
+      let neighborhoods = await getOrderedDataWithDistrict(
+        'Neighborhood',
+        'neighborhood',
         this.prisma,
         data
       );
 
-      const formattedImpasse = [];
+      const formattedNeighborhood = [];
 
-      for (let i = 0; i < impasses.length; i++) {
-        const impasseData = impasses[i];
-        const translations = impasseData.ImpasseTranslations;
+      for (let i = 0; i < neighborhoods.length; i++) {
+        const neighborhoodData = neighborhoods[i];
+        const translations = neighborhoodData.NeighborhoodTranslations;
         const name = formatLanguageResponse(translations);
-        const translationsNew = impasseData.ImpasseNewNameTranslations;
+        const translationsNew =
+          neighborhoodData.NeighborhoodNewNameTranslations;
         const nameNew = formatLanguageResponse(translationsNew);
-        const translationsOld = impasseData.ImpasseOldNameTranslations;
+        const translationsOld =
+          neighborhoodData.NeighborhoodOldNameTranslations;
         const nameOld = formatLanguageResponse(translationsOld);
-        delete impasseData.ImpasseTranslations;
-        delete impasseData.ImpasseNewNameTranslations;
-        delete impasseData.ImpasseOldNameTranslations;
+        delete neighborhoodData.NeighborhoodTranslations;
+        delete neighborhoodData.NeighborhoodNewNameTranslations;
+        delete neighborhoodData.NeighborhoodOldNameTranslations;
 
-        const regionTranslations = impasseData.region.RegionTranslations;
+        const regionTranslations = neighborhoodData.region.RegionTranslations;
         const regionName = formatLanguageResponse(regionTranslations);
-        delete impasseData.region.RegionTranslations;
-        const region = { ...impasseData.region, name: regionName };
-        delete impasseData.region;
+        delete neighborhoodData.region.RegionTranslations;
+        const region = { ...neighborhoodData.region, name: regionName };
+        delete neighborhoodData.region;
 
-        const cityTranslations = impasseData.city.CityTranslations;
+        const cityTranslations = neighborhoodData.city.CityTranslations;
         const cityName = formatLanguageResponse(cityTranslations);
-        delete impasseData.city.CityTranslations;
-        const city = { ...impasseData.city, name: cityName };
-        delete impasseData.city;
+        delete neighborhoodData.city.CityTranslations;
+        const city = { ...neighborhoodData.city, name: cityName };
+        delete neighborhoodData.city;
 
-        const districtData = impasseData?.district;
+        const districtData = neighborhoodData?.district;
         let districtName: string | object;
         let districtNameNew: string | object;
         let districtNameOld: string | object;
@@ -181,16 +192,13 @@ export class ImpasseService {
         }
 
         const district = {
-          ...impasseData.district,
+          ...districtData,
           name: districtName,
-          districtNameNew,
-          districtNameOld,
+          newName: districtNameNew,
+          oldName: districtNameOld,
         };
-        delete impasseData.district;
-        this.logger.debug(`Method: ${methodName} -  Response: `, impasseData);
-
-        formattedImpasse.push({
-          ...impasseData,
+        formattedNeighborhood.push({
+          ...neighborhoodData,
           name,
           newName: nameNew,
           oldName: nameOld,
@@ -199,14 +207,17 @@ export class ImpasseService {
           district,
         });
       }
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedNeighborhood
+      );
 
       return {
-        data: formattedImpasse,
-        totalDocs: impasses.length,
+        data: formattedNeighborhood,
+        totalDocs: neighborhoods.length,
         totalPage: 1,
       };
     }
-
     const where: any = {
       ...(data.status == 2
         ? {}
@@ -219,7 +230,7 @@ export class ImpasseService {
     if (data.search) {
       where.OR = [
         {
-          ImpasseTranslations: {
+          NeighborhoodTranslations: {
             some: {
               name: {
                 contains: data.search,
@@ -229,7 +240,7 @@ export class ImpasseService {
           },
         },
         {
-          ImpasseNewNameTranslations: {
+          NeighborhoodNewNameTranslations: {
             some: {
               name: {
                 contains: data.search,
@@ -239,7 +250,7 @@ export class ImpasseService {
           },
         },
         {
-          ImpasseOldNameTranslations: {
+          NeighborhoodOldNameTranslations: {
             some: {
               name: {
                 contains: data.search,
@@ -250,7 +261,7 @@ export class ImpasseService {
         },
       ];
     }
-    const count = await this.prisma.impasse.count({
+    const count = await this.prisma.neighborhood.count({
       where,
     });
 
@@ -260,41 +271,41 @@ export class ImpasseService {
       perPage: data.limit,
     });
 
-    let impasses = await getOrderedDataWithDistrict(
-      'Impasse',
-      'impasse',
+    let neighborhoods = await getOrderedDataWithDistrict(
+      'Neighborhood',
+      'neighborhood',
       this.prisma,
       data,
       pagination
     );
-    const formattedImpasse = [];
+    const formattedNeighborhood = [];
 
-    for (let i = 0; i < impasses.length; i++) {
-      const impasseData = impasses[i];
-      const translations = impasseData.ImpasseTranslations;
+    for (let i = 0; i < neighborhoods.length; i++) {
+      const neighborhoodData = neighborhoods[i];
+      const translations = neighborhoodData.NeighborhoodTranslations;
       const name = formatLanguageResponse(translations);
-      const translationsNew = impasseData.ImpasseNewNameTranslations;
+      const translationsNew = neighborhoodData.NeighborhoodNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = impasseData.ImpasseOldNameTranslations;
+      const translationsOld = neighborhoodData.NeighborhoodOldNameTranslations;
       const nameOld = formatLanguageResponse(translationsOld);
 
-      delete impasseData.ImpasseTranslations;
-      delete impasseData.ImpasseNewNameTranslations;
-      delete impasseData.ImpasseOldNameTranslations;
+      delete neighborhoodData.NeighborhoodTranslations;
+      delete neighborhoodData.NeighborhoodNewNameTranslations;
+      delete neighborhoodData.NeighborhoodOldNameTranslations;
 
-      const regionTranslations = impasseData.region.RegionTranslations;
+      const regionTranslations = neighborhoodData.region.RegionTranslations;
       const regionName = formatLanguageResponse(regionTranslations);
-      delete impasseData.region.RegionTranslations;
-      const region = { ...impasseData.region, name: regionName };
-      delete impasseData.region;
+      delete neighborhoodData.region.RegionTranslations;
+      const region = { ...neighborhoodData.region, name: regionName };
+      delete neighborhoodData.region;
 
-      const cityTranslations = impasseData.city.CityTranslations;
+      const cityTranslations = neighborhoodData.city.CityTranslations;
       const cityName = formatLanguageResponse(cityTranslations);
-      delete impasseData.city.CityTranslations;
-      const city = { ...impasseData.city, name: cityName };
-      delete impasseData.city;
+      delete neighborhoodData.city.CityTranslations;
+      const city = { ...neighborhoodData.city, name: cityName };
+      delete neighborhoodData.city;
 
-      const districtData = impasseData?.district;
+      const districtData = neighborhoodData?.district;
       let districtName: string | object;
       let districtNameNew: string | object;
       let districtNameOld: string | object;
@@ -314,15 +325,13 @@ export class ImpasseService {
       }
 
       const district = {
-        ...impasseData.district,
+        ...districtData,
         name: districtName,
-        districtNameNew,
-        districtNameOld,
+        newName: districtNameNew,
+        oldName: districtNameOld,
       };
-      delete impasseData.district;
-
-      formattedImpasse.push({
-        ...impasseData,
+      formattedNeighborhood.push({
+        ...neighborhoodData,
         name,
         newName: nameNew,
         oldName: nameOld,
@@ -331,26 +340,27 @@ export class ImpasseService {
         district,
       });
     }
-    this.logger.debug(`Method: ${methodName} -  Response: `, formattedImpasse);
-
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedNeighborhood
+    );
     return {
-      data: formattedImpasse,
+      data: formattedNeighborhood,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
   }
 
-  async findOne(data: GetOneDto): Promise<ImpasseInterfaces.Response> {
+  async findOne(data: GetOneDto): Promise<NeighborhoodInterfaces.Response> {
     const methodName: string = this.findOne.name;
-
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const impasse = await this.prisma.impasse.findFirst({
+    const residentialArea = await this.prisma.neighborhood.findFirst({
       where: {
         id: data.id,
         status: DefaultStatus.ACTIVE,
       },
       include: {
-        ImpasseTranslations: {
+        NeighborhoodTranslations: {
           where: data.allLang
             ? {}
             : {
@@ -361,7 +371,7 @@ export class ImpasseService {
             name: true,
           },
         },
-        ImpasseNewNameTranslations: {
+        NeighborhoodNewNameTranslations: {
           where: data.allLang
             ? {}
             : {
@@ -372,7 +382,7 @@ export class ImpasseService {
             name: true,
           },
         },
-        ImpasseOldNameTranslations: {
+        NeighborhoodOldNameTranslations: {
           where: data.allLang
             ? {}
             : {
@@ -452,29 +462,34 @@ export class ImpasseService {
         },
       },
     });
-    if (!impasse) {
-      throw new NotFoundException('Impasse is not found');
+    if (!residentialArea) {
+      throw new NotFoundException('Neighborhood is not found');
     }
-    const name = formatLanguageResponse(impasse.ImpasseTranslations);
-    const nameNew = formatLanguageResponse(impasse.ImpasseNewNameTranslations);
-    const nameOld = formatLanguageResponse(impasse.ImpasseOldNameTranslations);
-    delete impasse.ImpasseNewNameTranslations;
-    delete impasse.ImpasseOldNameTranslations;
-    delete impasse.ImpasseTranslations;
-
-    const regionTranslations = impasse.region.RegionTranslations;
+    const name = formatLanguageResponse(
+      residentialArea.NeighborhoodTranslations
+    );
+    const nameNew = formatLanguageResponse(
+      residentialArea.NeighborhoodNewNameTranslations
+    );
+    const nameOld = formatLanguageResponse(
+      residentialArea.NeighborhoodOldNameTranslations
+    );
+    delete residentialArea.NeighborhoodNewNameTranslations;
+    delete residentialArea.NeighborhoodOldNameTranslations;
+    delete residentialArea.NeighborhoodTranslations;
+    const regionTranslations = residentialArea.region.RegionTranslations;
     const regionName = formatLanguageResponse(regionTranslations);
-    delete impasse.region.RegionTranslations;
-    const region = { ...impasse.region, name: regionName };
-    delete impasse.region;
+    delete residentialArea.region.RegionTranslations;
+    const region = { ...residentialArea.region, name: regionName };
+    delete residentialArea.region;
 
-    const cityTranslations = impasse.city.CityTranslations;
+    const cityTranslations = residentialArea.city.CityTranslations;
     const cityName = formatLanguageResponse(cityTranslations);
-    delete impasse.city.CityTranslations;
-    const city = { ...impasse.city, name: cityName };
-    delete impasse.city;
+    delete residentialArea.city.CityTranslations;
+    const city = { ...residentialArea.city, name: cityName };
+    delete residentialArea.city;
 
-    const districtData = impasse?.district;
+    const districtData = residentialArea?.district;
     let districtName: string | object;
     let districtNameNew: string | object;
     let districtNameOld: string | object;
@@ -492,15 +507,15 @@ export class ImpasseService {
     }
 
     const district = {
-      ...impasse.district,
+      ...districtData,
       name: districtName,
-      districtNameNew,
-      districtNameOld,
+      newName: districtNameNew,
+      oldName: districtNameOld,
     };
-    delete impasse.district;
-    this.logger.debug(`Method: ${methodName} - Response: `, impasse);
+    this.logger.debug(`Method: ${methodName} - Response: `, residentialArea);
+
     return {
-      ...impasse,
+      ...residentialArea,
       name,
       newName: nameNew,
       oldName: nameOld,
@@ -510,11 +525,13 @@ export class ImpasseService {
     };
   }
 
-  async update(data: ImpasseUpdateDto): Promise<ImpasseInterfaces.Response> {
+  async update(
+    data: NeighborhoodUpdateDto
+  ): Promise<NeighborhoodInterfaces.Response> {
     const methodName: string = this.update.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const impasse = await this.findOne({ id: data.id });
+    const neighborhood = await this.findOne({ id: data.id });
 
     if (data.regionId) {
       await this.regionService.findOne({ id: data.regionId });
@@ -594,28 +611,28 @@ export class ImpasseService {
       });
     }
 
-    const updatedImpasse = await this.prisma.impasse.update({
+    const updatedNeighborhood = await this.prisma.neighborhood.update({
       where: {
-        id: impasse.id,
+        id: neighborhood.id,
       },
       data: {
-        regionId: data.regionId || impasse.regionId,
-        cityId: data.cityId || impasse.cityId,
+        regionId: data.regionId || neighborhood.regionId,
+        cityId: data.cityId || neighborhood.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || impasse.staffNumber,
-        index: data.index || impasse.index,
+        staffNumber: data.staffNumber || neighborhood.staffNumber,
+        index: data.index || neighborhood.index,
         orderNumber: data.orderNumber,
-        ImpasseTranslations: {
+        NeighborhoodTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
         },
-        ImpasseNewNameTranslations: {
+        NeighborhoodNewNameTranslations: {
           updateMany:
             translationNewNameUpdates.length > 0
               ? translationNewNameUpdates
               : undefined,
         },
-        ImpasseOldNameTranslations: {
+        NeighborhoodOldNameTranslations: {
           updateMany:
             translationOldNameUpdates.length > 0
               ? translationOldNameUpdates
@@ -623,37 +640,41 @@ export class ImpasseService {
         },
       },
       include: {
-        ImpasseTranslations: true,
-        ImpasseNewNameTranslations: true,
-        ImpasseOldNameTranslations: true,
+        NeighborhoodTranslations: true,
+        NeighborhoodNewNameTranslations: true,
+        NeighborhoodOldNameTranslations: true,
       },
     });
-    this.logger.debug(`Method: ${methodName} - Response: `, updatedImpasse);
 
-    return updatedImpasse;
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedNeighborhood
+    );
+
+    return updatedNeighborhood;
   }
 
-  async remove(data: DeleteDto): Promise<ImpasseInterfaces.Response> {
+  async remove(data: DeleteDto): Promise<NeighborhoodInterfaces.Response> {
     const methodName: string = this.remove.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      const deletedImpasse = await this.prisma.impasse.delete({
+      const deletedNeighborhood = await this.prisma.neighborhood.delete({
         where: { id: data.id },
         include: {
-          ImpasseTranslations: {
+          NeighborhoodTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          ImpasseNewNameTranslations: {
+          NeighborhoodNewNameTranslations: {
             select: {
               languageCode: true,
               name: true,
             },
           },
-          ImpasseOldNameTranslations: {
+          NeighborhoodOldNameTranslations: {
             select: {
               languageCode: true,
               name: true,
@@ -662,28 +683,31 @@ export class ImpasseService {
         },
       });
 
-      this.logger.debug(`Method: ${methodName} - Response: `, deletedImpasse);
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        deletedNeighborhood
+      );
 
-      return deletedImpasse;
+      return deletedNeighborhood;
     }
 
-    const updatedImpasse = await this.prisma.impasse.update({
+    const updatedNeighborhood = await this.prisma.neighborhood.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
-        ImpasseTranslations: {
+        NeighborhoodTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        ImpasseNewNameTranslations: {
+        NeighborhoodNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        ImpasseOldNameTranslations: {
+        NeighborhoodOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
@@ -691,32 +715,39 @@ export class ImpasseService {
         },
       },
     });
-    this.logger.debug(`Method: ${methodName} - Response: `, updatedImpasse);
 
-    return updatedImpasse;
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedNeighborhood
+    );
+
+    return updatedNeighborhood;
   }
 
-  async restore(data: GetOneDto): Promise<ImpasseInterfaces.Response> {
-    return this.prisma.impasse.update({
+  async restore(data: GetOneDto): Promise<NeighborhoodInterfaces.Response> {
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedNeighborhood = this.prisma.neighborhood.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
       },
       data: { status: DefaultStatus.ACTIVE },
       include: {
-        ImpasseTranslations: {
+        NeighborhoodTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        ImpasseNewNameTranslations: {
+        NeighborhoodNewNameTranslations: {
           select: {
             languageCode: true,
             name: true,
           },
         },
-        ImpasseOldNameTranslations: {
+        NeighborhoodOldNameTranslations: {
           select: {
             languageCode: true,
             name: true,
@@ -724,5 +755,12 @@ export class ImpasseService {
         },
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedNeighborhood
+    );
+
+    return updatedNeighborhood;
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
@@ -21,6 +21,8 @@ import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/
 import { Prisma } from '@prisma/client';
 @Injectable()
 export class PassageService {
+  private logger = new Logger(PassageService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -29,6 +31,9 @@ export class PassageService {
   ) {}
 
   async create(data: PassageCreateDto): Promise<PassageInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -113,12 +118,16 @@ export class PassageService {
         PassageOldNameTranslations: true,
       },
     });
+    this.logger.debug(`Method: ${methodName} - Response: `, passage);
+
     return passage;
   }
 
   async findAll(
     data: CityRegionFilterDto
   ): Promise<PassageInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
       let passages = await getOrderedDataWithDistrict(
         'Passage',
@@ -190,6 +199,7 @@ export class PassageService {
           district,
         });
       }
+      this.logger.debug(`Method: ${methodName} - Response: `, formattedPassage);
 
       return {
         data: formattedPassage,
@@ -208,15 +218,38 @@ export class PassageService {
       regionId: data.regionId,
     };
     if (data.search) {
-      where.PassageTranslations = {
-        some: {
-          languageCode: data.langCode,
-          name: {
-            contains: data.search,
-            mode: 'insensitive',
+      where.OR = [
+        {
+          PassageTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
           },
         },
-      };
+        {
+          PassageNewNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          PassageOldNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+      ];
     }
     const count = await this.prisma.passage.count({
       where,
@@ -300,6 +333,7 @@ export class PassageService {
         district,
       });
     }
+    this.logger.debug(`Method: ${methodName} - Response: `, formattedPassage);
 
     return {
       data: formattedPassage,
@@ -309,6 +343,8 @@ export class PassageService {
   }
 
   async findOne(data: GetOneDto): Promise<PassageInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const passage = await this.prisma.passage.findFirst({
       where: {
         id: data.id,
@@ -463,6 +499,7 @@ export class PassageService {
       districtNameOld,
     };
     delete passage.district;
+    this.logger.debug(`Method: ${methodName} - Response: `, passage);
 
     return {
       ...passage,
@@ -476,6 +513,9 @@ export class PassageService {
   }
 
   async update(data: PassageUpdateDto): Promise<PassageInterfaces.Response> {
+    const methodName: string = this.update.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     const passage = await this.findOne({ id: data.id });
 
     if (data.regionId) {
@@ -556,7 +596,7 @@ export class PassageService {
       });
     }
 
-    return await this.prisma.passage.update({
+    const updatedPassage = await this.prisma.passage.update({
       where: {
         id: passage.id,
       },
@@ -590,11 +630,18 @@ export class PassageService {
         PassageOldNameTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedPassage);
+
+    return updatedPassage;
   }
 
   async remove(data: DeleteDto): Promise<PassageInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.passage.delete({
+      const deletedPassage = await this.prisma.passage.delete({
         where: { id: data.id },
         include: {
           PassageTranslations: {
@@ -617,9 +664,13 @@ export class PassageService {
           },
         },
       });
+
+      this.logger.debug(`Method: ${methodName} - Response: `, deletedPassage);
+
+      return deletedPassage;
     }
 
-    return await this.prisma.passage.update({
+    const updatedPassage = await this.prisma.passage.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -643,10 +694,17 @@ export class PassageService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedPassage);
+
+    return updatedPassage;
   }
 
   async restore(data: GetOneDto): Promise<PassageInterfaces.Response> {
-    return this.prisma.passage.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedMainOrganization = await this.prisma.passage.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -673,5 +731,12 @@ export class PassageService {
         },
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedMainOrganization
+    );
+
+    return updatedMainOrganization;
   }
 }

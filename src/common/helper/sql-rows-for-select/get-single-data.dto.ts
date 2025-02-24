@@ -10,7 +10,7 @@ export async function getSingleData(
   pagination?: { take: number; skip: number }
 ) {
   const whereClause =
-    conditions.length > 0
+    conditions?.length > 0
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
       : Prisma.empty;
 
@@ -27,8 +27,6 @@ export async function getSingleData(
                         )
                     )::JSONB AS Translations  
                 FROM ${Prisma.raw(name + (name === 'phone_types' ? '_id_translations' : '_translations'))} ct
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`ct.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
                 GROUP BY ct.${Prisma.raw(`${name}_id`)}
             )
         SELECT
@@ -37,16 +35,18 @@ export async function getSingleData(
         FROM
             ${Prisma.raw(name)} c
         ${whereClause}
-        GROUP BY 
-            c.id
         ORDER BY
-            (
-                SELECT jsonb_extract_path_text(
-                    Translations::jsonb->0, 'name'
-                )
-                FROM ${Prisma.raw(CapitalizaName)}Translations
-                WHERE ${Prisma.raw(`${name}_id`)} = c.id
-            ) ASC
+        (
+            SELECT jsonb_extract_path_text(
+                jsonb_path_query_first(
+                    Translations, 
+                    '$[*] ? (@.languageCode == $langCode)',
+                    jsonb_build_object('langCode', ${Prisma.raw(`'${data.langCode ? data.langCode : 'ru'}'`)})
+                )::jsonb, 'name'
+            )
+            FROM ${Prisma.raw(CapitalizaName)}Translations
+            WHERE ${Prisma.raw(`${name}_id`)} = c.id
+        ) ASC
         ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}
     `
   );

@@ -29,8 +29,6 @@ export async function getSubCategoryOrderedData(
                         )
                     )::JSONB AS Translations  
                 FROM ${Prisma.raw(name + '_translations')} ct
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`ct.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
                 GROUP BY ct.${Prisma.raw(`${name}_id`)}
             ),
             ${Prisma.raw(CapitalizeCategoryName)}Translations AS (
@@ -43,8 +41,6 @@ export async function getSubCategoryOrderedData(
                         )
                     )::JSONB AS Translations
                 FROM ${Prisma.raw(categoryName)}_translations dt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`dt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
                 GROUP BY dt.${Prisma.raw(categoryName)}_id
             )
         SELECT
@@ -69,7 +65,10 @@ export async function getSubCategoryOrderedData(
             ? Prisma.raw(`ORDER BY
             (
                 SELECT jsonb_extract_path_text(
-                    Translations::jsonb->0, 'name'
+                    jsonb_path_query_first(
+                        Translations, 
+                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
+                    )::jsonb, 'name'
                 )
                 FROM ${CapitalizeName}Translations
                 WHERE ${`${name}_id`} = c.id
@@ -79,7 +78,10 @@ export async function getSubCategoryOrderedData(
                 c.order_number ASC, 
                 (
                     SELECT jsonb_extract_path_text(
-                        Translations::jsonb->0, 'name'
+                    jsonb_path_query_first(
+                        Translations, 
+                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
+                    )::jsonb, 'name'
                     )
                     FROM ${CapitalizeName}Translations
                     WHERE ${name}_id = c.id

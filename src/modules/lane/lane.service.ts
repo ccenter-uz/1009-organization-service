@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
@@ -21,6 +21,7 @@ import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 @Injectable()
 export class LaneService {
+  private logger = new Logger(LaneService.name);
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -29,6 +30,9 @@ export class LaneService {
   ) {}
 
   async create(data: LaneCreateDto): Promise<LaneInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -114,12 +118,17 @@ export class LaneService {
         LaneOldNameTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, lane);
+
     return lane;
   }
 
   async findAll(
     data: CityRegionFilterDto
   ): Promise<LaneInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
       const lanes = await getOrderedDataWithDistrict(
         'Lane',
@@ -179,6 +188,9 @@ export class LaneService {
           newName: districtNameNew,
           oldName: districtNameOld,
         };
+
+        this.logger.debug(`Method: ${methodName} -  Response: `, laneData);
+
         formattedLane.push({
           ...laneData,
           name,
@@ -207,15 +219,38 @@ export class LaneService {
       regionId: data.regionId,
     };
     if (data.search) {
-      where.LaneTranslations = {
-        some: {
-          languageCode: data.langCode,
-          name: {
-            contains: data.search,
-            mode: 'insensitive',
+      where.OR = [
+        {
+          LaneTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
           },
         },
-      };
+        {
+          LaneNewNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          LaneOldNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+      ];
     }
     const count = await this.prisma.lane.count({
       where,
@@ -287,6 +322,7 @@ export class LaneService {
         newName: districtNameNew,
         oldName: districtNameOld,
       };
+      this.logger.debug(`Method: ${methodName} - Response: `, laneData);
 
       formattedLane.push({
         ...laneData,
@@ -308,6 +344,9 @@ export class LaneService {
   }
 
   async findOne(data: GetOneDto): Promise<LaneInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const lane = await this.prisma.lane.findFirst({
       where: {
         id: data.id,
@@ -461,6 +500,9 @@ export class LaneService {
       newName: districtNameNew,
       oldName: districtNameOld,
     };
+
+    this.logger.debug(`Method: ${methodName} - Response: `, lane);
+
     return {
       ...lane,
       name,
@@ -473,6 +515,9 @@ export class LaneService {
   }
 
   async update(data: LaneUpdateDto): Promise<LaneInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const lane = await this.findOne({ id: data.id });
 
     if (data.regionId) {
@@ -554,7 +599,7 @@ export class LaneService {
       });
     }
 
-    return await this.prisma.lane.update({
+    const updatedLane = await this.prisma.lane.update({
       where: {
         id: lane.id,
       },
@@ -588,11 +633,18 @@ export class LaneService {
         LaneOldNameTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedLane);
+
+    return updatedLane;
   }
 
   async remove(data: DeleteDto): Promise<LaneInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.lane.delete({
+      const deletedLane = await this.prisma.lane.delete({
         where: { id: data.id },
         include: {
           LaneTranslations: {
@@ -615,9 +667,12 @@ export class LaneService {
           },
         },
       });
+      this.logger.debug(`Method: ${methodName} - Response: `, deletedLane);
+
+      return deletedLane;
     }
 
-    return await this.prisma.lane.update({
+    const updatedLane = await this.prisma.lane.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -641,10 +696,17 @@ export class LaneService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedLane);
+
+    return updatedLane;
   }
 
   async restore(data: GetOneDto): Promise<LaneInterfaces.Response> {
-    return this.prisma.lane.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedLane = this.prisma.lane.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -671,5 +733,9 @@ export class LaneService {
         },
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedLane);
+
+    return updatedLane;
   }
 }

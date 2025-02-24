@@ -15,29 +15,43 @@ export async function getOrderedDataWithDistrict(
   if (data.regionId)
     conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
   if (data.search) {
-    if (data.langCode) {
-      conditions.push(Prisma.sql`
-                    EXISTS (
-                      SELECT 1
-                      FROM ${Prisma.raw(name)}_translations ct
-                      WHERE ct.${Prisma.raw(name)}_id = c.id
-                        AND ct.language_code = ${data.langCode}
-                        AND ct.name ILIKE ${`%${data.search}%`}
-                    )
-                  `);
-    } else {
-      conditions.push(Prisma.sql`
-                    EXISTS (
-                      SELECT 1
-                      FROM ${Prisma.raw(name)}_translations ct
-                      WHERE ct.${Prisma.raw(name)}_id = c.id
-                        AND ct.name ILIKE ${`%${data.search}%`}
-                      ORDER BY ct.language_code   
-                      LIMIT 1
-                    )
-                  `);
+    conditions.push(Prisma.sql`
+        (
+        EXISTS (
+            SELECT 1
+            FROM ${Prisma.raw(name)}_translations ct
+            WHERE ct.${Prisma.raw(name)}_id = c.id
+                AND ct.name ILIKE ${`%${data.search}%`}
+                AND ct.name ILIKE ${`%${data.search}%`}
+                AND ct.name ILIKE ${`%${data.search}%`}
+            ORDER BY ct.language_code   
+            LIMIT 1
+            )
+        OR
+        EXISTS (
+        SELECT 1
+        FROM ${Prisma.raw(name)}_old_name_translations cont
+        WHERE cont.${Prisma.raw(name)}_id = c.id
+            AND cont.name ILIKE ${`%${data.search}%`}
+            AND cont.name ILIKE ${`%${data.search}%`}
+            AND cont.name ILIKE ${`%${data.search}%`}
+        ORDER BY cont.language_code   
+        LIMIT 1
+        )
+        OR
+        EXISTS (
+        SELECT 1
+        FROM ${Prisma.raw(name)}_new_name_translations cnnt
+        WHERE cnnt.${Prisma.raw(name)}_id = c.id
+            AND cnnt.name ILIKE ${`%${data.search}%`}
+            AND cnnt.name ILIKE ${`%${data.search}%`}
+            AND cnnt.name ILIKE ${`%${data.search}%`}
+        ORDER BY cnnt.language_code   
+        LIMIT 1
+        )
+        )
+    `);
     }
-  }
 
   const whereClause =
     conditions?.length > 0
@@ -57,9 +71,7 @@ export async function getOrderedDataWithDistrict(
                         )
                     )::JSONB AS Translations  
                 FROM ${Prisma.raw(name + '_translations')} ct
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`ct.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY ct.${Prisma.raw(`${name}_id`)}
+              GROUP BY ct.${Prisma.raw(`${name}_id`)}
             ),
             ${Prisma.raw(CapitalizaName)}NewNameTranslations AS (
                 SELECT
@@ -71,9 +83,7 @@ export async function getOrderedDataWithDistrict(
                         )
                     )::JSONB AS NewNameTranslations  
                 FROM ${Prisma.raw(name + '_new_name_translations')} cnt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`cnt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY cnt.${Prisma.raw(`${name}_id`)}
+               GROUP BY cnt.${Prisma.raw(`${name}_id`)}
             ),
             ${Prisma.raw(CapitalizaName)}OldNameTranslations AS (
                 SELECT
@@ -85,8 +95,6 @@ export async function getOrderedDataWithDistrict(
                         )
                     )::JSONB AS OldNameTranslations  
                 FROM ${Prisma.raw(name + '_old_name_translations')} cot
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`cot.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
                 GROUP BY cot.${Prisma.raw(`${name}_id`)}
             ),
             CityTranslations AS (
@@ -99,9 +107,7 @@ export async function getOrderedDataWithDistrict(
                         )
                     )::JSONB AS Translations  
                 FROM city_translations cyt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`cyt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY cyt.city_id
+                 GROUP BY cyt.city_id
             ),
             RegionTranslations AS (
                 SELECT
@@ -113,9 +119,7 @@ export async function getOrderedDataWithDistrict(
                         )
                     )::JSONB AS Translations  
                 FROM region_translations rt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`rt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY rt.region_id
+               GROUP BY rt.region_id
             ),
             DistrictTranslations AS (
                 SELECT
@@ -127,9 +131,7 @@ export async function getOrderedDataWithDistrict(
                         )
                     )::JSONB AS Translations
                 FROM district_translations dt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`dt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
-                GROUP BY dt.district_id
+               GROUP BY dt.district_id
             ),
             DistrictNewNameTranslations AS (
                 SELECT
@@ -141,8 +143,6 @@ export async function getOrderedDataWithDistrict(
                         )
                     )::JSONB AS Translations
                 FROM district_new_name_translations dt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`dt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
                 GROUP BY dt.district_id
             ),
             DistrictOldNameTranslations AS (
@@ -155,8 +155,6 @@ export async function getOrderedDataWithDistrict(
                         )
                     )::JSONB AS Translations
                 FROM district_old_name_translations dt
-                WHERE (${data.allLang} = TRUE OR 
-                    ${data.langCode ? Prisma.sql`dt.language_code = ${data.langCode}` : Prisma.sql`TRUE`})
                 GROUP BY dt.district_id
             )
         SELECT
@@ -216,7 +214,10 @@ export async function getOrderedDataWithDistrict(
             ? Prisma.raw(`ORDER BY
             (
                 SELECT jsonb_extract_path_text(
-                    Translations::jsonb->0, 'name'
+                    jsonb_path_query_first(
+                        Translations, 
+                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
+                    )::jsonb, 'name'
                 )
                 FROM ${CapitalizaName}Translations
                 WHERE ${`${name}_id`} = c.id
@@ -226,7 +227,10 @@ export async function getOrderedDataWithDistrict(
                 c.order_number ASC,
                 (
                     SELECT jsonb_extract_path_text(
-                        Translations::jsonb->0, 'name'
+                    jsonb_path_query_first(
+                        Translations, 
+                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
+                    )::jsonb, 'name'
                     )
                     FROM ${CapitalizaName}Translations
                     WHERE ${name}_id = c.id

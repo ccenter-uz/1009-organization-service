@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
@@ -22,6 +22,8 @@ import { Prisma } from '@prisma/client';
 import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 @Injectable()
 export class ResidentialAreaService {
+  private logger = new Logger(ResidentialAreaService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
@@ -32,6 +34,9 @@ export class ResidentialAreaService {
   async create(
     data: ResidentialAreaCreateDto
   ): Promise<ResidentialAreaInterfaces.Response> {
+    const methodName: string = this.create.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
     });
@@ -120,12 +125,17 @@ export class ResidentialAreaService {
         ResidentialAreaOldNameTranslations: true,
       },
     });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, residentialArea);
+
     return residentialArea;
   }
 
   async findAll(
     data: CityRegionFilterDto
   ): Promise<ResidentialAreaInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.all) {
       let residentialAreas = await getOrderedDataWithDistrict(
         'ResidentialArea',
@@ -199,6 +209,10 @@ export class ResidentialAreaService {
           district,
         });
       }
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedResidentialArea
+      );
 
       return {
         data: formattedResidentialArea,
@@ -216,15 +230,38 @@ export class ResidentialAreaService {
       regionId: data.regionId,
     };
     if (data.search) {
-      where.ResidentialAreaTranslations = {
-        some: {
-          languageCode: data.langCode,
-          name: {
-            contains: data.search,
-            mode: 'insensitive',
+      where.OR = [
+        {
+          ResidentialAreaTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
           },
         },
-      };
+        {
+          ResidentialAreaNewNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          ResidentialAreaOldNameTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+      ];
     }
     const count = await this.prisma.residentialArea.count({
       where,
@@ -307,6 +344,10 @@ export class ResidentialAreaService {
         district,
       });
     }
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedResidentialArea
+    );
 
     return {
       data: formattedResidentialArea,
@@ -316,6 +357,8 @@ export class ResidentialAreaService {
   }
 
   async findOne(data: GetOneDto): Promise<ResidentialAreaInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const residentialArea = await this.prisma.residentialArea.findFirst({
       where: {
         id: data.id,
@@ -474,6 +517,7 @@ export class ResidentialAreaService {
       newName: districtNameNew,
       oldName: districtNameOld,
     };
+    this.logger.debug(`Method: ${methodName} - Response: `, residentialArea);
 
     return {
       ...residentialArea,
@@ -489,6 +533,9 @@ export class ResidentialAreaService {
   async update(
     data: ResidentialAreaUpdateDto
   ): Promise<ResidentialAreaInterfaces.Response> {
+    const methodName: string = this.update.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     const residentialArea = await this.findOne({ id: data.id });
 
     if (data.regionId) {
@@ -569,7 +616,7 @@ export class ResidentialAreaService {
       });
     }
 
-    return await this.prisma.residentialArea.update({
+    const updatedResidentialArea = await this.prisma.residentialArea.update({
       where: {
         id: residentialArea.id,
       },
@@ -603,11 +650,20 @@ export class ResidentialAreaService {
         ResidentialAreaOldNameTranslations: true,
       },
     });
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedResidentialArea
+    );
+
+    return updatedResidentialArea;
   }
 
   async remove(data: DeleteDto): Promise<ResidentialAreaInterfaces.Response> {
+    const methodName: string = this.remove.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
-      return await this.prisma.residentialArea.delete({
+      const deletedResidentialArea = await this.prisma.residentialArea.delete({
         where: { id: data.id },
         include: {
           ResidentialAreaTranslations: {
@@ -630,9 +686,16 @@ export class ResidentialAreaService {
           },
         },
       });
+
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        deletedResidentialArea
+      );
+
+      return deletedResidentialArea;
     }
 
-    return await this.prisma.residentialArea.update({
+    const updatedResidentialArea = await this.prisma.residentialArea.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
       data: { status: DefaultStatus.INACTIVE },
       include: {
@@ -656,10 +719,20 @@ export class ResidentialAreaService {
         },
       },
     });
+
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedResidentialArea
+    );
+
+    return updatedResidentialArea;
   }
 
   async restore(data: GetOneDto): Promise<ResidentialAreaInterfaces.Response> {
-    return this.prisma.residentialArea.update({
+    const methodName: string = this.restore.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const updatedResidentialArea = this.prisma.residentialArea.update({
       where: {
         id: data.id,
         status: DefaultStatus.INACTIVE,
@@ -686,5 +759,11 @@ export class ResidentialAreaService {
         },
       },
     });
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      updatedResidentialArea
+    );
+
+    return updatedResidentialArea;
   }
 }
