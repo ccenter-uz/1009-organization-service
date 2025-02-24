@@ -71,6 +71,42 @@ export async function getOrderedData(
                     )::JSONB AS Translations  
                 FROM region_translations rt
                GROUP BY rt.region_id
+            ),
+            DistrictTranslations AS (
+                SELECT
+                    dt.district_id,
+                    JSON_AGG(
+                        JSONB_BUILD_OBJECT(
+                            'languageCode', dt.language_code,
+                            'name', dt.name
+                        )
+                    )::JSONB AS Translations  
+                FROM district_translations dt
+               GROUP BY dt.district_id
+            ),
+            DistrictNewNameTranslations AS (
+                SELECT
+                    dnnt.district_id,
+                    JSON_AGG(
+                        JSONB_BUILD_OBJECT(
+                            'languageCode', dnnt.language_code,
+                            'name', dnnt.name
+                        )
+                    )::JSONB AS Translations  
+                FROM district_new_name_translations dnnt
+               GROUP BY dnnt.district_id
+            ),
+            DistrictOldNameTranslations AS (
+                SELECT
+                    dont.district_id,
+                    JSON_AGG(
+                        JSONB_BUILD_OBJECT(
+                            'languageCode', dont.language_code,
+                            'name', dont.name
+                        )
+                    )::JSONB AS Translations  
+                FROM district_old_name_translations dont
+               GROUP BY dont.district_id
             )
         SELECT
             c.*,  
