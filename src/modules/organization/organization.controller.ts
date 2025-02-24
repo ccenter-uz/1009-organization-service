@@ -44,7 +44,6 @@ export class OrganizationController {
   findAll(
     @Payload() data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
-    console.log(data, 'DATA 1');
     return this.organizationService.findAll(data);
   }
 
