@@ -33,6 +33,7 @@ export class CategoryService {
         staffNumber: data.staffNumber,
         cityId: data.cityId,
         regionId: data.regionId,
+        ...(data?.districtId ? { districtId: data.districtId } : {}),
         orderNumber: data.orderNumber,
         CategoryTranslations: {
           create: [
@@ -61,14 +62,36 @@ export class CategoryService {
                 name: true,
               },
             },
-            Region: {
-              include: {
-                RegionTranslations: {
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
+          },
+        },
+        region: {
+          include: {
+            RegionTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        district: {
+          include: {
+            DistrictNewNameTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
               },
             },
           },
@@ -86,14 +109,13 @@ export class CategoryService {
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-   
+
     if (data.all) {
-      
       const categories: any = await getOrderedData(
         'Category',
         'category',
         this.prisma,
-        data,
+        data
       );
 
       const formattedCategories = [];
@@ -126,6 +148,30 @@ export class CategoryService {
           formattedCategories.push({ ...category, name, city, region });
         } else {
           formattedCategories.push({ ...category, name });
+        }
+
+        if (category.district) {
+          const districtName = formatLanguageResponse(
+            category.district.DistrictTranslations
+          );
+          const districtNewName = formatLanguageResponse(
+            category.district.DistrictNewNameTranslations
+          );
+          const districtOldName = formatLanguageResponse(
+            category.district.DistrictOldNameTranslations
+          );
+
+          const district = {
+            name: districtName,
+            newName: districtNewName,
+            oldName: districtOldName,
+          };
+          delete category.district.DistrictTranslations;
+          delete category.district.DistrictNewNameTranslations;
+          delete category.district.DistrictOldNameTranslations;
+          delete category.district;
+
+          formattedCategories.push({ ...formattedCategories, district });
         }
       }
 
@@ -168,8 +214,6 @@ export class CategoryService {
       perPage: data.limit,
     });
 
-   
-
     const categories: any = await getOrderedData(
       'Category',
       'category',
@@ -208,6 +252,30 @@ export class CategoryService {
       } else {
         formattedCategories.push({ ...category, name });
       }
+
+      if (category.district) {
+        const districtName = formatLanguageResponse(
+          category.district.DistrictTranslations
+        );
+        const districtNewName = formatLanguageResponse(
+          category.district.DistrictNewNameTranslations
+        );
+        const districtOldName = formatLanguageResponse(
+          category.district.DistrictOldNameTranslations
+        );
+
+        const district = {
+          name: districtName,
+          newName: districtNewName,
+          oldName: districtOldName,
+        };
+        delete category.district.DistrictTranslations;
+        delete category.district.DistrictNewNameTranslations;
+        delete category.district.DistrictOldNameTranslations;
+        delete category.district;
+
+        formattedCategories.push({ ...formattedCategories, district });
+      }
     }
     this.logger.debug(
       `Method: ${methodName} - Response: `,
@@ -245,19 +313,56 @@ export class CategoryService {
                 name: true,
               },
             },
-            Region: {
-              include: {
-                RegionTranslations: {
-                  where: data.allLang
-                    ? {}
-                    : {
-                        languageCode: data.langCode,
-                      },
-                  select: {
-                    languageCode: true,
-                    name: true,
+          },
+        },
+        region: {
+          include: {
+            RegionTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
                   },
-                },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        district: {
+          include: {
+            DistrictTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictNewNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              where: data.allLang
+                ? {}
+                : {
+                    languageCode: data.langCode,
+                  },
+              select: {
+                languageCode: true,
+                name: true,
               },
             },
           },
@@ -284,28 +389,54 @@ export class CategoryService {
 
     this.logger.debug(`Method: ${methodName} - Response: `, category);
     delete category.CategoryTranslations;
+
+    let formatedRespons: CategoryInterfaces.Response = { ...category, name };
     if (category.city) {
       const cityTranslations = category.city.CityTranslations;
       const cityName = formatLanguageResponse(cityTranslations);
 
       delete category.city.CityTranslations;
 
-      const regionTranslations = category.city.Region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
-
-      delete category.city.Region.RegionTranslations;
-
-      const region = { ...category.city.Region, name: regionName };
-      delete category.city.Region;
-
       const city = { ...category.city, name: cityName };
 
-      delete category.city;
-
-      return { ...category, name, city, region };
-    } else {
-      return { ...category, name };
+      formatedRespons = { ...formatedRespons, city };
     }
+    if (category.region) {
+      const regionTranslations = category.region.RegionTranslations;
+      const regionName = formatLanguageResponse(regionTranslations);
+
+      delete formatedRespons.region?.['RegionTranslations'];
+      delete category.region.RegionTranslations;
+      const region = { ...category.region, name: regionName };
+
+      formatedRespons = { ...formatedRespons, region };
+    }
+
+    if (category.district) {
+      const districtName = formatLanguageResponse(
+        category.district.DistrictTranslations
+      );
+      const districtNewName = formatLanguageResponse(
+        category.district.DistrictNewNameTranslations
+      );
+      const districtOldName = formatLanguageResponse(
+        category.district.DistrictOldNameTranslations
+      );
+
+      delete category.district.DistrictTranslations;
+      delete category.district.DistrictNewNameTranslations;
+      delete category.district.DistrictOldNameTranslations;
+
+      let district = {
+        ...formatedRespons.district,
+        name: districtName,
+        oldName: districtOldName,
+        newName: districtNewName,
+      };
+      delete formatedRespons.district;
+      formatedRespons = { ...formatedRespons, district };
+    }
+    return formatedRespons;
   }
 
   async update(data: CategoryUpdateDto): Promise<CategoryInterfaces.Response> {
@@ -362,14 +493,36 @@ export class CategoryService {
                 name: true,
               },
             },
-            Region: {
-              include: {
-                RegionTranslations: {
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
+          },
+        },
+        region: {
+          include: {
+            RegionTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        district: {
+          include: {
+            DistrictNewNameTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
               },
             },
           },
@@ -405,14 +558,36 @@ export class CategoryService {
                   name: true,
                 },
               },
-              Region: {
-                include: {
-                  RegionTranslations: {
-                    select: {
-                      languageCode: true,
-                      name: true,
-                    },
-                  },
+            },
+          },
+          region: {
+            include: {
+              RegionTranslations: {
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          district: {
+            include: {
+              DistrictNewNameTranslations: {
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+              DistrictOldNameTranslations: {
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+              DistrictTranslations: {
+                select: {
+                  languageCode: true,
+                  name: true,
                 },
               },
             },
@@ -446,14 +621,36 @@ export class CategoryService {
                 name: true,
               },
             },
-            Region: {
-              include: {
-                RegionTranslations: {
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
+          },
+        },
+        region: {
+          include: {
+            RegionTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        district: {
+          include: {
+            DistrictNewNameTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
               },
             },
           },
@@ -495,14 +692,36 @@ export class CategoryService {
                 name: true,
               },
             },
-            Region: {
-              include: {
-                RegionTranslations: {
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
+          },
+        },
+        region: {
+          include: {
+            RegionTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        district: {
+          include: {
+            DistrictNewNameTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
               },
             },
           },
