@@ -1,7 +1,3 @@
-import {
-  DistrictNewNameTranslations,
-  DistrictOldNameTranslations,
-} from './../../../node_modules/.prisma/client/index.d';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
@@ -66,36 +62,36 @@ export class CategoryService {
                 name: true,
               },
             },
-            Region: {
-              include: {
-                RegionTranslations: {
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
+          },
+        },
+        region: {
+          include: {
+            RegionTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
               },
             },
-            District: {
-              include: {
-                DistrictNewNameTranslations: {
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
-                DistrictOldNameTranslations: {
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
-                DistrictTranslations: {
-                  select: {
-                    languageCode: true,
-                    name: true,
-                  },
-                },
+          },
+        },
+        district: {
+          include: {
+            DistrictNewNameTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
               },
             },
           },
@@ -403,19 +399,17 @@ export class CategoryService {
 
       const city = { ...category.city, name: cityName };
 
-      delete category.city;
-
-      return { ...category, city };
+      formatedRespons = { ...formatedRespons, city };
     }
     if (category.region) {
       const regionTranslations = category.region.RegionTranslations;
       const regionName = formatLanguageResponse(regionTranslations);
+
+      delete formatedRespons.region?.['RegionTranslations'];
       delete category.region.RegionTranslations;
-
       const region = { ...category.region, name: regionName };
-      delete category.region;
 
-      return { ...category, region };
+      formatedRespons = { ...formatedRespons, region };
     }
 
     if (category.district) {
@@ -433,15 +427,14 @@ export class CategoryService {
       delete category.district.DistrictNewNameTranslations;
       delete category.district.DistrictOldNameTranslations;
 
-      formatedRespons.district = category.district
-        ? {
-            ...category.district,
-            name: districtName,
-            oldName: districtOldName,
-            newName: districtNewName,
-          }
-        : undefined;
-      delete category.district;
+      let district = {
+        ...formatedRespons.district,
+        name: districtName,
+        oldName: districtOldName,
+        newName: districtNewName,
+      };
+      delete formatedRespons.district;
+      formatedRespons = { ...formatedRespons, district };
     }
     return formatedRespons;
   }
