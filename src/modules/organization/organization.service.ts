@@ -326,6 +326,7 @@ export class OrganizationService {
     data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
+
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
     const where: any = {};
@@ -491,6 +492,7 @@ export class OrganizationService {
       take: pagination.take,
       skip: pagination.skip,
     });
+
     const result = [];
     for (let [index, org] of Object.entries(organization)) {
       for (let [key, prop] of Object.entries(includeConfig)) {
@@ -501,6 +503,7 @@ export class OrganizationService {
         org,
         modulesConfig
       );
+
       if (data.role !== 'moderator') {
         delete formattedOrganization.secret;
       }
