@@ -120,13 +120,12 @@ export class AvenueService {
   async findAll(
     data: CityRegionFilterDto
   ): Promise<AvenueInterfaces.ResponseWithPagination> {
-   
     if (data.all) {
       let avenues = await getOrderedDataWithDistrict(
         'Avenue',
         'avenue',
         this.prisma,
-        data,
+        data
       );
       const formattedAvenue = [];
 
