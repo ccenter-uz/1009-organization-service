@@ -130,6 +130,7 @@ export class AvenueService {
     const methodName: string = this.findAll.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     if (data.all) {
       let avenues = await getOrderedDataWithDistrict(
         'Avenue',
