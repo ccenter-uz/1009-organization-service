@@ -82,26 +82,32 @@ export default function formatOrganizationResponse(
   }
 
   for (let [index, el] of Object.entries(organization['ProductServices'])) {
-    const nameOfProductServiceCategory = formatLanguageResponse(
-      el['ProductServiceCategory']['ProductServiceCategoryTranslations']
-    );
-    const nameOfProductServiceSubCategory = formatLanguageResponse(
-      el['ProductServiceSubCategory']['ProductServiceSubCategoryTranslations']
-    );
+    if (el['ProductServiceCategory']) {
+      const nameOfProductServiceCategory = formatLanguageResponse(
+        el['ProductServiceCategory']?.['ProductServiceCategoryTranslations']
+      );
+      formattedOrganization['ProductServices'][index][
+        'ProductServiceCategory'
+      ].name = nameOfProductServiceCategory;
+      delete formattedOrganization['ProductServices'][index]?.[
+        'ProductServiceCategory'
+      ]['ProductServiceCategoryTranslations'];
+    }
+    if (el['ProductServiceSubCategory']) {
+      const nameOfProductServiceSubCategory = formatLanguageResponse(
+        el['ProductServiceSubCategory']?.[
+          'ProductServiceSubCategoryTranslations'
+        ]
+      );
 
-    formattedOrganization['ProductServices'][index][
-      'ProductServiceSubCategory'
-    ].name = nameOfProductServiceSubCategory;
-    formattedOrganization['ProductServices'][index][
-      'ProductServiceCategory'
-    ].name = nameOfProductServiceCategory;
+      formattedOrganization['ProductServices'][index][
+        'ProductServiceSubCategory'
+      ].name = nameOfProductServiceSubCategory;
 
-    delete formattedOrganization['ProductServices'][index][
-      'ProductServiceSubCategory'
-    ]['ProductServiceSubCategoryTranslations'];
-    delete formattedOrganization['ProductServices'][index][
-      'ProductServiceCategory'
-    ]['ProductServiceCategoryTranslations'];
+      delete formattedOrganization['ProductServices'][index]?.[
+        'ProductServiceSubCategory'
+      ]['ProductServiceSubCategoryTranslations'];
+    }
   }
 
   const subCategoryTranslation =
