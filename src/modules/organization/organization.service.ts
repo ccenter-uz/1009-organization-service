@@ -495,6 +495,7 @@ export class OrganizationService {
         take: pagination.take,
         skip: pagination.skip,
       });
+      console.log(organization, 'ORGANIZATION');
       const result = [];
       for (let [index, org] of Object.entries(organization)) {
         for (let [key, prop] of Object.entries(includeConfig)) {
@@ -505,6 +506,7 @@ export class OrganizationService {
           org,
           modulesConfig
         );
+        console.log(formattedOrganization, 'ORGANIZATION FORMAT');
         if (data.role !== 'moderator') {
           delete formattedOrganization.secret;
         }
