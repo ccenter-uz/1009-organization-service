@@ -325,120 +325,178 @@ export class OrganizationService {
   async findAll(
     data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
-    const methodName: string = this.findAll.name;
-    console.log(data, 'DATA 2');
-    this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const include = buildInclude(includeConfig, data);
-    const where: any = {};
-    console.log(data, 'DATA 2');
-    console.log('DATA 3');
+    try {
+      const methodName: string = this.findAll.name;
+      console.log(data, 'DATA 2');
+      this.logger.debug(`Method: ${methodName} - Request: `, data);
+      const include = buildInclude(includeConfig, data);
+      const where: any = {};
+      console.log(data, 'DATA 2');
+      console.log('DATA 3');
 
-    if (data.address) {
-      where.address = { contains: data.address, mode: 'insensitive' };
-    }
+      if (data.address) {
+        where.address = { contains: data.address, mode: 'insensitive' };
+      }
 
-    if (data.apartment) {
-      where.apartment = { contains: data.apartment, mode: 'insensitive' };
-    }
+      if (data.apartment) {
+        where.apartment = { contains: data.apartment, mode: 'insensitive' };
+      }
 
-    if (data.categoryId) {
-      where.subCategoryId = data.categoryId;
-    }
+      if (data.categoryId) {
+        where.subCategoryId = data.categoryId;
+      }
 
-    if (data.cityId) {
-      where.cityId = data.cityId;
-    }
+      if (data.cityId) {
+        where.cityId = data.cityId;
+      }
 
-    if (data.districtId) {
-      where.districtId = data.districtId;
-    }
+      if (data.districtId) {
+        where.districtId = data.districtId;
+      }
 
-    if (data.home) {
-      where.home = { contains: data.home, mode: 'insensitive' };
-    }
+      if (data.home) {
+        where.home = { contains: data.home, mode: 'insensitive' };
+      }
 
-    if (data.kvartal) {
-      where.kvartal = { contains: data.kvartal, mode: 'insensitive' };
-    }
+      if (data.kvartal) {
+        where.kvartal = { contains: data.kvartal, mode: 'insensitive' };
+      }
 
-    if (data.mainOrg) {
-      where.mainOrganizationId = data.mainOrg;
-    }
+      if (data.mainOrg) {
+        where.mainOrganizationId = data.mainOrg;
+      }
 
-    if (data.name) {
-      where.name = { contains: data.name, mode: 'insensitive' };
-    }
+      if (data.name) {
+        where.name = { contains: data.name, mode: 'insensitive' };
+      }
 
-    if (data.phone) {
-      where.Phone = {
-        some: { phone: { contains: data.phone, mode: 'insensitive' } },
+      if (data.phone) {
+        where.Phone = {
+          some: { phone: { contains: data.phone, mode: 'insensitive' } },
+        };
+      }
+
+      if (data.phoneType) {
+        where.Phone = { some: { PhoneTypes: { id: data.phoneType } } };
+      }
+
+      if (data.regionId) {
+        where.regionId = data.regionId;
+      }
+
+      if (data.subCategoryId) {
+        where.subCategoryId = data.subCategoryId;
+      }
+
+      if (data.villageId) {
+        where.villageId = data.villageId;
+      }
+
+      if (data.streetId) {
+        where.streetId = data.streetId;
+      }
+
+      if (data.belongAbonent === true) {
+        where.createdBy = CreatedByEnum.Client;
+      }
+
+      if (data.bounded === true) {
+        where.createdBy = CreatedByEnum.Billing;
+      }
+
+      if (data.mine === true) {
+        where.staffNumber = data.staffNumber;
+      }
+
+      if (data.nearbyId) {
+        where.Nearbees = {
+          some: {
+            NearbyId: data.nearbyId,
+          },
+        };
+      }
+
+      if (data.categoryTuId) {
+        where.ProductServices = {
+          some: {
+            ProductServiceCategoryId: data.categoryTuId,
+          },
+        };
+      }
+
+      if (data.subCategoryTuId) {
+        where.ProductServices = {
+          some: {
+            ProductServiceSubCategoryId: data.subCategoryTuId,
+          },
+        };
+      }
+
+      if (data.all) {
+        const organizations = await this.prisma.organization.findMany({
+          where,
+          orderBy: { name: 'asc' },
+          include,
+        });
+        const result = [];
+        for (let [index, org] of Object.entries(organizations)) {
+          for (let [key, prop] of Object.entries(includeConfig)) {
+            let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+            delete org?.[idNameOfModules];
+          }
+          const formattedOrganization = formatOrganizationResponse(
+            org,
+            modulesConfig
+          );
+          if (data.role !== 'moderator') {
+            delete formattedOrganization.secret;
+          }
+          result.push(formattedOrganization);
+        }
+        this.logger.debug(`Method: ${methodName} - Response: `, result);
+
+        return {
+          data: result,
+          totalPage: 1,
+          totalDocs: organizations.length,
+        };
+      }
+
+      const whereWithLang: any = {
+        ...(data.status
+          ? {
+              status: data.status,
+            }
+          : {}),
+        ...where,
       };
-    }
 
-    if (data.phoneType) {
-      where.Phone = { some: { PhoneTypes: { id: data.phoneType } } };
-    }
+      if (data.search) {
+        whereWithLang.name = {
+          contains: data.search,
+          mode: 'insensitive',
+        };
+      }
 
-    if (data.regionId) {
-      where.regionId = data.regionId;
-    }
+      const count = await this.prisma.organization.count({
+        where: whereWithLang,
+      });
 
-    if (data.subCategoryId) {
-      where.subCategoryId = data.subCategoryId;
-    }
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
 
-    if (data.villageId) {
-      where.villageId = data.villageId;
-    }
-
-    if (data.streetId) {
-      where.streetId = data.streetId;
-    }
-
-    if (data.belongAbonent === true) {
-      where.createdBy = CreatedByEnum.Client;
-    }
-
-    if (data.bounded === true) {
-      where.createdBy = CreatedByEnum.Billing;
-    }
-
-    if (data.mine === true) {
-      where.staffNumber = data.staffNumber;
-    }
-
-    if (data.nearbyId) {
-      where.Nearbees = {
-        some: {
-          NearbyId: data.nearbyId,
-        },
-      };
-    }
-
-    if (data.categoryTuId) {
-      where.ProductServices = {
-        some: {
-          ProductServiceCategoryId: data.categoryTuId,
-        },
-      };
-    }
-
-    if (data.subCategoryTuId) {
-      where.ProductServices = {
-        some: {
-          ProductServiceSubCategoryId: data.subCategoryTuId,
-        },
-      };
-    }
-
-    if (data.all) {
-      const organizations = await this.prisma.organization.findMany({
-        where,
+      const organization = await this.prisma.organization.findMany({
+        where: whereWithLang,
         orderBy: { name: 'asc' },
         include,
+        take: pagination.take,
+        skip: pagination.skip,
       });
       const result = [];
-      for (let [index, org] of Object.entries(organizations)) {
+      for (let [index, org] of Object.entries(organization)) {
         for (let [key, prop] of Object.entries(includeConfig)) {
           let idNameOfModules = key.toLocaleLowerCase() + 'Id';
           delete org?.[idNameOfModules];
@@ -456,66 +514,13 @@ export class OrganizationService {
 
       return {
         data: result,
-        totalPage: 1,
-        totalDocs: organizations.length,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
+    } catch (error) {
+      console.log(error, 'ERROR', error.message);
+      throw error;
     }
-
-    const whereWithLang: any = {
-      ...(data.status
-        ? {
-            status: data.status,
-          }
-        : {}),
-      ...where,
-    };
-
-    if (data.search) {
-      whereWithLang.name = {
-        contains: data.search,
-        mode: 'insensitive',
-      };
-    }
-
-    const count = await this.prisma.organization.count({
-      where: whereWithLang,
-    });
-
-    const pagination = createPagination({
-      count,
-      page: data.page,
-      perPage: data.limit,
-    });
-
-    const organization = await this.prisma.organization.findMany({
-      where: whereWithLang,
-      orderBy: { name: 'asc' },
-      include,
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-    const result = [];
-    for (let [index, org] of Object.entries(organization)) {
-      for (let [key, prop] of Object.entries(includeConfig)) {
-        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-        delete org?.[idNameOfModules];
-      }
-      const formattedOrganization = formatOrganizationResponse(
-        org,
-        modulesConfig
-      );
-      if (data.role !== 'moderator') {
-        delete formattedOrganization.secret;
-      }
-      result.push(formattedOrganization);
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, result);
-
-    return {
-      data: result,
-      totalPage: pagination.totalPage,
-      totalDocs: count,
-    };
   }
 
   async findMy(
