@@ -19,6 +19,7 @@ import { CityService } from '../city/city.service';
 import { NearbyCategoryService } from '../nearby-category/nearby-category.service';
 import { getNearbyOrderedData } from '@/common/helper/sql-rows-for-select/get-nearby-ordered-data.dto';
 import { Prisma } from '@prisma/client';
+import { DistrictService } from '../district/district.service';
 @Injectable()
 export class NearbyService {
   private logger = new Logger(NearbyService.name);
@@ -27,7 +28,8 @@ export class NearbyService {
     private readonly prisma: PrismaService,
     private readonly regionService: RegionService,
     private readonly cityService: CityService,
-    private readonly nearbyCategoryService: NearbyCategoryService
+    private readonly nearbyCategoryService: NearbyCategoryService,
+    private readonly districtService: DistrictService
   ) {}
 
   async create(data: NearbyCreateDto): Promise<NearbyInterfaces.Response> {
@@ -44,11 +46,15 @@ export class NearbyService {
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
+    const district = await this.districtService.findOne({
+      id: data.districtId,
+    });
     const nearby = await this.prisma.nearby.create({
       data: {
         nearbyCategoryId: nearbyCategory.id,
         regionId: region.id,
         cityId: city.id,
+        ...(data.districtId ? { districtId: district.id } : {}),
         staffNumber: data.staffNumber,
         orderNumber: data.orderNumber,
         NearbyTranslations: {
@@ -70,6 +76,34 @@ export class NearbyService {
       },
       include: {
         NearbyTranslations: true,
+        NearbyCategory: {
+          select: {
+            id: true,
+            name: true,
+            staffNumber: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+            deletedAt: true,
+          },
+        },
+        City: {
+          include: {
+            CityTranslations: true,
+          },
+        },
+        Region: {
+          include: {
+            RegionTranslations: true,
+          },
+        },
+        District: {
+          include: {
+            DistrictTranslations: true,
+            DistrictNewNameTranslations: true,
+            DistrictOldNameTranslations: true,
+          },
+        },
       },
     });
     this.logger.debug(`Method: ${methodName} - Response: `, nearby);
@@ -82,7 +116,7 @@ export class NearbyService {
   ): Promise<NearbyInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    
+
     if (data.all) {
       const nearby = await getNearbyOrderedData(
         'Nearby',
@@ -270,6 +304,13 @@ export class NearbyService {
             deletedAt: true,
           },
         },
+        District: {
+          include: {
+            DistrictTranslations: true,
+            DistrictNewNameTranslations: true,
+            DistrictOldNameTranslations: true,
+          },
+        },
       },
     });
 
@@ -294,7 +335,33 @@ export class NearbyService {
     nearby.category = nearby.NearbyCategory;
     delete nearby.NearbyCategory;
     this.logger.debug(`Method: ${methodName} - Response: `, nearby);
+    if (nearby.District) {
+      const districtName = formatLanguageResponse(
+        nearby.District.DistrictTranslations
+      );
+      const districtNewName = formatLanguageResponse(
+        nearby.District.DistrictNewNameTranslations
+      );
+      const districtOldName = formatLanguageResponse(
+        nearby.District.DistrictOldNameTranslations
+      );
 
+      delete nearby.District.DistrictTranslations;
+      delete nearby.District.DistrictNewNameTranslations;
+      delete nearby.District.DistrictOldNameTranslations;
+
+      let district = {
+        ...nearby.District,
+        name: districtName,
+        oldName: districtOldName,
+        newName: districtNewName,
+      };
+      delete nearby.District;
+      nearby.district = { ...district };
+    } else {
+      nearby.district = null;
+      delete nearby.District;
+    }
     return { ...nearby, name, region, city };
   }
 
@@ -313,6 +380,10 @@ export class NearbyService {
 
     if (data.cityId) {
       await this.cityService.findOne({ id: data.cityId });
+    }
+
+    if (data.districtId) {
+      await this.districtService.findOne({ id: data.districtId });
     }
 
     const translationUpdates = [];
@@ -343,11 +414,12 @@ export class NearbyService {
         id: nearby.id,
       },
       data: {
-        nearbyCategoryId: data.nearbyCategoryId || nearby.nearbyCategoryId,
-        regionId: data.regionId || nearby.regionId,
-        cityId: data.cityId || nearby.cityId,
-        staffNumber: data.staffNumber || nearby.staffNumber,
-        orderNumber: data.orderNumber,
+        nearbyCategoryId: data.nearbyCategoryId || nearby.nearbyCategoryId || null,
+        regionId: data.regionId || nearby.regionId || null,
+        cityId: data.cityId || nearby.cityId || null,
+        districtId: data.districtId || nearby?.districtId || null,
+        staffNumber: data.staffNumber || nearby.staffNumber || null,
+        orderNumber: data.orderNumber || null,
         NearbyTranslations: {
           updateMany:
             translationUpdates.length > 0 ? translationUpdates : undefined,
@@ -355,6 +427,34 @@ export class NearbyService {
       },
       include: {
         NearbyTranslations: true,
+        NearbyCategory: {
+          select: {
+            id: true,
+            name: true,
+            staffNumber: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+            deletedAt: true,
+          },
+        },
+        City: {
+          include: {
+            CityTranslations: true,
+          },
+        },
+        Region: {
+          include: {
+            RegionTranslations: true,
+          },
+        },
+        District: {
+          include: {
+            DistrictTranslations: true,
+            DistrictNewNameTranslations: true,
+            DistrictOldNameTranslations: true,
+          },
+        },
       },
     });
 
@@ -395,6 +495,34 @@ export class NearbyService {
             name: true,
           },
         },
+        NearbyCategory: {
+          select: {
+            id: true,
+            name: true,
+            staffNumber: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+            deletedAt: true,
+          },
+        },
+        City: {
+          include: {
+            CityTranslations: true,
+          },
+        },
+        Region: {
+          include: {
+            RegionTranslations: true,
+          },
+        },
+        District: {
+          include: {
+            DistrictTranslations: true,
+            DistrictNewNameTranslations: true,
+            DistrictOldNameTranslations: true,
+          },
+        },
       },
     });
 
@@ -418,6 +546,34 @@ export class NearbyService {
           select: {
             languageCode: true,
             name: true,
+          },
+        },
+        NearbyCategory: {
+          select: {
+            id: true,
+            name: true,
+            staffNumber: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+            deletedAt: true,
+          },
+        },
+        City: {
+          include: {
+            CityTranslations: true,
+          },
+        },
+        Region: {
+          include: {
+            RegionTranslations: true,
+          },
+        },
+        District: {
+          include: {
+            DistrictTranslations: true,
+            DistrictNewNameTranslations: true,
+            DistrictOldNameTranslations: true,
           },
         },
       },
