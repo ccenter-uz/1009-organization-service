@@ -326,9 +326,12 @@ export class OrganizationService {
     data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
+    console.log(data, 'DATA 2');
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
     const where: any = {};
+    console.log(data, 'DATA 2');
+    console.log('DATA 3');
 
     if (data.address) {
       where.address = { contains: data.address, mode: 'insensitive' };
