@@ -86,6 +86,10 @@ export default function formatOrganizationResponseVersion(
       .NearbyTranslations;
   }
 
+  console.log(organization['ProductServicesVersion'], 'PRDO 1');
+
+  console.log(Object.entries(organization['ProductServicesVersion']), 'PRDO 2');
+
   for (let [index, el] of Object.entries(
     organization['ProductServicesVersion']
   )) {

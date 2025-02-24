@@ -512,7 +512,7 @@ export class OrganizationService {
         }
         result.push(formattedOrganization);
       }
-      this.logger.debug(`Method: ${methodName} - Response: `, result);
+      // this.logger.debug(`Method: ${methodName} - Response: `, result);
 
       return {
         data: result,
