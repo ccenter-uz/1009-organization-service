@@ -530,7 +530,13 @@ export class OrganizationVersionService {
           isSecret: phones[i].isSecret,
         });
       }
-    }
+    } else if(phones.length == 0){
+      await this.prisma.phoneVersion.deleteMany({
+        where: {
+          OrganizationVersionId: organizationVersion.id ,
+        },
+      });
+      }
 
     let nearbeesCreateVersionArray = [];
     let nearbees = data?.nearby['nearbees'];
@@ -552,7 +558,13 @@ export class OrganizationVersionService {
           NearbyId: nearby.id,
         });
       }
-    }
+    } else if(nearbees.length == 0){
+      await this.prisma.nearbeesVersion.deleteMany({
+        where: {
+          OrganizationVersionId: organizationVersion.id,
+        },
+      });
+      }
 
     let productServiceCreateArray = [];
     let productServices = data?.productService['productServices'];
@@ -580,6 +592,12 @@ export class OrganizationVersionService {
             productServices[i].productServiceSubCategoryId,
         });
       }
+    } else if (productServices.length == 0) {
+      await this.prisma.productServicesVersion.deleteMany({
+        where: {
+          OrganizationVersionId: organizationVersion.id,
+        },
+      });
     }
 
     let PaymentTypesVersionCreateArray = [];
