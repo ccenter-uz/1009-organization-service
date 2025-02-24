@@ -81,6 +81,9 @@ export default function formatOrganizationResponse(
       .NearbyTranslations;
   }
 
+  console.log(organization['ProductServices'], 'ORG 1');
+  console.log(Object.entries(organization['ProductServices']), 'ORG 2');
+
   for (let [index, el] of Object.entries(organization['ProductServices'])) {
     const nameOfProductServiceCategory = formatLanguageResponse(
       el['ProductServiceCategory']?.['ProductServiceCategoryTranslations']
