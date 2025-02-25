@@ -474,6 +474,7 @@ export class CategoryService {
         staffNumber: data.staffNumber || category.staffNumber,
         cityId: data.cityId,
         regionId: data.regionId,
+        districtId: data.districtId,
         orderNumber: data.orderNumber,
         CategoryTranslations: {
           updateMany:
