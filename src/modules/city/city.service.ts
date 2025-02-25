@@ -103,7 +103,7 @@ export class CityService {
       return {
         data: formattedCity,
         totalDocs: cities.length,
-        totalPage: 1,
+        totalPage: cities.length > 0 ? 1 : 0,
       };
     }
 

@@ -454,8 +454,8 @@ export class OrganizationService {
 
       return {
         data: result,
-        totalPage: 1,
         totalDocs: organizations.length,
+        totalPage: organizations.length > 0 ? 1 : 0,
       };
     }
 
@@ -465,7 +465,7 @@ export class OrganizationService {
             status: data.status,
           }
         : {}),
-      ...where,
+      ...where
     };
 
     if (data.search) {
@@ -552,8 +552,8 @@ export class OrganizationService {
 
       return {
         data: result,
-        totalPage: 1,
         totalDocs: organizations.length,
+        totalPage: organizations.length > 0 ? 1 : 0,
       };
     }
 
@@ -645,8 +645,8 @@ export class OrganizationService {
 
       return {
         data: result,
-        totalPage: 1,
         totalDocs: organizations.length,
+        totalPage: organizations.length > 0 ? 1 : 0,
       };
     }
 

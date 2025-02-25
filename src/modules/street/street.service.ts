@@ -140,7 +140,7 @@ export class StreetService {
       const formattedStreet = [];
 
       for (let i = 0; i < streets.length; i++) {
-        const streetData = streets[i];
+        let streetData = streets[i];
         const translations = streetData.StreetTranslations;
         const name = formatLanguageResponse(translations);
         const translationsNew = streetData.StreetNewNameTranslations;
@@ -163,32 +163,37 @@ export class StreetService {
         delete streetData.city.CityTranslations;
         const city = { ...streetData.city, name: cityName };
         delete streetData.city;
+        if (streetData?.district) {
+          const districtData = streetData?.district;
+          let districtName: string | object;
+          let districtNameNew: string | object;
+          let districtNameOld: string | object;
 
-        const districtData = streetData?.district;
-        let districtName: string | object;
-        let districtNameNew: string | object;
-        let districtNameOld: string | object;
+          if (districtData) {
+            const districtTranslations = districtData.DistrictTranslations;
+            districtName = formatLanguageResponse(districtTranslations);
+            const districtTranslationsNew =
+              districtData.DistrictNewNameTranslations;
+            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            const districtTranslationsOld =
+              districtData.DistrictOldNameTranslations;
+            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            delete districtData.DistrictTranslations;
+            delete districtData.DistrictNewNameTranslations;
+            delete districtData.DistrictOldNameTranslations;
+          }
 
-        if (districtData) {
-          const districtTranslations = districtData.DistrictTranslations;
-          districtName = formatLanguageResponse(districtTranslations);
-          const districtTranslationsNew =
-            districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(districtTranslationsNew);
-          const districtTranslationsOld =
-            districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(districtTranslationsOld);
-          delete districtData.DistrictTranslations;
-          delete districtData.DistrictNewNameTranslations;
-          delete districtData.DistrictOldNameTranslations;
+          const district = {
+            ...districtData,
+            name: districtName,
+            newName: districtNameNew,
+            oldName: districtNameOld,
+          };
+          streetData = {
+            ...streetData,
+            district,
+          };
         }
-
-        const district = {
-          ...districtData,
-          name: districtName,
-          newName: districtNameNew,
-          oldName: districtNameOld,
-        };
         formattedStreet.push({
           ...streetData,
           name,
@@ -196,7 +201,6 @@ export class StreetService {
           oldName: nameOld,
           region,
           city,
-          district,
         });
       }
       this.logger.debug(`Method: ${methodName} - Response: `, formattedStreet);
@@ -204,7 +208,7 @@ export class StreetService {
       return {
         data: formattedStreet,
         totalDocs: streets.length,
-        totalPage: 1,
+        totalPage: streets.length > 0 ? 1 : 0,
       };
     }
     const where: any = {
@@ -215,6 +219,7 @@ export class StreetService {
           }),
       cityId: data.cityId,
       regionId: data.regionId,
+      districtId: data.districtId,
     };
     if (data.search) {
       where.OR = [
@@ -271,7 +276,7 @@ export class StreetService {
     const formattedStreet = [];
 
     for (let i = 0; i < streets.length; i++) {
-      const streetData = streets[i];
+      let streetData = streets[i];
       const translations = streetData.StreetTranslations;
       const name = formatLanguageResponse(translations);
       const translationsNew = streetData.StreetNewNameTranslations;
@@ -295,32 +300,38 @@ export class StreetService {
       const city = { ...streetData.city, name: cityName };
       delete streetData.city;
 
-      const districtData = streetData?.district;
-      let districtName: string | object;
-      let districtNameNew: string | object;
-      let districtNameOld: string | object;
+      if (streetData?.district) {
+        const districtData = streetData?.district;
+        let districtName: string | object;
+        let districtNameNew: string | object;
+        let districtNameOld: string | object;
 
-      if (districtData) {
-        const districtTranslations = districtData.DistrictTranslations;
-        districtName = formatLanguageResponse(districtTranslations);
-        const districtTranslationsNew =
-          districtData.DistrictNewNameTranslations;
-        districtNameNew = formatLanguageResponse(districtTranslationsNew);
-        const districtTranslationsOld =
-          districtData.DistrictOldNameTranslations;
-        districtNameOld = formatLanguageResponse(districtTranslationsOld);
-        delete districtData.DistrictTranslations;
-        delete districtData.DistrictNewNameTranslations;
-        delete districtData.DistrictOldNameTranslations;
+        if (districtData) {
+          const districtTranslations = districtData.DistrictTranslations;
+          districtName = formatLanguageResponse(districtTranslations);
+          const districtTranslationsNew =
+            districtData.DistrictNewNameTranslations;
+          districtNameNew = formatLanguageResponse(districtTranslationsNew);
+          const districtTranslationsOld =
+            districtData.DistrictOldNameTranslations;
+          districtNameOld = formatLanguageResponse(districtTranslationsOld);
+          delete districtData.DistrictTranslations;
+          delete districtData.DistrictNewNameTranslations;
+          delete districtData.DistrictOldNameTranslations;
+        }
+
+        const district = {
+          ...districtData,
+          name: districtName,
+          newName: districtNameNew,
+          oldName: districtNameOld,
+        };
+
+        streetData = {
+          ...streetData,
+          district,
+        };
       }
-
-      const district = {
-        ...districtData,
-        name: districtName,
-        newName: districtNameNew,
-        oldName: districtNameOld,
-      };
-
       formattedStreet.push({
         ...streetData,
         name,
@@ -328,7 +339,6 @@ export class StreetService {
         oldName: nameOld,
         region,
         city,
-        district,
       });
     }
     this.logger.debug(`Method: ${methodName} - Response: `, formattedStreet);

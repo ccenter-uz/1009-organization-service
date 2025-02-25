@@ -128,7 +128,7 @@ export class NearbyService {
       const formattedNearby = [];
 
       for (let i = 0; i < nearby.length; i++) {
-        const nearbyData: any = nearby[i];
+        let nearbyData = nearby[i];
         const translations = nearbyData.NearbyTranslations;
         const name = formatLanguageResponse(translations);
         delete nearbyData.NearbyTranslations;
@@ -147,6 +147,30 @@ export class NearbyService {
 
         nearbyData.category = nearbyData.nearbycategory;
         delete nearbyData.nearbycategory;
+
+        if (nearbyData.district) {
+          const districtName = formatLanguageResponse(
+            nearbyData.district.DistrictTranslations
+          );
+          const districtNewName = formatLanguageResponse(
+            nearbyData.district.DistrictNewNameTranslations
+          );
+          const districtOldName = formatLanguageResponse(
+            nearbyData.district.DistrictOldNameTranslations
+          );
+
+          const district = {
+            ...nearbyData.district,
+            name: districtName,
+            newName: districtNewName,
+            oldName: districtOldName,
+          };
+          nearbyData = { ...nearbyData, district };
+          delete nearbyData.district.DistrictTranslations;
+          delete nearbyData.district.DistrictNewNameTranslations;
+          delete nearbyData.district.DistrictOldNameTranslations;
+        }
+
         formattedNearby.push({
           ...nearbyData,
           name,
@@ -159,7 +183,7 @@ export class NearbyService {
       return {
         data: formattedNearby,
         totalDocs: nearby.length,
-        totalPage: 1,
+        totalPage: nearby.length > 0 ? 1 : 0,
       };
     }
 
@@ -172,6 +196,7 @@ export class NearbyService {
       nearbyCategoryId: data.nearbyCategoryId,
       cityId: data.cityId,
       regionId: data.regionId,
+      districtId: data.districtId,
     };
 
     if (data.search) {
@@ -206,7 +231,7 @@ export class NearbyService {
     const formattedNearby = [];
 
     for (let i = 0; i < nearby.length; i++) {
-      const nearbyData: any = nearby[i];
+      let nearbyData = nearby[i];
       const translations = nearbyData.NearbyTranslations;
       const name = formatLanguageResponse(translations);
 
@@ -226,6 +251,29 @@ export class NearbyService {
 
       nearbyData.category = nearbyData.nearbycategory;
       delete nearbyData.nearbycategory;
+
+      if (nearbyData.district) {
+        const districtName = formatLanguageResponse(
+          nearbyData.district.DistrictTranslations
+        );
+        const districtNewName = formatLanguageResponse(
+          nearbyData.district.DistrictNewNameTranslations
+        );
+        const districtOldName = formatLanguageResponse(
+          nearbyData.district.DistrictOldNameTranslations
+        );
+
+        const district = {
+          ...nearbyData.district,
+          name: districtName,
+          newName: districtNewName,
+          oldName: districtOldName,
+        };
+        nearbyData = { ...nearbyData, district };
+        delete nearbyData.district.DistrictTranslations;
+        delete nearbyData.district.DistrictNewNameTranslations;
+        delete nearbyData.district.DistrictOldNameTranslations;
+      }
 
       formattedNearby.push({
         ...nearbyData,
@@ -414,7 +462,8 @@ export class NearbyService {
         id: nearby.id,
       },
       data: {
-        nearbyCategoryId: data.nearbyCategoryId || nearby.nearbyCategoryId || null,
+        nearbyCategoryId:
+          data.nearbyCategoryId || nearby.nearbyCategoryId || null,
         regionId: data.regionId || nearby.regionId || null,
         cityId: data.cityId || nearby.cityId || null,
         districtId: data.districtId || nearby?.districtId || null,

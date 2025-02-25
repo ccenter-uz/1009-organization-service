@@ -41,7 +41,7 @@ export class MonitoringService {
       return {
         data: monitoringData,
         totalDocs: monitoringData.length,
-        totalPage: 1,
+        totalPage: monitoringData.length > 0 ? 1 : 0,
       };
     }
 

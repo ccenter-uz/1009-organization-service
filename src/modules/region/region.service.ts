@@ -103,7 +103,7 @@ export class RegionService {
       return {
         data: formattedCategories,
         totalDocs: regions.length,
-        totalPage: 1,
+        totalPage: regions.length > 0 ? 1 : 0,
       };
     }
 
