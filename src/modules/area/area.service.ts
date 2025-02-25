@@ -142,7 +142,7 @@ export class AreaService {
       const formattedArea = [];
 
       for (let i = 0; i < areas.length; i++) {
-        const areaData = areas[i];
+        let areaData = areas[i];
         const translations = areaData.AreaTranslations;
         const name = formatLanguageResponse(translations);
         const translationsNew = areaData.AreaNewNameTranslations;
@@ -165,31 +165,38 @@ export class AreaService {
         const city = { ...areaData.city, name: cityName };
         delete areaData.city;
 
-        const districtData = areaData?.district;
-        let districtName: string | object;
-        let districtNameNew: string | object;
-        let districtNameOld: string | object;
+        if (areaData?.district) {
+          const districtData = areaData?.district;
+          let districtName: string | object;
+          let districtNameNew: string | object;
+          let districtNameOld: string | object;
 
-        if (districtData) {
-          const districtTranslations = districtData.DistrictTranslations;
-          districtName = formatLanguageResponse(districtTranslations);
-          const districtTranslationsNew =
-            districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(districtTranslationsNew);
-          const districtTranslationsOld =
-            districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(districtTranslationsOld);
-          delete districtData.DistrictTranslations;
-          delete districtData.DistrictNewNameTranslations;
-          delete districtData.DistrictOldNameTranslations;
+          if (districtData) {
+            const districtTranslations = districtData.DistrictTranslations;
+            districtName = formatLanguageResponse(districtTranslations);
+            const districtTranslationsNew =
+              districtData.DistrictNewNameTranslations;
+            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            const districtTranslationsOld =
+              districtData.DistrictOldNameTranslations;
+            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            delete districtData.DistrictTranslations;
+            delete districtData.DistrictNewNameTranslations;
+            delete districtData.DistrictOldNameTranslations;
+          }
+
+          const district = {
+            ...districtData,
+            name: districtName,
+            newName: districtNameNew,
+            oldName: districtNameOld,
+          };
+
+          areaData = {
+            ...areaData,
+            district,
+          };
         }
-
-        const district = {
-          ...districtData,
-          name: districtName,
-          newName: districtNameNew,
-          oldName: districtNameOld,
-        };
 
         formattedArea.push({
           ...areaData,
@@ -198,7 +205,6 @@ export class AreaService {
           oldName: nameOld,
           region,
           city,
-          district,
         });
       }
 
@@ -206,7 +212,7 @@ export class AreaService {
       return {
         data: formattedArea,
         totalDocs: areas.length,
-        totalPage: 1,
+        totalPage: areas.length > 0 ? 1 : 0,
       };
     }
 
@@ -218,6 +224,7 @@ export class AreaService {
           }),
       cityId: data.cityId,
       regionId: data.regionId,
+      districtId: data.districtId,
     };
     if (data.search) {
       where.OR = [
@@ -274,7 +281,7 @@ export class AreaService {
     const formattedArea = [];
 
     for (let i = 0; i < areas.length; i++) {
-      const areaData = areas[i];
+      let areaData = areas[i];
       const translations = areaData.AreaTranslations;
       const name = formatLanguageResponse(translations);
       const translationsNew = areaData.AreaNewNameTranslations;
@@ -298,31 +305,38 @@ export class AreaService {
       const city = { ...areaData.city, name: cityName };
       delete areaData.city;
 
-      const districtData = areaData?.district;
-      let districtName: string | object;
-      let districtNameNew: string | object;
-      let districtNameOld: string | object;
+      if (areaData?.district) {
+        const districtData = areaData?.district;
+        let districtName: string | object;
+        let districtNameNew: string | object;
+        let districtNameOld: string | object;
 
-      if (districtData) {
-        const districtTranslations = districtData.DistrictTranslations;
-        districtName = formatLanguageResponse(districtTranslations);
-        const districtTranslationsNew =
-          districtData.DistrictNewNameTranslations;
-        districtNameNew = formatLanguageResponse(districtTranslationsNew);
-        const districtTranslationsOld =
-          districtData.DistrictOldNameTranslations;
-        districtNameOld = formatLanguageResponse(districtTranslationsOld);
-        delete districtData.DistrictTranslations;
-        delete districtData.DistrictNewNameTranslations;
-        delete districtData.DistrictOldNameTranslations;
+        if (districtData) {
+          const districtTranslations = districtData.DistrictTranslations;
+          districtName = formatLanguageResponse(districtTranslations);
+          const districtTranslationsNew =
+            districtData.DistrictNewNameTranslations;
+          districtNameNew = formatLanguageResponse(districtTranslationsNew);
+          const districtTranslationsOld =
+            districtData.DistrictOldNameTranslations;
+          districtNameOld = formatLanguageResponse(districtTranslationsOld);
+          delete districtData.DistrictTranslations;
+          delete districtData.DistrictNewNameTranslations;
+          delete districtData.DistrictOldNameTranslations;
+        }
+
+        const district = {
+          ...districtData,
+          name: districtName,
+          newName: districtNameNew,
+          oldName: districtNameOld,
+        };
+
+        areaData = {
+          ...areaData,
+          district,
+        };
       }
-
-      const district = {
-        ...districtData,
-        name: districtName,
-        newName: districtNameNew,
-        oldName: districtNameOld,
-      };
 
       formattedArea.push({
         ...areaData,
@@ -331,7 +345,6 @@ export class AreaService {
         oldName: nameOld,
         region,
         city,
-        district,
       });
     }
 

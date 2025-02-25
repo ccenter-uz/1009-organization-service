@@ -121,10 +121,10 @@ export class CategoryService {
       const formattedCategories = [];
 
       for (let i = 0; i < categories.length; i++) {
-        const category = categories[i];
+        let category = categories[i];
         const translations = category.CategoryTranslations;
         const name = formatLanguageResponse(translations);
-
+        category = { ...category, name };
         delete category.CategoryTranslations;
 
         if (category.city) {
@@ -133,23 +133,21 @@ export class CategoryService {
 
           delete category.city.CityTranslations;
 
-          const regionTranslations = category.city.Region.RegionTranslations;
-          const regionName = formatLanguageResponse(regionTranslations);
-
-          delete category.city.Region.RegionTranslations;
-
-          const region = { ...category.city.Region, name: regionName };
-          delete category.city.Region;
-
           const city = { ...category.city, name: cityName };
 
-          delete category.city;
+          delete category.CityTranslations;
 
-          formattedCategories.push({ ...category, name, city, region });
-        } else {
-          formattedCategories.push({ ...category, name });
+          category = { ...category, city };
         }
+        if (category.region) {
+          const regionTranslations = category.region.RegionTranslations;
+          const regionName = formatLanguageResponse(regionTranslations);
 
+          const region = { ...category.region, name: regionName };
+
+          category = { ...category, region };
+          delete category.region.RegionTranslations;
+        }
         if (category.district) {
           const districtName = formatLanguageResponse(
             category.district.DistrictTranslations
@@ -162,17 +160,17 @@ export class CategoryService {
           );
 
           const district = {
+            ...category.district,
             name: districtName,
             newName: districtNewName,
             oldName: districtOldName,
           };
+          category = { ...category, district };
           delete category.district.DistrictTranslations;
           delete category.district.DistrictNewNameTranslations;
           delete category.district.DistrictOldNameTranslations;
-          delete category.district;
-
-          formattedCategories.push({ ...formattedCategories, district });
         }
+        formattedCategories.push(category);
       }
 
       this.logger.debug(
@@ -183,7 +181,7 @@ export class CategoryService {
       return {
         data: formattedCategories,
         totalDocs: categories.length,
-        totalPage: 1,
+        totalPage: categories.length > 0 ? 1 : 0,
       };
     }
 
@@ -195,6 +193,7 @@ export class CategoryService {
           }),
       cityId: data.cityId,
       regionId: data.regionId,
+      districtId: data.districtId,
     };
     if (data.search) {
       where.CategoryTranslations = {
@@ -221,38 +220,36 @@ export class CategoryService {
       data,
       pagination
     );
-
     const formattedCategories = [];
 
     for (let i = 0; i < categories.length; i++) {
-      const category = categories[i];
+      let category = categories[i];
       const translations = category.CategoryTranslations;
       const name = formatLanguageResponse(translations);
-
+      category = { ...category, name };
       delete category.CategoryTranslations;
+
       if (category.city) {
         const cityTranslations = category.city.CityTranslations;
         const cityName = formatLanguageResponse(cityTranslations);
 
         delete category.city.CityTranslations;
 
-        const regionTranslations = category.city.Region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
-
-        delete category.city.Region.RegionTranslations;
-
-        const region = { ...category.city.Region, name: regionName };
-        delete category.city.Region;
-
         const city = { ...category.city, name: cityName };
 
-        delete category.city;
+        delete category.CityTranslations;
 
-        formattedCategories.push({ ...category, name, city, region });
-      } else {
-        formattedCategories.push({ ...category, name });
+        category = { ...category, city };
       }
+      if (category.region) {
+        const regionTranslations = category.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
 
+        const region = { ...category.region, name: regionName };
+
+        category = { ...category, region };
+        delete category.region.RegionTranslations;
+      }
       if (category.district) {
         const districtName = formatLanguageResponse(
           category.district.DistrictTranslations
@@ -265,17 +262,17 @@ export class CategoryService {
         );
 
         const district = {
+          ...category.district,
           name: districtName,
           newName: districtNewName,
           oldName: districtOldName,
         };
+        category = { ...category, district };
         delete category.district.DistrictTranslations;
         delete category.district.DistrictNewNameTranslations;
         delete category.district.DistrictOldNameTranslations;
-        delete category.district;
-
-        formattedCategories.push({ ...formattedCategories, district });
       }
+      formattedCategories.push(category);
     }
     this.logger.debug(
       `Method: ${methodName} - Response: `,

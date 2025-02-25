@@ -108,7 +108,7 @@ export class PhoneTypeService {
       return {
         data: formattedPhoneTypes,
         totalDocs: phoneType.length,
-        totalPage: 1,
+        totalPage: phoneType.length > 0 ? 1 : 0,
       };
     }
 

@@ -132,7 +132,7 @@ export class ProductServiceSubCategoryService {
       return {
         data: formattedSubCategories,
         totalDocs: ProductServiceSubCategories.length,
-        totalPage: 1,
+        totalPage: ProductServiceSubCategories.length > 0 ? 1 : 0,
       };
     }
 

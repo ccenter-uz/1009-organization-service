@@ -31,6 +31,8 @@ export async function getNearbyOrderedData(
   if (data.cityId) conditions.push(Prisma.sql`c.city_id = ${data.cityId}`);
   if (data.regionId)
     conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
+  if (data.districtId)
+    conditions.push(Prisma.sql`c.district_id = ${data.districtId}`);
   const whereClause =
     conditions.length > 0
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
@@ -74,6 +76,42 @@ export async function getNearbyOrderedData(
                     )::JSONB AS Translations  
                 FROM region_translations rt
                GROUP BY rt.region_id
+            ),
+            DistrictTranslations AS (
+                SELECT
+                    dt.district_id,
+                    JSON_AGG(
+                        JSONB_BUILD_OBJECT(
+                            'languageCode', dt.language_code,
+                            'name', dt.name
+                        )
+                    )::JSONB AS Translations  
+                FROM district_translations dt
+                GROUP BY dt.district_id
+            ),
+            DistrictNewNameTranslations AS (
+                SELECT
+                    dnnt.district_id,
+                    JSON_AGG(
+                        JSONB_BUILD_OBJECT(
+                            'languageCode', dnnt.language_code,
+                            'name', dnnt.name
+                        )
+                    )::JSONB AS Translations  
+                FROM district_new_name_translations dnnt
+                GROUP BY dnnt.district_id
+            ),
+            DistrictOldNameTranslations AS (
+                SELECT
+                    dont.district_id,
+                    JSON_AGG(
+                        JSONB_BUILD_OBJECT(
+                            'languageCode', dont.language_code,
+                            'name', dont.name
+                        )
+                    )::JSONB AS Translations  
+                FROM district_old_name_translations dont
+                GROUP BY dont.district_id
             )
         SELECT
             c.*,  
@@ -94,15 +132,29 @@ export async function getNearbyOrderedData(
                     '[]'::JSONB
                 )
             ) AS Region,
-            ROW_TO_JSON(nearby_category)::JSONB AS NearbyCategory
+            ROW_TO_JSON(nearby_category)::JSONB AS NearbyCategory,
+            JSONB_SET(
+            JSONB_SET(
+                JSONB_SET(
+                    ROW_TO_JSON(district)::JSONB,  
+                    '{DistrictTranslations}', 
+                    COALESCE((SELECT Translations FROM DistrictTranslations WHERE district_id = district.id), '[]'::JSONB)
+                ),
+                '{DistrictNewNameTranslations}', 
+                COALESCE((SELECT Translations FROM DistrictNewNameTranslations WHERE district_id = district.id), '[]'::JSONB)
+            ),
+            '{DistrictOldNameTranslations}', 
+            COALESCE((SELECT Translations FROM DistrictOldNameTranslations WHERE district_id = district.id), '[]'::JSONB)
+             ) AS District
         FROM
             ${Prisma.raw(name)} c
         LEFT JOIN city ON c.city_id = city.id
         LEFT JOIN region ON city.region_id = region.id
         LEFT JOIN nearby_category ON c.nearby_category_id = nearby_category.id
+        LEFT JOIN district ON c.district_id = district.id
         ${whereClause}
         GROUP BY 
-            c.id, city.id, region.id, nearby_category.id
+            c.id, city.id, region.id, nearby_category.id, district.id
         ${
           data.order === 'name'
             ? Prisma.raw(`ORDER BY

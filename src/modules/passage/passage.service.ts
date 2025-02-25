@@ -139,7 +139,7 @@ export class PassageService {
       const formattedPassage = [];
 
       for (let i = 0; i < passages.length; i++) {
-        const passageData = passages[i];
+        let passageData = passages[i];
         const translations = passageData.PassageTranslations;
         const name = formatLanguageResponse(translations);
         const translationsNew = passageData.PassageNewNameTranslations;
@@ -161,33 +161,34 @@ export class PassageService {
         delete passageData.city.CityTranslations;
         const city = { ...passageData.city, name: cityName };
         delete passageData.city;
+        if (passageData?.district) {
+          const districtData = passageData?.district;
+          let districtName: string | object;
+          let districtNameNew: string | object;
+          let districtNameOld: string | object;
 
-        const districtData = passageData?.district;
-        let districtName: string | object;
-        let districtNameNew: string | object;
-        let districtNameOld: string | object;
+          if (districtData) {
+            const districtTranslations = districtData.DistrictTranslations;
+            districtName = formatLanguageResponse(districtTranslations);
+            const districtTranslationsNew =
+              districtData.DistrictNewNameTranslations;
+            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            const districtTranslationsOld =
+              districtData.DistrictOldNameTranslations;
+            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            delete districtData.DistrictTranslations;
+            delete districtData.DistrictNewNameTranslations;
+            delete districtData.DistrictOldNameTranslations;
+          }
 
-        if (districtData) {
-          const districtTranslations = districtData.DistrictTranslations;
-          districtName = formatLanguageResponse(districtTranslations);
-          const districtTranslationsNew =
-            districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(districtTranslationsNew);
-          const districtTranslationsOld =
-            districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(districtTranslationsOld);
-          delete districtData.DistrictTranslations;
-          delete districtData.DistrictNewNameTranslations;
-          delete districtData.DistrictOldNameTranslations;
+          const district = {
+            ...passageData.district,
+            name: districtName,
+            districtNameNew,
+            districtNameOld,
+          };
+          passageData = { ...passageData, district };
         }
-
-        const district = {
-          ...passageData.district,
-          name: districtName,
-          districtNameNew,
-          districtNameOld,
-        };
-        delete passageData.district;
 
         formattedPassage.push({
           ...passageData,
@@ -196,7 +197,6 @@ export class PassageService {
           oldName: nameOld,
           region,
           city,
-          district,
         });
       }
       this.logger.debug(`Method: ${methodName} - Response: `, formattedPassage);
@@ -204,7 +204,7 @@ export class PassageService {
       return {
         data: formattedPassage,
         totalDocs: passages.length,
-        totalPage: 1,
+        totalPage: passages.length > 0 ? 1 : 0,
       };
     }
 
@@ -216,6 +216,7 @@ export class PassageService {
           }),
       cityId: data.cityId,
       regionId: data.regionId,
+      districtId: data.districtId,
     };
     if (data.search) {
       where.OR = [
@@ -272,7 +273,7 @@ export class PassageService {
     const formattedPassage = [];
 
     for (let i = 0; i < passages.length; i++) {
-      const passageData = passages[i];
+      let passageData = passages[i];
       const translations = passageData.PassageTranslations;
       const name = formatLanguageResponse(translations);
       const translationsNew = passageData.PassageNewNameTranslations;
@@ -295,34 +296,34 @@ export class PassageService {
       delete passageData.city.CityTranslations;
       const city = { ...passageData.city, name: cityName };
       delete passageData.city;
+      if (passageData?.district) {
+        const districtData = passageData?.district;
+        let districtName: string | object;
+        let districtNameNew: string | object;
+        let districtNameOld: string | object;
 
-      const districtData = passageData?.district;
-      let districtName: string | object;
-      let districtNameNew: string | object;
-      let districtNameOld: string | object;
+        if (districtData) {
+          const districtTranslations = districtData.DistrictTranslations;
+          districtName = formatLanguageResponse(districtTranslations);
+          const districtTranslationsNew =
+            districtData.DistrictNewNameTranslations;
+          districtNameNew = formatLanguageResponse(districtTranslationsNew);
+          const districtTranslationsOld =
+            districtData.DistrictOldNameTranslations;
+          districtNameOld = formatLanguageResponse(districtTranslationsOld);
+          delete districtData.DistrictTranslations;
+          delete districtData.DistrictNewNameTranslations;
+          delete districtData.DistrictOldNameTranslations;
+        }
 
-      if (districtData) {
-        const districtTranslations = districtData.DistrictTranslations;
-        districtName = formatLanguageResponse(districtTranslations);
-        const districtTranslationsNew =
-          districtData.DistrictNewNameTranslations;
-        districtNameNew = formatLanguageResponse(districtTranslationsNew);
-        const districtTranslationsOld =
-          districtData.DistrictOldNameTranslations;
-        districtNameOld = formatLanguageResponse(districtTranslationsOld);
-        delete districtData.DistrictTranslations;
-        delete districtData.DistrictNewNameTranslations;
-        delete districtData.DistrictOldNameTranslations;
+        const district = {
+          ...passageData.district,
+          name: districtName,
+          districtNameNew,
+          districtNameOld,
+        };
+        passageData = { ...passageData, district };
       }
-
-      const district = {
-        ...passageData.district,
-        name: districtName,
-        districtNameNew,
-        districtNameOld,
-      };
-      delete passageData.district;
-
       formattedPassage.push({
         ...passageData,
         name,
@@ -330,7 +331,6 @@ export class PassageService {
         oldName: nameOld,
         region,
         city,
-        district,
       });
     }
     this.logger.debug(`Method: ${methodName} - Response: `, formattedPassage);

@@ -128,7 +128,7 @@ export class SubCategoryService {
       return {
         data: formattedSubCategories,
         totalDocs: subCategories.length,
-        totalPage: 1,
+        totalPage: subCategories.length > 0 ? 1 : 0,
       };
     }
     const where: any = {

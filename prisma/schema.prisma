@@ -17,8 +17,8 @@ model Category {
   id                   Int                    @id @default(autoincrement())
   staffNumber          String?                @map("staff_number") @db.VarChar(40)
   status               Int                    @default(1) @db.SmallInt()
-  regionId             Int?                   @map("region_id")
-  cityId               Int?                   @map("city_id")
+  regionId             Int                   @map("region_id")
+  cityId               Int                   @map("city_id")
   districtId           Int?                   @map("district_id")
   orderNumber          Int?                   @map("order_number")
   createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamp
