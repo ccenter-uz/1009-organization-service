@@ -77,7 +77,7 @@ export class SegmentService {
       return {
         data: segments,
         totalDocs: segments.length,
-        totalPage: 1,
+        totalPage: segments.length > 0 ? 1 : 0,
       };
     }
     const where: any = {

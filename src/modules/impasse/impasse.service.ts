@@ -138,7 +138,7 @@ export class ImpasseService {
       const formattedImpasse = [];
 
       for (let i = 0; i < impasses.length; i++) {
-        const impasseData = impasses[i];
+        let impasseData = impasses[i];
         const translations = impasseData.ImpasseTranslations;
         const name = formatLanguageResponse(translations);
         const translationsNew = impasseData.ImpasseNewNameTranslations;
@@ -161,32 +161,34 @@ export class ImpasseService {
         const city = { ...impasseData.city, name: cityName };
         delete impasseData.city;
 
-        const districtData = impasseData?.district;
-        let districtName: string | object;
-        let districtNameNew: string | object;
-        let districtNameOld: string | object;
+        if (impasseData?.district) {
+          const districtData = impasseData?.district;
+          let districtName: string | object;
+          let districtNameNew: string | object;
+          let districtNameOld: string | object;
 
-        if (districtData) {
-          const districtTranslations = districtData.DistrictTranslations;
-          districtName = formatLanguageResponse(districtTranslations);
-          const districtTranslationsNew =
-            districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(districtTranslationsNew);
-          const districtTranslationsOld =
-            districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(districtTranslationsOld);
-          delete districtData.DistrictTranslations;
-          delete districtData.DistrictNewNameTranslations;
-          delete districtData.DistrictOldNameTranslations;
+          if (districtData) {
+            const districtTranslations = districtData.DistrictTranslations;
+            districtName = formatLanguageResponse(districtTranslations);
+            const districtTranslationsNew =
+              districtData.DistrictNewNameTranslations;
+            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            const districtTranslationsOld =
+              districtData.DistrictOldNameTranslations;
+            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            delete districtData.DistrictTranslations;
+            delete districtData.DistrictNewNameTranslations;
+            delete districtData.DistrictOldNameTranslations;
+          }
+
+          const district = {
+            ...impasseData.district,
+            name: districtName,
+            districtNameNew,
+            districtNameOld,
+          };
+          impasseData = { ...impasseData, district };
         }
-
-        const district = {
-          ...impasseData.district,
-          name: districtName,
-          districtNameNew,
-          districtNameOld,
-        };
-        delete impasseData.district;
         this.logger.debug(`Method: ${methodName} -  Response: `, impasseData);
 
         formattedImpasse.push({
@@ -196,14 +198,13 @@ export class ImpasseService {
           oldName: nameOld,
           region,
           city,
-          district,
         });
       }
 
       return {
         data: formattedImpasse,
         totalDocs: impasses.length,
-        totalPage: 1,
+        totalPage: impasses.length > 0 ? 1 : 0,
       };
     }
 
@@ -215,6 +216,7 @@ export class ImpasseService {
           }),
       cityId: data.cityId,
       regionId: data.regionId,
+      districtId: data.districtId,
     };
     if (data.search) {
       where.OR = [
@@ -270,7 +272,7 @@ export class ImpasseService {
     const formattedImpasse = [];
 
     for (let i = 0; i < impasses.length; i++) {
-      const impasseData = impasses[i];
+      let impasseData = impasses[i];
       const translations = impasseData.ImpasseTranslations;
       const name = formatLanguageResponse(translations);
       const translationsNew = impasseData.ImpasseNewNameTranslations;
@@ -293,33 +295,34 @@ export class ImpasseService {
       delete impasseData.city.CityTranslations;
       const city = { ...impasseData.city, name: cityName };
       delete impasseData.city;
+      if (impasseData?.district) {
+        const districtData = impasseData?.district;
+        let districtName: string | object;
+        let districtNameNew: string | object;
+        let districtNameOld: string | object;
 
-      const districtData = impasseData?.district;
-      let districtName: string | object;
-      let districtNameNew: string | object;
-      let districtNameOld: string | object;
+        if (districtData) {
+          const districtTranslations = districtData.DistrictTranslations;
+          districtName = formatLanguageResponse(districtTranslations);
+          const districtTranslationsNew =
+            districtData.DistrictNewNameTranslations;
+          districtNameNew = formatLanguageResponse(districtTranslationsNew);
+          const districtTranslationsOld =
+            districtData.DistrictOldNameTranslations;
+          districtNameOld = formatLanguageResponse(districtTranslationsOld);
+          delete districtData.DistrictTranslations;
+          delete districtData.DistrictNewNameTranslations;
+          delete districtData.DistrictOldNameTranslations;
+        }
 
-      if (districtData) {
-        const districtTranslations = districtData.DistrictTranslations;
-        districtName = formatLanguageResponse(districtTranslations);
-        const districtTranslationsNew =
-          districtData.DistrictNewNameTranslations;
-        districtNameNew = formatLanguageResponse(districtTranslationsNew);
-        const districtTranslationsOld =
-          districtData.DistrictOldNameTranslations;
-        districtNameOld = formatLanguageResponse(districtTranslationsOld);
-        delete districtData.DistrictTranslations;
-        delete districtData.DistrictNewNameTranslations;
-        delete districtData.DistrictOldNameTranslations;
+        const district = {
+          ...impasseData.district,
+          name: districtName,
+          districtNameNew,
+          districtNameOld,
+        };
+        impasseData = { ...impasseData, district };
       }
-
-      const district = {
-        ...impasseData.district,
-        name: districtName,
-        districtNameNew,
-        districtNameOld,
-      };
-      delete impasseData.district;
 
       formattedImpasse.push({
         ...impasseData,
@@ -328,7 +331,6 @@ export class ImpasseService {
         oldName: nameOld,
         region,
         city,
-        district,
       });
     }
     this.logger.debug(`Method: ${methodName} -  Response: `, formattedImpasse);

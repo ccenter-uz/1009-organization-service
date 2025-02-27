@@ -75,7 +75,7 @@ export class MainOrganizationService {
       return {
         data: mainOrganization,
         totalDocs: mainOrganization.length,
-        totalPage: 1,
+        totalPage: mainOrganization.length > 0 ? 1 : 0,
       };
     }
 

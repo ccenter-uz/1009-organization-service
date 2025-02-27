@@ -185,7 +185,7 @@ export class DistrictService {
       return {
         data: formattedDistrict,
         totalDocs: district.length,
-        totalPage: 1,
+        totalPage: district.length > 0 ? 1 : 0,
       };
     }
 

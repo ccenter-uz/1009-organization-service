@@ -156,7 +156,7 @@ export class AdditionalService {
       return {
         data: formattedCategories,
         totalDocs: additionals.length,
-        totalPage: 1,
+        totalPage: additionals.length > 0 ? 1 : 0,
       };
     }
 

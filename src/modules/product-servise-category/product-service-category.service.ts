@@ -113,7 +113,7 @@ export class ProductServiceCategoryService {
       return {
         data: formattedCategories,
         totalDocs: productServiceCategories.length,
-        totalPage: 1,
+        totalPage: productServiceCategories.length > 0 ? 1 : 0,
       };
     }
 
