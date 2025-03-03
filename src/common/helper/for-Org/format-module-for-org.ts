@@ -35,7 +35,6 @@ function formatModuleTranslations(module: any, options: FormatOptions): any {
       delete result[translationsKey];
     }
   }
-
   return result;
 }
 
