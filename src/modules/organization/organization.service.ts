@@ -340,7 +340,9 @@ export class OrganizationService {
     }
 
     if (data.categoryId) {
-      where.subCategoryId = data.categoryId;
+      where.SubCategory = {
+        categoryId: data.categoryId,
+      };
     }
 
     if (data.cityId) {
@@ -465,7 +467,7 @@ export class OrganizationService {
             status: data.status,
           }
         : {}),
-      ...where
+      ...where,
     };
 
     if (data.search) {
