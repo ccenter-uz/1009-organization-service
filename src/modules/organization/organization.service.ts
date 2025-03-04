@@ -339,9 +339,11 @@ export class OrganizationService {
       where.apartment = { contains: data.apartment, mode: 'insensitive' };
     }
 
-    if (data.categoryId) {
-      where.subCategoryId = data.categoryId;
-    }
+     if (data.categoryId) {
+       where.SubCategory = {
+         categoryId: data.categoryId,
+       };
+     }
 
     if (data.cityId) {
       where.cityId = data.cityId;
