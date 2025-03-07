@@ -13,7 +13,7 @@ export async function getOrderedData(
     const conditions: Prisma.Sql[] = [];
 
     if (data.status === 0 || data.status === 1) {
-      conditions.push(Prisma.sql`c.status = 168`);
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
     }
 
     if (data.cityId) {
@@ -48,6 +48,22 @@ export async function getOrderedData(
     // Log the query and check if it looks good
     console.log(whereClause, 'WHERE CLAUSE');
 
+    const orderByClause =
+      data.order === 'orderNumber'
+        ? Prisma.sql`
+          ORDER BY 
+          CASE 
+            WHEN c.order_number IS NULL OR c.order_number = 0 THEN 1 
+            ELSE 0 
+          END ASC,
+          c.order_number ASC,
+          c.name ->> ${data.langCode || 'uz'} ASC
+        `
+        : Prisma.sql`
+          ORDER BY 
+          c.name ->> ${data.langCode || 'uz'} ASC
+        `;
+
     const result: any = await prisma.$queryRaw(
       Prisma.sql`
         WITH category_data AS (
@@ -65,7 +81,7 @@ export async function getOrderedData(
                 jsonb_object_agg(ct.language_code, ct.name) AS name
             FROM category c
             LEFT JOIN category_translations ct ON c.id = ct.category_id
-            WHERE c.city_id = ${data.city_id}
+            ${whereClause}
             GROUP BY c.id
         ),
         region_data AS (
@@ -101,8 +117,8 @@ export async function getOrderedData(
         LEFT JOIN region_data r ON c.region_id = r.region_id
         LEFT JOIN city_data ci ON c.city_id = ci.city_id
         LEFT JOIN district_data d ON c.district_id = d.district_id
-        ORDER BY c.order_number ASC
-        LIMIT ${pagination?.take ?? 10} OFFSET ${pagination?.skip ?? 0};
+        ${orderByClause}
+        LIMIT ${pagination?.take ?? 10} OFFSET ${pagination?.skip ?? 1};
     `
     );
     console.log(result, 'RESULT');
