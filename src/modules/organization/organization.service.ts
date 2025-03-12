@@ -57,6 +57,8 @@ import { UnconfirmOrganizationFilterDto } from 'types/organization/organization/
 import { PassageService } from '../passage/passage.service';
 import { Prisma } from '@prisma/client';
 import { NeighborhoodService } from '../neighborhood/neighborhood.service';
+import { CacheService } from '../cache/cache.service';
+import { formatCacheKey } from 'types/global/helper';
 
 @Injectable()
 export class OrganizationService {
@@ -84,7 +86,8 @@ export class OrganizationService {
     private readonly NearbyService: NearbyService,
     private readonly SegmentService: SegmentService,
     private readonly PhoneTypeService: PhoneTypeService,
-    private readonly PassageService: PassageService
+    private readonly PassageService: PassageService,
+    private readonly cacheService: CacheService
   ) {}
 
   async create(
@@ -319,6 +322,8 @@ export class OrganizationService {
     this.logger.debug(`Method: ${methodName} - Response: `, organization);
 
     await this.organizationVersionService.create(organization);
+
+    await this.cacheService.invalidateAllCaches('organization');
     return organization;
   }
 
@@ -330,113 +335,182 @@ export class OrganizationService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
     const where: any = {};
+    const CacheKey = formatCacheKey(data);
+    const findOrganization = await this.cacheService.get(
+      'organization',
+      CacheKey
+    );
+    if (findOrganization) {
+      return findOrganization;
+    } else {
+      if (data.address) {
+        where.address = { contains: data.address, mode: 'insensitive' };
+      }
 
-    if (data.address) {
-      where.address = { contains: data.address, mode: 'insensitive' };
-    }
+      if (data.apartment) {
+        where.apartment = { contains: data.apartment, mode: 'insensitive' };
+      }
 
-    if (data.apartment) {
-      where.apartment = { contains: data.apartment, mode: 'insensitive' };
-    }
+      if (data.categoryId) {
+        where.subCategoryId = data.categoryId;
+      }
 
-    if (data.categoryId) {
-      where.subCategoryId = data.categoryId;
-    }
+      if (data.cityId) {
+        where.cityId = data.cityId;
+      }
 
-    if (data.cityId) {
-      where.cityId = data.cityId;
-    }
+      if (data.districtId) {
+        where.districtId = data.districtId;
+      }
 
-    if (data.districtId) {
-      where.districtId = data.districtId;
-    }
+      if (data.home) {
+        where.home = { contains: data.home, mode: 'insensitive' };
+      }
 
-    if (data.home) {
-      where.home = { contains: data.home, mode: 'insensitive' };
-    }
+      if (data.kvartal) {
+        where.kvartal = { contains: data.kvartal, mode: 'insensitive' };
+      }
 
-    if (data.kvartal) {
-      where.kvartal = { contains: data.kvartal, mode: 'insensitive' };
-    }
+      if (data.mainOrg) {
+        where.mainOrganizationId = data.mainOrg;
+      }
 
-    if (data.mainOrg) {
-      where.mainOrganizationId = data.mainOrg;
-    }
+      if (data.name) {
+        where.name = { contains: data.name, mode: 'insensitive' };
+      }
 
-    if (data.name) {
-      where.name = { contains: data.name, mode: 'insensitive' };
-    }
+      if (data.phone) {
+        where.Phone = {
+          some: { phone: { contains: data.phone, mode: 'insensitive' } },
+        };
+      }
 
-    if (data.phone) {
-      where.Phone = {
-        some: { phone: { contains: data.phone, mode: 'insensitive' } },
+      if (data.phoneType) {
+        where.Phone = { some: { PhoneTypes: { id: data.phoneType } } };
+      }
+
+      if (data.regionId) {
+        where.regionId = data.regionId;
+      }
+
+      if (data.subCategoryId) {
+        where.subCategoryId = data.subCategoryId;
+      }
+
+      if (data.villageId) {
+        where.villageId = data.villageId;
+      }
+
+      if (data.streetId) {
+        where.streetId = data.streetId;
+      }
+
+      if (data.belongAbonent === true) {
+        where.createdBy = CreatedByEnum.Client;
+      }
+
+      if (data.bounded === true) {
+        where.createdBy = CreatedByEnum.Billing;
+      }
+
+      if (data.mine === true) {
+        where.staffNumber = data.staffNumber;
+      }
+
+      if (data.nearbyId) {
+        where.Nearbees = {
+          some: {
+            NearbyId: data.nearbyId,
+          },
+        };
+      }
+
+      if (data.categoryTuId) {
+        where.ProductServices = {
+          some: {
+            ProductServiceCategoryId: data.categoryTuId,
+          },
+        };
+      }
+
+      if (data.subCategoryTuId) {
+        where.ProductServices = {
+          some: {
+            ProductServiceSubCategoryId: data.subCategoryTuId,
+          },
+        };
+      }
+
+      if (data.all) {
+        const organizations = await this.prisma.organization.findMany({
+          where,
+          orderBy: { name: 'asc' },
+          include,
+        });
+        const result = [];
+        for (let [index, org] of Object.entries(organizations)) {
+          for (let [key, prop] of Object.entries(includeConfig)) {
+            let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+            delete org?.[idNameOfModules];
+          }
+          const formattedOrganization = formatOrganizationResponse(
+            org,
+            modulesConfig
+          );
+          if (data.role !== 'moderator') {
+            delete formattedOrganization.secret;
+          }
+          result.push(formattedOrganization);
+        }
+        this.logger.debug(`Method: ${methodName} - Response: `, result);
+        await this.cacheService.setAll('organization', CacheKey, {
+          data: result,
+          totalDocs: organizations.length,
+          totalPage: organizations.length > 0 ? 1 : 0,
+        });
+        return {
+          data: result,
+          totalDocs: organizations.length,
+          totalPage: organizations.length > 0 ? 1 : 0,
+        };
+      }
+
+      const whereWithLang: any = {
+        ...(data.status
+          ? {
+              status: data.status,
+            }
+          : {}),
+        ...where,
       };
-    }
 
-    if (data.phoneType) {
-      where.Phone = { some: { PhoneTypes: { id: data.phoneType } } };
-    }
+      if (data.search) {
+        whereWithLang.name = {
+          contains: data.search,
+          mode: 'insensitive',
+        };
+      }
 
-    if (data.regionId) {
-      where.regionId = data.regionId;
-    }
+      const count = await this.prisma.organization.count({
+        where: whereWithLang,
+      });
 
-    if (data.subCategoryId) {
-      where.subCategoryId = data.subCategoryId;
-    }
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
 
-    if (data.villageId) {
-      where.villageId = data.villageId;
-    }
-
-    if (data.streetId) {
-      where.streetId = data.streetId;
-    }
-
-    if (data.belongAbonent === true) {
-      where.createdBy = CreatedByEnum.Client;
-    }
-
-    if (data.bounded === true) {
-      where.createdBy = CreatedByEnum.Billing;
-    }
-
-    if (data.mine === true) {
-      where.staffNumber = data.staffNumber;
-    }
-
-    if (data.nearbyId) {
-      where.Nearbees = {
-        some: {
-          NearbyId: data.nearbyId,
-        },
-      };
-    }
-
-    if (data.categoryTuId) {
-      where.ProductServices = {
-        some: {
-          ProductServiceCategoryId: data.categoryTuId,
-        },
-      };
-    }
-
-    if (data.subCategoryTuId) {
-      where.ProductServices = {
-        some: {
-          ProductServiceSubCategoryId: data.subCategoryTuId,
-        },
-      };
-    }
-
-    if (data.all) {
-      const organizations = await this.prisma.organization.findMany({
-        where,
+      const organization = await this.prisma.organization.findMany({
+        where: whereWithLang,
         orderBy: { name: 'asc' },
         include,
+        take: pagination.take,
+        skip: pagination.skip,
       });
+
       const result = [];
-      for (let [index, org] of Object.entries(organizations)) {
+      for (let [index, org] of Object.entries(organization)) {
         for (let [key, prop] of Object.entries(includeConfig)) {
           let idNameOfModules = key.toLocaleLowerCase() + 'Id';
           delete org?.[idNameOfModules];
@@ -445,77 +519,24 @@ export class OrganizationService {
           org,
           modulesConfig
         );
+
         if (data.role !== 'moderator') {
           delete formattedOrganization.secret;
         }
         result.push(formattedOrganization);
       }
       this.logger.debug(`Method: ${methodName} - Response: `, result);
-
+      await this.cacheService.setAll('organization', CacheKey, {
+        data: result,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      });
       return {
         data: result,
-        totalDocs: organizations.length,
-        totalPage: organizations.length > 0 ? 1 : 0,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
     }
-
-    const whereWithLang: any = {
-      ...(data.status
-        ? {
-            status: data.status,
-          }
-        : {}),
-      ...where
-    };
-
-    if (data.search) {
-      whereWithLang.name = {
-        contains: data.search,
-        mode: 'insensitive',
-      };
-    }
-
-    const count = await this.prisma.organization.count({
-      where: whereWithLang,
-    });
-
-    const pagination = createPagination({
-      count,
-      page: data.page,
-      perPage: data.limit,
-    });
-
-    const organization = await this.prisma.organization.findMany({
-      where: whereWithLang,
-      orderBy: { name: 'asc' },
-      include,
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-
-    const result = [];
-    for (let [index, org] of Object.entries(organization)) {
-      for (let [key, prop] of Object.entries(includeConfig)) {
-        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-        delete org?.[idNameOfModules];
-      }
-      const formattedOrganization = formatOrganizationResponse(
-        org,
-        modulesConfig
-      );
-
-      if (data.role !== 'moderator') {
-        delete formattedOrganization.secret;
-      }
-      result.push(formattedOrganization);
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, result);
-
-    return {
-      data: result,
-      totalPage: pagination.totalPage,
-      totalDocs: count,
-    };
   }
 
   async findMy(
@@ -523,22 +544,85 @@ export class OrganizationService {
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
     const methodName: string = this.findMy.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const include = buildIncludeVersion(includeConfigVersion, data);
-    const where = {
-      staffNumber: data.staffNumber,
-    };
-    if (data.all) {
-      const organizations = await this.prisma.organizationVersion.findMany({
-        where,
+    const CacheKey = formatCacheKey(data);
+    const findOrganization = await this.cacheService.get(
+      'organization',
+      CacheKey
+    );
+    if (findOrganization) {
+      return findOrganization;
+    } else {
+      const include = buildIncludeVersion(includeConfigVersion, data);
+      const where = {
+        staffNumber: data.staffNumber,
+      };
+      if (data.all) {
+        const organizations = await this.prisma.organizationVersion.findMany({
+          where,
+          orderBy: { name: 'desc' },
+          include,
+        });
+        const result = [];
+        for (let [index, org] of Object.entries(organizations)) {
+          for (let [key, prop] of Object.entries(includeConfig)) {
+            let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+            delete org?.[idNameOfModules];
+          }
+          const formattedOrganization = formatOrganizationResponseVersion(
+            org,
+            modulesConfigVersion
+          );
+          if (data.role !== 'moderator') {
+            delete formattedOrganization.secret;
+          }
+          result.push(formattedOrganization);
+        }
+        this.logger.debug(`Method: ${methodName} - Response: `, result);
+        await this.cacheService.setAll('organization', CacheKey, {
+          data: result,
+          totalDocs: organizations.length,
+          totalPage: organizations.length > 0 ? 1 : 0,
+        });
+        return {
+          data: result,
+          totalDocs: organizations.length,
+          totalPage: organizations.length > 0 ? 1 : 0,
+        };
+      }
+
+      const whereWithLang: any = {
+        ...{
+          status: data.status,
+        },
+        ...where,
+      };
+
+      const count = await this.prisma.organizationVersion.count({
+        where: whereWithLang,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+
+      const organization = await this.prisma.organizationVersion.findMany({
+        where: whereWithLang,
         orderBy: { name: 'desc' },
         include,
+        take: pagination.take,
+        skip: pagination.skip,
       });
+
       const result = [];
-      for (let [index, org] of Object.entries(organizations)) {
+
+      for (let [index, org] of Object.entries(organization)) {
         for (let [key, prop] of Object.entries(includeConfig)) {
           let idNameOfModules = key.toLocaleLowerCase() + 'Id';
           delete org?.[idNameOfModules];
         }
+
         const formattedOrganization = formatOrganizationResponseVersion(
           org,
           modulesConfigVersion
@@ -549,63 +633,17 @@ export class OrganizationService {
         result.push(formattedOrganization);
       }
       this.logger.debug(`Method: ${methodName} - Response: `, result);
-
+      await this.cacheService.setAll('organization', CacheKey, {
+        data: result,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      });
       return {
         data: result,
-        totalDocs: organizations.length,
-        totalPage: organizations.length > 0 ? 1 : 0,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
     }
-
-    const whereWithLang: any = {
-      ...{
-        status: data.status,
-      },
-      ...where,
-    };
-
-    const count = await this.prisma.organizationVersion.count({
-      where: whereWithLang,
-    });
-
-    const pagination = createPagination({
-      count,
-      page: data.page,
-      perPage: data.limit,
-    });
-
-    const organization = await this.prisma.organizationVersion.findMany({
-      where: whereWithLang,
-      orderBy: { name: 'desc' },
-      include,
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-
-    const result = [];
-
-    for (let [index, org] of Object.entries(organization)) {
-      for (let [key, prop] of Object.entries(includeConfig)) {
-        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-        delete org?.[idNameOfModules];
-      }
-
-      const formattedOrganization = formatOrganizationResponseVersion(
-        org,
-        modulesConfigVersion
-      );
-      if (data.role !== 'moderator') {
-        delete formattedOrganization.secret;
-      }
-      result.push(formattedOrganization);
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, result);
-
-    return {
-      data: result,
-      totalPage: pagination.totalPage,
-      totalDocs: count,
-    };
   }
 
   async findUnconfirm(
@@ -613,124 +651,154 @@ export class OrganizationService {
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
     const methodName: string = this.findUnconfirm.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const include = buildIncludeVersion(includeConfigVersion, data);
+    const CachKey = formatCacheKey(data);
+    const findOrganization = await this.cacheService.get(
+      'organization',
+      CachKey
+    );
+    if (findOrganization) {
+      return findOrganization;
+    } else {
+      const include = buildIncludeVersion(includeConfigVersion, data);
 
-    const where = {
-      status: 0,
-      name: data.search
-        ? { contains: data.search, mode: Prisma.QueryMode.insensitive }
-        : undefined,
-      createdBy:
-        data.createdBy == CreatedByEnum.All ? undefined : data.createdBy,
-    };
-    if (data.all) {
-      const organizations = await this.prisma.organizationVersion.findMany({
-        where,
+      const where = {
+        status: 0,
+        name: data.search
+          ? { contains: data.search, mode: Prisma.QueryMode.insensitive }
+          : undefined,
+        createdBy:
+          data.createdBy == CreatedByEnum.All ? undefined : data.createdBy,
+      };
+      if (data.all) {
+        const organizations = await this.prisma.organizationVersion.findMany({
+          where,
+          orderBy: { name: 'desc' },
+          include,
+        });
+        const result = [];
+        for (let [index, org] of Object.entries(organizations)) {
+          for (let [key, prop] of Object.entries(includeConfig)) {
+            let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+            delete org?.[idNameOfModules];
+          }
+          const formattedOrganization = formatOrganizationResponseVersion(
+            org,
+            modulesConfigVersion
+          );
+          result.push(formattedOrganization);
+        }
+        this.logger.debug(`Method: ${methodName} - Response: `, result);
+        await this.cacheService.setAll('organization', CachKey, {
+          data: result,
+          totalDocs: organizations.length,
+          totalPage: organizations.length > 0 ? 1 : 0,
+        });
+        return {
+          data: result,
+          totalDocs: organizations.length,
+          totalPage: organizations.length > 0 ? 1 : 0,
+        };
+      }
+
+      const whereWithLang: any = {
+        ...where,
+      };
+
+      const count = await this.prisma.organizationVersion.count({
+        where: whereWithLang,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+
+      const organization = await this.prisma.organizationVersion.findMany({
+        where: whereWithLang,
         orderBy: { name: 'desc' },
         include,
+        take: pagination.take,
+        skip: pagination.skip,
       });
+
       const result = [];
-      for (let [index, org] of Object.entries(organizations)) {
+
+      for (let [index, org] of Object.entries(organization)) {
         for (let [key, prop] of Object.entries(includeConfig)) {
           let idNameOfModules = key.toLocaleLowerCase() + 'Id';
           delete org?.[idNameOfModules];
         }
+
         const formattedOrganization = formatOrganizationResponseVersion(
           org,
           modulesConfigVersion
         );
+
         result.push(formattedOrganization);
       }
       this.logger.debug(`Method: ${methodName} - Response: `, result);
-
+      await this.cacheService.setAll('organization', CachKey, {
+        data: result,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      });
       return {
         data: result,
-        totalDocs: organizations.length,
-        totalPage: organizations.length > 0 ? 1 : 0,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
     }
-
-    const whereWithLang: any = {
-      ...where,
-    };
-
-    const count = await this.prisma.organizationVersion.count({
-      where: whereWithLang,
-    });
-
-    const pagination = createPagination({
-      count,
-      page: data.page,
-      perPage: data.limit,
-    });
-
-    const organization = await this.prisma.organizationVersion.findMany({
-      where: whereWithLang,
-      orderBy: { name: 'desc' },
-      include,
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-
-    const result = [];
-
-    for (let [index, org] of Object.entries(organization)) {
-      for (let [key, prop] of Object.entries(includeConfig)) {
-        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-        delete org?.[idNameOfModules];
-      }
-
-      const formattedOrganization = formatOrganizationResponseVersion(
-        org,
-        modulesConfigVersion
-      );
-
-      result.push(formattedOrganization);
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, result);
-
-    return {
-      data: result,
-      totalPage: pagination.totalPage,
-      totalDocs: count,
-    };
   }
 
   async findOne(data: GetOneDto): Promise<OrganizationInterfaces.Response> {
     const methodName: string = this.findOne.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
-
-    const organization = await this.prisma.organization.findFirst({
-      where: {
-        id: data.id,
-      },
-      orderBy: { name: 'asc' },
-      include: {
-        ...include,
-      },
-    });
-    for (let [key, prop] of Object.entries(includeConfig)) {
-      let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-      delete organization?.[idNameOfModules];
-    }
-    if (!organization) {
-      throw new NotFoundException('Organization is not found');
-    }
-
-    let formattedOrganization = formatOrganizationResponse(
-      organization,
-      modulesConfig
+    const findCategory = await this.cacheService.get(
+      'organizationOne',
+      data.id?.toString()
     );
-    if (data.role !== 'moderator') {
-      delete formattedOrganization.secret;
-    }
-    this.logger.debug(
-      `Method: ${methodName} - Response: `,
-      formattedOrganization
-    );
+    if (findCategory) {
+      console.log(findCategory, 'findCategory');
 
-    return formattedOrganization;
+      return findCategory;
+    } else {
+      const organization = await this.prisma.organization.findFirst({
+        where: {
+          id: data.id,
+        },
+        orderBy: { name: 'asc' },
+        include: {
+          ...include,
+        },
+      });
+      for (let [key, prop] of Object.entries(includeConfig)) {
+        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+        delete organization?.[idNameOfModules];
+      }
+      if (!organization) {
+        throw new NotFoundException('Organization is not found');
+      }
+
+      let formattedOrganization = formatOrganizationResponse(
+        organization,
+        modulesConfig
+      );
+      if (data.role !== 'moderator') {
+        delete formattedOrganization.secret;
+      }
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedOrganization
+      );
+      await this.cacheService.set(
+        'organizationOne',
+        data.id?.toString(),
+        formattedOrganization
+      );
+      return formattedOrganization;
+    }
   }
 
   async update(id: number): Promise<OrganizationInterfaces.Response> {
@@ -888,6 +956,12 @@ export class OrganizationService {
       },
     });
     this.logger.debug(`Method: ${methodName} - Response: `, UpdateOrganization);
+    await this.cacheService.delete(
+      'organizationOne',
+      UpdateOrganization.id?.toString()
+    );
+    await this.cacheService.invalidateAllCaches('organization');
+
     return UpdateOrganization;
   }
 
@@ -1081,6 +1155,11 @@ export class OrganizationService {
         });
         this.logger.debug(`Method: ${methodName} - Request: `, UpdateOrg);
 
+            await this.cacheService.delete(
+      'organizationOne',
+      UpdateOrg.id?.toString()
+    );
+    await this.cacheService.invalidateAllCaches('organization');
         return UpdateOrg;
       } else {
         const UpdateVersion = await this.prisma.organizationVersion.update({
@@ -1159,6 +1238,11 @@ export class OrganizationService {
       });
 
       this.logger.debug(`Method: ${methodName} - Response: `, UpdateOrg);
+          await this.cacheService.delete(
+      'organizationOne',
+      UpdateOrg.id?.toString()
+    );
+    await this.cacheService.invalidateAllCaches('organization');
       return UpdateOrg;
     } else {
       const UpdateOrgVersion = await this.prisma.organizationVersion.update({

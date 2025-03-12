@@ -17,6 +17,7 @@ import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 import { Prisma } from '@prisma/client';
 import { getOrderedData } from '@/common/helper/sql-rows-for-select/get-ordered-data.dto';
 import { CacheService } from '../cache/cache.service';
+import { formatCacheKey } from 'types/global/helper';
 
 @Injectable()
 export class CategoryService {
@@ -104,7 +105,7 @@ export class CategoryService {
     });
 
     this.logger.debug(`Method: ${methodName} - Response: `, data);
-
+    await this.cacheService.invalidateAllCaches('category');
     return category;
   }
 
@@ -113,7 +114,15 @@ export class CategoryService {
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-
+    const CacheKey = formatCacheKey(data);
+    const findCategores = await this.cacheService.get(
+      'category',
+      CacheKey
+    );
+    if (findCategores) {
+      return findCategores;
+    } else {
+      
     if (data.all) {
       const categories: any = await getOrderedData(
         'Category',
@@ -181,7 +190,11 @@ export class CategoryService {
         `Method: ${methodName} -  Response: `,
         formattedCategories
       );
-
+      await this.cacheService.setAll('category', CacheKey, {
+         data: formattedCategories,
+        totalDocs: categories.length,
+        totalPage: categories.length > 0 ? 1 : 0,
+      });
       return {
         data: formattedCategories,
         totalDocs: categories.length,
@@ -283,11 +296,17 @@ export class CategoryService {
       formattedCategories
     );
 
+      await this.cacheService.setAll('category', CacheKey, {
+   data: formattedCategories,
+      totalPage: pagination.totalPage,
+      totalDocs: count,
+      });
     return {
       data: formattedCategories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
+    }
   }
 
   async findOne(data: GetOneDto): Promise<CategoryInterfaces.Response> {
@@ -296,12 +315,12 @@ export class CategoryService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
     const findCategory = await this.cacheService.get(
-      'category',
+      'categoryOne',
       data.id?.toString()
     );
     if (findCategory) {
-      console.log(findCategory ,  'findCategory');
-      
+      console.log(findCategory, 'findCategory');
+
       return findCategory;
     } else {
       const category = await this.prisma.category.findFirst({
@@ -448,7 +467,7 @@ export class CategoryService {
       }
 
       await this.cacheService.set(
-        'category',
+        'categoryOne',
         data.id?.toString(),
         formatedRespons
       );
@@ -549,7 +568,8 @@ export class CategoryService {
     });
 
     this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
-    await this.cacheService.delete('category', data.id?.toString());
+    await this.cacheService.delete('categoryOne', data.id?.toString());
+    await this.cacheService.invalidateAllCaches('category');
     return updatedCategory;
   }
 
@@ -617,8 +637,8 @@ export class CategoryService {
         `Method: ${methodName} - Rresponse when delete true: `,
         category
       );
-      await this.cacheService.delete('category', data.id?.toString());
-
+    await this.cacheService.delete('categoryOne', data.id?.toString());
+    await this.cacheService.invalidateAllCaches('category');
       return category;
     }
 
@@ -681,8 +701,8 @@ export class CategoryService {
       `Method: ${methodName} - Rresponse when delete false: `,
       category
     );
-    await this.cacheService.delete('category', data.id?.toString());
-
+    await this.cacheService.delete('categoryOne', data.id?.toString());
+    await this.cacheService.invalidateAllCaches('category');
     return category;
   }
 
@@ -750,7 +770,7 @@ export class CategoryService {
     });
 
     this.logger.debug(`Method: ${methodName} - Rresponse: `, category);
-
+    await this.cacheService.invalidateAllCaches('category');
     return category;
   }
 }

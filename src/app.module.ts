@@ -41,6 +41,8 @@ import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { NeighborhoodModule } from './modules/neighborhood/neighborhood.module';
 import { CacheRedisModule } from './modules/cache/cache.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
 
 @Module({
   imports: [
@@ -54,6 +56,8 @@ import { CacheRedisModule } from './modules/cache/cache.module';
       port: process.env.REDIS_PORT || 6379,
       isGlobal: true,
     }),
+
+    
     ScheduleModule.forRoot(),
     PrismaModule,
     CacheRedisModule,
