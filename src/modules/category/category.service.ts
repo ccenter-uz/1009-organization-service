@@ -17,7 +17,7 @@ import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 import { Prisma } from '@prisma/client';
 import { getOrderedData } from '@/common/helper/sql-rows-for-select/get-ordered-data.dto';
 import { CacheService } from '../cache/cache.service';
-import { formatCacheKey } from 'types/global/helper';
+import { formatCacheKey } from '@/common/helper/format-cache-maneger';
 
 @Injectable()
 export class CategoryService {

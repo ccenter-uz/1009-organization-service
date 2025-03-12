@@ -58,7 +58,8 @@ import { PassageService } from '../passage/passage.service';
 import { Prisma } from '@prisma/client';
 import { NeighborhoodService } from '../neighborhood/neighborhood.service';
 import { CacheService } from '../cache/cache.service';
-import { formatCacheKey } from 'types/global/helper';
+import { formatCacheKey } from '@/common/helper/format-cache-maneger';
+
 
 @Injectable()
 export class OrganizationService {
