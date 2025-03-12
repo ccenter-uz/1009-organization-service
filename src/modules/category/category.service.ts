@@ -465,72 +465,76 @@ export class CategoryService {
         data: { name: data.name[LanguageRequestEnum.CY] },
       });
     }
-
-    const updatedCategory = await this.prisma.category.update({
-      where: {
-        id: category.id,
-      },
-      data: {
-        editedStaffNumber: data.staffNumber,
-        cityId: data.cityId,
-        regionId: data.regionId,
-        districtId: data.districtId,
-        orderNumber: data.orderNumber,
-        CategoryTranslations: {
-          updateMany:
-            translationUpdates.length > 0 ? translationUpdates : undefined,
+    try {
+      const updatedCategory = await this.prisma.category.update({
+        where: {
+          id: category.id,
         },
-      },
-      include: {
-        CategoryTranslations: true,
-        city: {
-          include: {
-            CityTranslations: {
-              select: {
-                languageCode: true,
-                name: true,
+        data: {
+          editedStaffNumber: data.staffNumber,
+          cityId: data.cityId,
+          regionId: data.regionId,
+          districtId: data.districtId,
+          orderNumber: data.orderNumber,
+          CategoryTranslations: {
+            updateMany:
+              translationUpdates.length > 0 ? translationUpdates : undefined,
+          },
+        },
+        include: {
+          CategoryTranslations: true,
+          city: {
+            include: {
+              CityTranslations: {
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          region: {
+            include: {
+              RegionTranslations: {
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          district: {
+            include: {
+              DistrictNewNameTranslations: {
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+              DistrictOldNameTranslations: {
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
+              },
+              DistrictTranslations: {
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
               },
             },
           },
         },
-        region: {
-          include: {
-            RegionTranslations: {
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-        district: {
-          include: {
-            DistrictNewNameTranslations: {
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictOldNameTranslations: {
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-            DistrictTranslations: {
-              select: {
-                languageCode: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
+      });
 
-    this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
+      this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
 
-    return updatedCategory;
+      return updatedCategory;
+    } catch (error) {
+      console.log(error.message);
+      
+    }
   }
 
   async remove(data: DeleteDto): Promise<CategoryInterfaces.Response> {
