@@ -338,7 +338,7 @@ export class OrganizationService {
     const where: any = {};
     const CacheKey = formatCacheKey(data);
     const findOrganization = await this.cacheService.get(
-      'category',
+      'organization',
       CacheKey
     );
 
