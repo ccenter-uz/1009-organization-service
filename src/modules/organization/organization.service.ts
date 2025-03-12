@@ -336,6 +336,15 @@ export class OrganizationService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
     const where: any = {};
+    const CacheKey = formatCacheKey(data);
+    const findOrganization = await this.cacheService.get(
+      'category',
+      CacheKey
+    );
+
+    if (findOrganization) { 
+      return findOrganization
+    } else {
 
     if (data.address) {
       where.address = { contains: data.address, mode: 'insensitive' };
