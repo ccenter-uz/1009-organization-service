@@ -604,7 +604,7 @@ export class ImpasseService {
         regionId: data.regionId || impasse.regionId,
         cityId: data.cityId || impasse.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || impasse.staffNumber,
+        editedStaffNumber: data.staffNumber,
         index: data.index || impasse.index,
         orderNumber: data.orderNumber,
         ImpasseTranslations: {

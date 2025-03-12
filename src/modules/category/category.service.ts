@@ -471,7 +471,7 @@ export class CategoryService {
         id: category.id,
       },
       data: {
-        staffNumber: data.staffNumber || category.staffNumber,
+        editedStaffNumber: data.staffNumber,
         cityId: data.cityId,
         regionId: data.regionId,
         districtId: data.districtId,

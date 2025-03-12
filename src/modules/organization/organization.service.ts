@@ -954,7 +954,7 @@ export class OrganizationService {
         index: organizationVersion.index,
         transport: organizationVersion.transport,
         workTime: organizationVersion.workTime,
-        staffNumber: organizationVersion.staffNumber,
+        editedStaffNumber: organizationVersion.editedStaffNumber,
         description: organizationVersion.description,
         passageId: organizationVersion.passageId,
         status: OrganizationStatusEnum.Accepted,

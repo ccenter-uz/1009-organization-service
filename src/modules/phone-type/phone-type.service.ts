@@ -216,7 +216,7 @@ export class PhoneTypeService {
         id: phoneType.id,
       },
       data: {
-        staffNumber: data.staffNumber,
+        editedStaffNumber: data.staffNumber,
         orderNumber: data.orderNumber,
         PhoneTypesTranslations: {
           updateMany: [

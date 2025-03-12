@@ -254,8 +254,7 @@ export class AdditionalCategoryService {
           id: additionalCategory.id,
         },
         data: {
-          staffNumber: data.staffNumber || additionalCategory.staffNumber,
-
+          editedStaffNumber: data.staffNumber ,
           AdditionalCategoryTranslations: {
             updateMany:
               translationUpdates.length > 0 ? translationUpdates : undefined,
