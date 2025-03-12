@@ -336,25 +336,18 @@ export class OrganizationService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
     const where: any = {};
-    const CacheKey = formatCacheKey(data);
-    const findOrganization = await this.cacheService.get(
-      'organization',
-      CacheKey
-    );
-    if (findOrganization) {
-      return findOrganization;
-    } else {
-      if (data.address) {
-        where.address = { contains: data.address, mode: 'insensitive' };
-      }
+
+    if (data.address) {
+      where.address = { contains: data.address, mode: 'insensitive' };
+    }
 
       if (data.apartment) {
         where.apartment = { contains: data.apartment, mode: 'insensitive' };
       }
 
-      if (data.categoryId) {
-        where.subCategoryId = data.categoryId;
-      }
+    if (data.categoryId) {
+      where.subCategoryId = data.categoryId;
+    }
 
       if (data.cityId) {
         where.cityId = data.cityId;
@@ -476,14 +469,14 @@ export class OrganizationService {
         };
       }
 
-      const whereWithLang: any = {
-        ...(data.status
-          ? {
-              status: data.status,
-            }
-          : {}),
-        ...where,
-      };
+    const whereWithLang: any = {
+      ...(data.status
+        ? {
+            status: data.status,
+          }
+        : {}),
+      ...where
+    };
 
       if (data.search) {
         whereWithLang.name = {
