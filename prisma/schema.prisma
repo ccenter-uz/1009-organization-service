@@ -17,8 +17,8 @@ model Category {
   id                   Int                    @id @default(autoincrement())
   staffNumber          String?                @map("staff_number") @db.VarChar(40)
   status               Int                    @default(1) @db.SmallInt()
-  regionId             Int                   @map("region_id")
-  cityId               Int                   @map("city_id")
+  regionId             Int                    @map("region_id")
+  cityId               Int                    @map("city_id")
   districtId           Int?                   @map("district_id")
   orderNumber          Int?                   @map("order_number")
   createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamp
@@ -777,15 +777,17 @@ model Village {
 }
 
 model VillageTranslations {
-  id           Int       @id @default(autoincrement())
-  villageId    Int       @map("village_id")
-  languageCode String    @map("language_code")
+  id           Int                      @id @default(autoincrement())
+  villageId    Int                      @map("village_id")
+  languageCode String                   @map("language_code")
   name         String
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt    DateTime? @updatedAt @map("updated_at")
+  createdAt    DateTime                 @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime?                @updatedAt @map("updated_at")
+  searchVector Unsupported("tsvector")? @map("search_vector") // Full-text search
 
   Village Village @relation(fields: [villageId], references: [id])
 
+  @@index([searchVector], type: Gin)
   @@map("village_translations")
 }
 
@@ -840,15 +842,17 @@ model Lane {
 }
 
 model LaneTranslations {
-  id           Int       @id @default(autoincrement())
-  laneId       Int       @map("lane_id")
-  languageCode String    @map("language_code")
+  id           Int                      @id @default(autoincrement())
+  laneId       Int                      @map("lane_id")
+  languageCode String                   @map("language_code")
   name         String
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt    DateTime? @updatedAt @map("updated_at")
+  createdAt    DateTime                 @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime?                @updatedAt @map("updated_at")
+  searchVector Unsupported("tsvector")? @map("search_vector") // Full-text search
 
   Lane Lane @relation(fields: [laneId], references: [id])
 
+  @@index([searchVector], type: Gin)
   @@map("lane_translations")
 }
 

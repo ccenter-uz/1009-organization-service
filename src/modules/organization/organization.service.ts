@@ -795,6 +795,7 @@ export class OrganizationService {
     const methodName: string = this.findOne.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
+    console.log(include, 'INCLUDE');
 
     const organization = await this.prisma.organization.findFirst({
       where: {
