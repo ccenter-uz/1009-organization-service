@@ -316,7 +316,26 @@ export class OrganizationService {
         ProductServices: true,
       },
     });
+
     this.logger.debug(`Method: ${methodName} - Response: `, organization);
+
+    if (data.address) {
+      await this.prisma.$executeRawUnsafe(`
+        UPDATE organization 
+        SET address_search_vector = to_tsvector('simple', address) 
+        WHERE id = ${organization.id}
+      `);
+    }
+
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE nearbees 
+      SET description_search_vector = to_tsvector('simple', description) 
+      WHERE organization_version_id = ${organization.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
 
     await this.organizationVersionService.create(organization);
     return organization;
@@ -330,6 +349,11 @@ export class OrganizationService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
     const where: any = {};
+
+    // const formattedAddress = data.address
+    //   .split(' ')
+    //   .map((word) => `${word}:*`)
+    //   .join(' & ');
 
     if (data.address) {
       where.OR = [

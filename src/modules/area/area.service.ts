@@ -122,6 +122,16 @@ export class AreaService {
     });
     this.logger.debug(`Method: ${methodName} - Response: `, data);
 
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE area_translations 
+      SET search_vector = to_tsvector('simple', name) 
+      WHERE area_id = ${area.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     return area;
   }
 

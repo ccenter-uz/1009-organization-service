@@ -119,6 +119,16 @@ export class ImpasseService {
     });
     this.logger.debug(`Method: ${methodName} - Response: `, impasse);
 
+    await this.prisma.$executeRawUnsafe(`
+        UPDATE impasse_translations 
+        SET search_vector = to_tsvector('simple', name) 
+        WHERE impasse_id = ${impasse.id}
+      `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     return impasse;
   }
 

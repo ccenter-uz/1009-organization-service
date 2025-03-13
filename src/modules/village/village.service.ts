@@ -128,6 +128,10 @@ export class VillageService {
         WHERE village_id = ${village.id}
       `);
 
+      this.logger.debug(
+        `Method: ${methodName} - Updating translation for tsvector`
+      );
+
       return village;
     } catch (error) {
       console.log('Error', error);

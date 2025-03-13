@@ -128,6 +128,16 @@ export class ResidentialAreaService {
 
     this.logger.debug(`Method: ${methodName} - Response: `, residentialArea);
 
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE residential_area_translations 
+      SET search_vector = to_tsvector('simple', name) 
+      WHERE residential_area_id = ${residentialArea.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     return residentialArea;
   }
 
