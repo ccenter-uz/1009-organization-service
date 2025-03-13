@@ -31,97 +31,108 @@ export class VillageService {
   ) {}
 
   async create(data: VillageCreateDto): Promise<VillageInterfaces.Response> {
-    const methodName: string = this.create.name;
+    try {
+      const methodName: string = this.create.name;
 
-    this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const region = await this.regionService.findOne({
-      id: data.regionId,
-    });
-    const city = await this.cityService.findOne({
-      id: data.cityId,
-    });
-    let district;
-    if (data.districtId) {
-      district = await this.districtService.findOne({
-        id: data.districtId,
+      this.logger.debug(`Method: ${methodName} - Request: `, data);
+      const region = await this.regionService.findOne({
+        id: data.regionId,
       });
-    }
+      const city = await this.cityService.findOne({
+        id: data.cityId,
+      });
+      let district;
+      if (data.districtId) {
+        district = await this.districtService.findOne({
+          id: data.districtId,
+        });
+      }
 
-    const names: any = {};
+      const names: any = {};
 
-    if (data.newName) {
-      names.VillageNewNameTranslations = {
-        create: [
-          {
-            languageCode: LanguageRequestEnum.RU,
-            name: data.newName[LanguageRequestEnum.RU],
-          },
-          {
-            languageCode: LanguageRequestEnum.UZ,
-            name: data.newName[LanguageRequestEnum.UZ],
-          },
-          {
-            languageCode: LanguageRequestEnum.CY,
-            name: data.newName[LanguageRequestEnum.CY],
-          },
-        ],
-      };
-    }
-
-    if (data.oldName) {
-      names.VillageOldNameTranslations = {
-        create: [
-          {
-            languageCode: LanguageRequestEnum.RU,
-            name: data.oldName[LanguageRequestEnum.RU],
-          },
-          {
-            languageCode: LanguageRequestEnum.UZ,
-            name: data.oldName[LanguageRequestEnum.UZ],
-          },
-          {
-            languageCode: LanguageRequestEnum.CY,
-            name: data.oldName[LanguageRequestEnum.CY],
-          },
-        ],
-      };
-    }
-
-    const village = await this.prisma.village.create({
-      data: {
-        regionId: region.id,
-        cityId: city.id,
-        ...(data.districtId ? { districtId: district.id } : {}),
-        index: data.index,
-        staffNumber: data.staffNumber,
-        orderNumber: data.orderNumber,
-        VillageTranslations: {
+      if (data.newName) {
+        names.VillageNewNameTranslations = {
           create: [
             {
               languageCode: LanguageRequestEnum.RU,
-              name: data.name[LanguageRequestEnum.RU],
+              name: data.newName[LanguageRequestEnum.RU],
             },
             {
               languageCode: LanguageRequestEnum.UZ,
-              name: data.name[LanguageRequestEnum.UZ],
+              name: data.newName[LanguageRequestEnum.UZ],
             },
             {
               languageCode: LanguageRequestEnum.CY,
-              name: data.name[LanguageRequestEnum.CY],
+              name: data.newName[LanguageRequestEnum.CY],
             },
           ],
-        },
-        ...names,
-      },
-      include: {
-        VillageTranslations: true,
-        VillageNewNameTranslations: true,
-        VillageOldNameTranslations: true,
-      },
-    });
-    this.logger.debug(`Method: ${methodName} - Response: `, village);
+        };
+      }
 
-    return village;
+      if (data.oldName) {
+        names.VillageOldNameTranslations = {
+          create: [
+            {
+              languageCode: LanguageRequestEnum.RU,
+              name: data.oldName[LanguageRequestEnum.RU],
+            },
+            {
+              languageCode: LanguageRequestEnum.UZ,
+              name: data.oldName[LanguageRequestEnum.UZ],
+            },
+            {
+              languageCode: LanguageRequestEnum.CY,
+              name: data.oldName[LanguageRequestEnum.CY],
+            },
+          ],
+        };
+      }
+
+      const village = await this.prisma.village.create({
+        data: {
+          regionId: region.id,
+          cityId: city.id,
+          ...(data.districtId ? { districtId: district.id } : {}),
+          index: data.index,
+          staffNumber: data.staffNumber,
+          orderNumber: data.orderNumber,
+          VillageTranslations: {
+            create: [
+              {
+                languageCode: LanguageRequestEnum.RU,
+                name: data.name[LanguageRequestEnum.RU],
+              },
+              {
+                languageCode: LanguageRequestEnum.UZ,
+                name: data.name[LanguageRequestEnum.UZ],
+              },
+              {
+                languageCode: LanguageRequestEnum.CY,
+                name: data.name[LanguageRequestEnum.CY],
+              },
+            ],
+          },
+          ...names,
+        },
+        include: {
+          VillageTranslations: true,
+          VillageNewNameTranslations: true,
+          VillageOldNameTranslations: true,
+        },
+      });
+      this.logger.debug(`Method: ${methodName} - Response: `, village);
+
+      await this.prisma.$executeRawUnsafe(`
+        UPDATE village_translations 
+        SET search_vector = to_tsvector('simple', name) 
+        WHERE village_id = ${village.id}
+      `);
+
+      return village;
+    } catch (error) {
+      console.log('Error', error);
+      throw error;
+    }
   }
 
   async findAll(
