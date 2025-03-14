@@ -190,6 +190,14 @@ export const modulesConfig = [
     ],
   },
   {
+    nameKey: 'Neighborhood',
+    includeKeys: [
+      'NeighborhoodTranslations',
+      'NewNameTranslations',
+      'OldNameTranslations',
+    ],
+  },
+  {
     nameKey: 'Street',
     includeKeys: [
       'StreetTranslations',

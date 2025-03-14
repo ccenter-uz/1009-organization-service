@@ -415,6 +415,13 @@ export class OrganizationService {
           },
         },
         {
+          Neighborhood: {
+            NeighborhoodTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
           Impasse: {
             ImpasseTranslations: {
               some: { name: { contains: data.address, mode: 'insensitive' } },
