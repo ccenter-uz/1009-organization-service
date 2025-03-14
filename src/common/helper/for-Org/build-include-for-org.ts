@@ -175,6 +175,11 @@ export const includeConfig = {
     'ResidentialAreaNewNameTranslations',
     'ResidentialAreaOldNameTranslations',
   ],
+  Neighborhood: [
+    'NeighborhoodTranslations',
+    'NeighborhoodNewNameTranslations',
+    'NeighborhoodOldNameTranslations',
+  ],
   Area: [
     'AreaTranslations',
     'AreaNewNameTranslations',
