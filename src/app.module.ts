@@ -5,7 +5,9 @@ import {
   dbConfig,
   rabbitConfig,
 } from './common/config/configuration';
+import { CacheModule } from '@nestjs/cache-manager';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import * as redisStore from 'cache-manager-redis-store';
 import { AllExceptionFilter } from './common/filter/all-exception.filter';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { CategoryModule } from './modules/category/category.module';
@@ -38,6 +40,9 @@ import { AdditionalModule } from './modules/additional/additional.module';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { NeighborhoodModule } from './modules/neighborhood/neighborhood.module';
+import { CacheRedisModule } from './modules/cache/cache.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
 
 @Module({
   imports: [
@@ -45,8 +50,17 @@ import { NeighborhoodModule } from './modules/neighborhood/neighborhood.module';
       isGlobal: true,
       load: [appConfig, dbConfig, rabbitConfig],
     }),
+    CacheModule.register({
+      store: redisStore,
+      host: process.env.REDIS_HOST || 'localhost',
+      port: process.env.REDIS_PORT || 6379,
+      isGlobal: true,
+    }),
+
+    
     ScheduleModule.forRoot(),
     PrismaModule,
+    CacheRedisModule,
     CategoryModule,
     SubCategoryModule,
     MainOrganizationModule,

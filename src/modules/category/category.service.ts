@@ -16,12 +16,17 @@ import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 import { Prisma } from '@prisma/client';
 import { getOrderedData } from '@/common/helper/sql-rows-for-select/get-ordered-data.dto';
+import { CacheService } from '../cache/cache.service';
+import { formatCacheKey } from '@/common/helper/format-cache-maneger';
 
 @Injectable()
 export class CategoryService {
   private logger = new Logger(CategoryService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cacheService: CacheService
+  ) {}
 
   async create(data: CategoryCreateDto): Promise<CategoryInterfaces.Response> {
     const methodName: string = this.create.name;
@@ -100,7 +105,7 @@ export class CategoryService {
     });
 
     this.logger.debug(`Method: ${methodName} - Response: `, data);
-
+    await this.cacheService.invalidateAllCaches('category');
     return category;
   }
 
@@ -109,7 +114,15 @@ export class CategoryService {
   ): Promise<CategoryInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-
+    const CacheKey = formatCacheKey(data);
+    const findCategores = await this.cacheService.get(
+      'category',
+      CacheKey
+    );
+    if (findCategores) {
+      return findCategores;
+    } else {
+      
     if (data.all) {
       const categories: any = await getOrderedData(
         'Category',
@@ -177,7 +190,11 @@ export class CategoryService {
         `Method: ${methodName} -  Response: `,
         formattedCategories
       );
-
+      await this.cacheService.setAll('category', CacheKey, {
+         data: formattedCategories,
+        totalDocs: categories.length,
+        totalPage: categories.length > 0 ? 1 : 0,
+      });
       return {
         data: formattedCategories,
         totalDocs: categories.length,
@@ -279,11 +296,17 @@ export class CategoryService {
       formattedCategories
     );
 
+      await this.cacheService.setAll('category', CacheKey, {
+   data: formattedCategories,
+      totalPage: pagination.totalPage,
+      totalDocs: count,
+      });
     return {
       data: formattedCategories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
+    }
   }
 
   async findOne(data: GetOneDto): Promise<CategoryInterfaces.Response> {
@@ -291,149 +314,165 @@ export class CategoryService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-    const category = await this.prisma.category.findFirst({
-      where: {
-        id: data.id,
-        status: DefaultStatus.ACTIVE,
-      },
-      include: {
-        city: {
-          include: {
-            CityTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
+    const findCategory = await this.cacheService.get(
+      'categoryOne',
+      data.id?.toString()
+    );
+    if (findCategory) {
+      console.log(findCategory, 'findCategory');
+
+      return findCategory;
+    } else {
+      const category = await this.prisma.category.findFirst({
+        where: {
+          id: data.id,
+          status: DefaultStatus.ACTIVE,
+        },
+        include: {
+          city: {
+            include: {
+              CityTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
               },
             },
           },
-        },
-        region: {
-          include: {
-            RegionTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
+          region: {
+            include: {
+              RegionTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
               },
             },
           },
-        },
-        district: {
-          include: {
-            DistrictTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
+          district: {
+            include: {
+              DistrictTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
               },
-            },
-            DistrictNewNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
+              DistrictNewNameTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
               },
-            },
-            DistrictOldNameTranslations: {
-              where: data.allLang
-                ? {}
-                : {
-                    languageCode: data.langCode,
-                  },
-              select: {
-                languageCode: true,
-                name: true,
+              DistrictOldNameTranslations: {
+                where: data.allLang
+                  ? {}
+                  : {
+                      languageCode: data.langCode,
+                    },
+                select: {
+                  languageCode: true,
+                  name: true,
+                },
               },
             },
           },
-        },
-        CategoryTranslations: {
-          where: data.allLang
-            ? {}
-            : {
-                languageCode: data.langCode,
-              },
-          select: {
-            languageCode: true,
-            name: true,
+          CategoryTranslations: {
+            where: data.allLang
+              ? {}
+              : {
+                  languageCode: data.langCode,
+                },
+            select: {
+              languageCode: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    if (!category) {
-      throw new NotFoundException('Category is not found');
-    }
+      if (!category) {
+        throw new NotFoundException('Category is not found');
+      }
 
-    const name = formatLanguageResponse(category.CategoryTranslations);
+      const name = formatLanguageResponse(category.CategoryTranslations);
 
-    this.logger.debug(`Method: ${methodName} - Response: `, category);
-    delete category.CategoryTranslations;
+      this.logger.debug(`Method: ${methodName} - Response: `, category);
+      delete category.CategoryTranslations;
 
-    let formatedRespons: CategoryInterfaces.Response = { ...category, name };
-    if (category.city) {
-      const cityTranslations = category.city.CityTranslations;
-      const cityName = formatLanguageResponse(cityTranslations);
+      let formatedRespons: CategoryInterfaces.Response = { ...category, name };
+      if (category.city) {
+        const cityTranslations = category.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
 
-      delete category.city.CityTranslations;
+        delete category.city.CityTranslations;
 
-      const city = { ...category.city, name: cityName };
+        const city = { ...category.city, name: cityName };
 
-      formatedRespons = { ...formatedRespons, city };
-    }
-    if (category.region) {
-      const regionTranslations = category.region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
+        formatedRespons = { ...formatedRespons, city };
+      }
+      if (category.region) {
+        const regionTranslations = category.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
 
-      delete formatedRespons.region?.['RegionTranslations'];
-      delete category.region.RegionTranslations;
-      const region = { ...category.region, name: regionName };
+        delete formatedRespons.region?.['RegionTranslations'];
+        delete category.region.RegionTranslations;
+        const region = { ...category.region, name: regionName };
 
-      formatedRespons = { ...formatedRespons, region };
-    }
+        formatedRespons = { ...formatedRespons, region };
+      }
 
-    if (category.district) {
-      const districtName = formatLanguageResponse(
-        category.district.DistrictTranslations
+      if (category.district) {
+        const districtName = formatLanguageResponse(
+          category.district.DistrictTranslations
+        );
+        const districtNewName = formatLanguageResponse(
+          category.district.DistrictNewNameTranslations
+        );
+        const districtOldName = formatLanguageResponse(
+          category.district.DistrictOldNameTranslations
+        );
+
+        delete category.district.DistrictTranslations;
+        delete category.district.DistrictNewNameTranslations;
+        delete category.district.DistrictOldNameTranslations;
+
+        let district = {
+          ...formatedRespons.district,
+          name: districtName,
+          oldName: districtOldName,
+          newName: districtNewName,
+        };
+        delete formatedRespons.district;
+        formatedRespons = { ...formatedRespons, district };
+      }
+
+      await this.cacheService.set(
+        'categoryOne',
+        data.id?.toString(),
+        formatedRespons
       );
-      const districtNewName = formatLanguageResponse(
-        category.district.DistrictNewNameTranslations
-      );
-      const districtOldName = formatLanguageResponse(
-        category.district.DistrictOldNameTranslations
-      );
-
-      delete category.district.DistrictTranslations;
-      delete category.district.DistrictNewNameTranslations;
-      delete category.district.DistrictOldNameTranslations;
-
-      let district = {
-        ...formatedRespons.district,
-        name: districtName,
-        oldName: districtOldName,
-        newName: districtNewName,
-      };
-      delete formatedRespons.district;
-      formatedRespons = { ...formatedRespons, district };
+      return formatedRespons;
     }
-    return formatedRespons;
   }
 
   async update(data: CategoryUpdateDto): Promise<CategoryInterfaces.Response> {
@@ -529,7 +568,8 @@ export class CategoryService {
     });
 
     this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
-
+    await this.cacheService.delete('categoryOne', data.id?.toString());
+    await this.cacheService.invalidateAllCaches('category');
     return updatedCategory;
   }
 
@@ -597,7 +637,8 @@ export class CategoryService {
         `Method: ${methodName} - Rresponse when delete true: `,
         category
       );
-
+    await this.cacheService.delete('categoryOne', data.id?.toString());
+    await this.cacheService.invalidateAllCaches('category');
       return category;
     }
 
@@ -660,7 +701,8 @@ export class CategoryService {
       `Method: ${methodName} - Rresponse when delete false: `,
       category
     );
-
+    await this.cacheService.delete('categoryOne', data.id?.toString());
+    await this.cacheService.invalidateAllCaches('category');
     return category;
   }
 
@@ -728,7 +770,7 @@ export class CategoryService {
     });
 
     this.logger.debug(`Method: ${methodName} - Rresponse: `, category);
-
+    await this.cacheService.invalidateAllCaches('category');
     return category;
   }
 }
