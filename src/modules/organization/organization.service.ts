@@ -350,95 +350,133 @@ export class OrganizationService {
     const include = buildInclude(includeConfig, data);
     const where: any = {};
 
-    // const formattedAddress = data.address
-    //   .split(' ')
-    //   .map((word) => `${word}:*`)
-    //   .join(' & ');
+    const formattedAddress = data.address
+      .split(' ')
+      .map((word) => `${word}:*`)
+      .join(' & ');
 
     if (data.address) {
       where.OR = [
-        { address: { contains: data.address, mode: 'insensitive' } },
+        {
+          addressSearchVector: {
+            search: formattedAddress,
+            mode: 'insensitive',
+          },
+        },
         {
           District: {
             DistrictTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
             },
           },
         },
         {
           Region: {
             RegionTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
             },
           },
         },
         {
           Passage: {
             PassageTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
             },
           },
         },
         {
           Street: {
             StreetTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
             },
           },
         },
         {
           Area: {
             AreaTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
             },
           },
         },
         {
           Avenue: {
             AvenueTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
             },
           },
         },
         {
           City: {
             CityTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
             },
           },
         },
         {
           ResidentialArea: {
             ResidentialAreaTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
             },
           },
         },
         {
           Neighborhood: {
             NeighborhoodTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
+            },
+          },
+        },
+        {
+          Neighborhood: {
+            NeighborhoodTranslations: {
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
             },
           },
         },
         {
           Impasse: {
             ImpasseTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
             },
           },
         },
         {
           Village: {
             VillageTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
             },
           },
         },
         {
           Lane: {
             LaneTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+              some: {
+                searchVector: { search: formattedAddress, mode: 'insensitive' },
+              },
             },
           },
         },
@@ -448,11 +486,17 @@ export class OrganizationService {
               Nearby: {
                 NearbyTranslations: {
                   some: {
-                    name: { contains: data.address, mode: 'insensitive' },
+                    searchVector: {
+                      search: formattedAddress,
+                      mode: 'insensitive',
+                    },
                   },
                 },
               },
-              description: { contains: data.address, mode: 'insensitive' },
+              descriptionSearchVector: {
+                search: formattedAddress,
+                mode: 'insensitive',
+              },
             },
           },
         },
