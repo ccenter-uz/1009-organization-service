@@ -1,7 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { encrypt } from '@/common/helper/crypt';
 import Redis from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 
