@@ -347,7 +347,107 @@ export class OrganizationService {
     } else {
 
     if (data.address) {
-      where.address = { contains: data.address, mode: 'insensitive' };
+      where.OR = [
+        { address: { contains: data.address, mode: 'insensitive' } },
+        {
+          District: {
+            DistrictTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
+          Region: {
+            RegionTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
+          Passage: {
+            PassageTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
+          Street: {
+            StreetTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
+          Area: {
+            AreaTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
+          Avenue: {
+            AvenueTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
+          City: {
+            CityTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
+          ResidentialArea: {
+            ResidentialAreaTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
+          Neighborhood: {
+            NeighborhoodTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
+          Impasse: {
+            ImpasseTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
+          Village: {
+            VillageTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
+          Lane: {
+            LaneTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
+            },
+          },
+        },
+        {
+          Nearbees: {
+            some: {
+              Nearby: {
+                NearbyTranslations: {
+                  some: {
+                    name: { contains: data.address, mode: 'insensitive' },
+                  },
+                },
+              },
+              description: { contains: data.address, mode: 'insensitive' },
+            },
+          },
+        },
+      ];
     }
 
       if (data.apartment) {
