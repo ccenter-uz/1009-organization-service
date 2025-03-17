@@ -607,7 +607,7 @@ export class VillageService {
         regionId: data.regionId || village.regionId,
         cityId: data.cityId || village.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || village.staffNumber,
+        editedStaffNumber: data.staffNumber,
         index: data.index || village.index,
         orderNumber: data.orderNumber,
         VillageTranslations: {

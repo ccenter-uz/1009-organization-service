@@ -160,7 +160,7 @@ export class MainOrganizationService {
         id: mainOrganization.id,
       },
       data: {
-        staffNumber: data.staffNumber,
+        editedStaffNumber: data.staffNumber,
         name: data.name,
         orderNumber: data.orderNumber,
       },

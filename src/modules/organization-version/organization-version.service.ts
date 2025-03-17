@@ -655,8 +655,7 @@ export class OrganizationVersionService {
           laneId: data.laneId || null,
           impasseId: data.impasseId || null,
           segmentId: data.segmentId || null,
-          mainOrganizationId:
-            data.mainOrganizationId || null,
+          mainOrganizationId: data.mainOrganizationId || null,
           subCategoryId:
             data.subCategoryId || organizationVersion.subCategoryId,
           account: data.account || null,
@@ -674,7 +673,7 @@ export class OrganizationVersionService {
           index: data.index || organizationVersion.index,
           transport: data.transport || organizationVersion.transport,
           workTime: data.workTime || organizationVersion.workTime,
-          staffNumber: data.staffNumber || organizationVersion.staffNumber,
+          editedStaffNumber: data.staffNumber,
           description: data.description || organizationVersion.description,
           passageId: data.passageId || null,
           status: status,

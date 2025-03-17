@@ -628,7 +628,7 @@ export class NeighborhoodService {
         regionId: data.regionId || neighborhood.regionId,
         cityId: data.cityId || neighborhood.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || neighborhood.staffNumber,
+        editedStaffNumber: data.staffNumber,
         index: data.index || neighborhood.index,
         orderNumber: data.orderNumber,
         NeighborhoodTranslations: {

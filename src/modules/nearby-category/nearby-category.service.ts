@@ -163,7 +163,7 @@ export class NearbyCategoryService {
         id: nearbyCategry.id,
       },
       data: {
-        staffNumber: data.staffNumber,
+        editedStaffNumber: data.staffNumber,
         name: data.name,
         orderNumber: data.orderNumber,
       },

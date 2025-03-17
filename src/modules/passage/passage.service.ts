@@ -604,7 +604,7 @@ export class PassageService {
         regionId: data.regionId || passage.regionId,
         cityId: data.cityId || passage.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || passage.staffNumber,
+        editedStaffNumber: data.staffNumber,
         index: data.index || passage.index,
         orderNumber: data.orderNumber,
         PassageTranslations: {

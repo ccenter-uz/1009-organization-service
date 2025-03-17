@@ -232,7 +232,7 @@ export class ProductServiceCategoryService {
         id: productServiceCategory.id,
       },
       data: {
-        staffNumber: data.staffNumber,
+        editedStaffNumber: data.staffNumber,
         orderNumber: data.orderNumber,
         ProductServiceCategoryTranslations: {
           updateMany: [

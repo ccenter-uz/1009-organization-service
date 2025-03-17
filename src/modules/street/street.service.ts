@@ -612,7 +612,7 @@ export class StreetService {
         regionId: data.regionId || street.regionId,
         cityId: data.cityId || street.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || street.staffNumber,
+        editedStaffNumber: data.staffNumber,
         index: data.index || street.index,
         orderNumber: data.orderNumber,
         StreetTranslations: {
