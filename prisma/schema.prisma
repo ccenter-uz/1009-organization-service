@@ -263,7 +263,7 @@ model District {
   editedStaffNumber           String?                       @map("edited_staff_number") @db.VarChar(40)
   orderNumber                 Int?                          @map("order_number")
   createdAt                   DateTime                      @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                   DateTime?                     @updatedAt @map("updated_at")
+  updatedAt                   DateTime?                     @updatedAt @map("upd ated_at")
   deletedAt                   DateTime?                     @updatedAt @map("deleted_at")
   Region                      Region                        @relation(fields: [regionId], references: [id])
   City                        City                          @relation(fields: [cityId], references: [id])
