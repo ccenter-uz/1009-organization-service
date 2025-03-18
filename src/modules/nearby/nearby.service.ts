@@ -109,6 +109,16 @@ export class NearbyService {
     });
     this.logger.debug(`Method: ${methodName} - Response: `, nearby);
 
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE nearby_translations 
+      SET search_vector = to_tsvector('simple', name) 
+      WHERE nearby_id = ${nearby.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     return nearby;
   }
 
