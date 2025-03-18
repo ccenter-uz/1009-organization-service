@@ -6,7 +6,7 @@
 */
 -- AlterTable
 ALTER TABLE "district" DROP COLUMN "updated_at",
-ADD COLUMN     "upd ated_at" TIMESTAMP(3);
+ADD COLUMN     "updated_at" TIMESTAMP(3);
 
 -- CreateTable
 CREATE TABLE "street" (
