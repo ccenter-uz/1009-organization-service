@@ -59,6 +59,16 @@ export class CityService {
     });
     this.logger.debug(`Method: ${methodName} - Response: `, city);
 
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE city_translations 
+      SET search_vector = to_tsvector('simple', name) 
+      WHERE city_id = ${city.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     return city;
   }
 
@@ -68,14 +78,8 @@ export class CityService {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-   
     if (data.all) {
-      const cities = await getCityData(
-        'City',
-        'city',
-        this.prisma,
-        data,
-      );
+      const cities = await getCityData('City', 'city', this.prisma, data);
 
       const formattedCity = [];
 

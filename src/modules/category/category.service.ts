@@ -237,64 +237,63 @@ export class CategoryService {
       data,
       pagination
     );
-    const formattedCategories = [];
 
-    for (let i = 0; i < categories.length; i++) {
-      let category = categories[i];
-      const translations = category.CategoryTranslations;
-      const name = formatLanguageResponse(translations);
-      category = { ...category, name };
-      delete category.CategoryTranslations;
+    // for (let i = 0; i < categories.length; i++) {
+    //   let category = categories[i];
+    //   const translations = category.CategoryTranslations;
+    //   const name = formatLanguageResponse(translations);
+    //   category = { ...category, name };
+    //   delete category.CategoryTranslations;
 
-      if (category.city) {
-        const cityTranslations = category.city.CityTranslations;
-        const cityName = formatLanguageResponse(cityTranslations);
+    //   if (category.city) {
+    //     const cityTranslations = category.city.CityTranslations;
+    //     const cityName = formatLanguageResponse(cityTranslations);
 
-        delete category.city.CityTranslations;
+    //     delete category.city.CityTranslations;
 
-        const city = { ...category.city, name: cityName };
+    //     const city = { ...category.city, name: cityName };
 
-        delete category.CityTranslations;
+    //     delete category.CityTranslations;
 
-        category = { ...category, city };
-      }
-      if (category.region) {
-        const regionTranslations = category.region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
+    //     category = { ...category, city };
+    //   }
+    //   if (category.region) {
+    //     const regionTranslations = category.region.RegionTranslations;
+    //     const regionName = formatLanguageResponse(regionTranslations);
 
-        const region = { ...category.region, name: regionName };
+    //     const region = { ...category.region, name: regionName };
 
-        category = { ...category, region };
-        delete category.region.RegionTranslations;
-      }
-      if (category.district) {
-        const districtName = formatLanguageResponse(
-          category.district.DistrictTranslations
-        );
-        const districtNewName = formatLanguageResponse(
-          category.district.DistrictNewNameTranslations
-        );
-        const districtOldName = formatLanguageResponse(
-          category.district.DistrictOldNameTranslations
-        );
+    //     category = { ...category, region };
+    //     delete category.region.RegionTranslations;
+    //   }
+    //   if (category.district) {
+    //     const districtName = formatLanguageResponse(
+    //       category.district.DistrictTranslations
+    //     );
+    //     const districtNewName = formatLanguageResponse(
+    //       category.district.DistrictNewNameTranslations
+    //     );
+    //     const districtOldName = formatLanguageResponse(
+    //       category.district.DistrictOldNameTranslations
+    //     );
 
-        const district = {
-          ...category.district,
-          name: districtName,
-          newName: districtNewName,
-          oldName: districtOldName,
-        };
-        category = { ...category, district };
-        delete category.district.DistrictTranslations;
-        delete category.district.DistrictNewNameTranslations;
-        delete category.district.DistrictOldNameTranslations;
-      }
-      formattedCategories.push(category);
-    }
-    this.logger.debug(
-      `Method: ${methodName} - Response: `,
-      formattedCategories
-    );
+    //     const district = {
+    //       ...category.district,
+    //       name: districtName,
+    //       newName: districtNewName,
+    //       oldName: districtOldName,
+    //     };
+    //     category = { ...category, district };
+    //     delete category.district.DistrictTranslations;
+    //     delete category.district.DistrictNewNameTranslations;
+    //     delete category.district.DistrictOldNameTranslations;
+    //   }
+    //   formattedCategories.push(category);
+    // }
+    this.logger.debug(`Method: ${methodName} - Response: `, categories[0]);
+
+    console.log(pagination.totalPage, 'TOTAL PAGE');
+    console.log(count, 'COUNT');
 
       await this.cacheService.setAll('category', CacheKey, {
    data: formattedCategories,
@@ -302,7 +301,7 @@ export class CategoryService {
       totalDocs: count,
       });
     return {
-      data: formattedCategories,
+      data: categories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };

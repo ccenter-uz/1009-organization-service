@@ -60,7 +60,6 @@ import { NeighborhoodService } from '../neighborhood/neighborhood.service';
 import { CacheService } from '../cache/cache.service';
 import { formatCacheKey } from '@/common/helper/format-cache-maneger';
 
-
 @Injectable()
 export class OrganizationService {
   private logger = new Logger(OrganizationService.name);
@@ -320,7 +319,26 @@ export class OrganizationService {
         ProductServices: true,
       },
     });
+
     this.logger.debug(`Method: ${methodName} - Response: `, organization);
+
+    if (data.address) {
+      await this.prisma.$executeRawUnsafe(`
+        UPDATE organization 
+        SET address_search_vector = to_tsvector('simple', address) 
+        WHERE id = ${organization.id}
+      `);
+    }
+
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE nearbees 
+      SET description_search_vector = to_tsvector('simple', description) 
+      WHERE organization_version_id = ${organization.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
 
     await this.organizationVersionService.create(organization);
 
@@ -342,121 +360,208 @@ export class OrganizationService {
       CacheKey
     );
 
-    if (findOrganization) { 
-      return findOrganization
+    if (findOrganization) {
+      return findOrganization;
     } else {
+      const formattedAddress = data.address
+        .split(' ')
+        .map((word) => `${word}:*`)
+        .join(' & ');
 
-    if (data.address) {
-      where.OR = [
-        { address: { contains: data.address, mode: 'insensitive' } },
-        {
-          District: {
-            DistrictTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+      if (data.address) {
+        where.OR = [
+          {
+            addressSearchVector: {
+              search: formattedAddress,
+              mode: 'insensitive',
             },
           },
-        },
-        {
-          Region: {
-            RegionTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
-            },
-          },
-        },
-        {
-          Passage: {
-            PassageTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
-            },
-          },
-        },
-        {
-          Street: {
-            StreetTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
-            },
-          },
-        },
-        {
-          Area: {
-            AreaTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
-            },
-          },
-        },
-        {
-          Avenue: {
-            AvenueTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
-            },
-          },
-        },
-        {
-          City: {
-            CityTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
-            },
-          },
-        },
-        {
-          ResidentialArea: {
-            ResidentialAreaTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
-            },
-          },
-        },
-        {
-          Neighborhood: {
-            NeighborhoodTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
-            },
-          },
-        },
-        {
-          Impasse: {
-            ImpasseTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
-            },
-          },
-        },
-        {
-          Village: {
-            VillageTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
-            },
-          },
-        },
-        {
-          Lane: {
-            LaneTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
-            },
-          },
-        },
-        {
-          Nearbees: {
-            some: {
-              Nearby: {
-                NearbyTranslations: {
-                  some: {
-                    name: { contains: data.address, mode: 'insensitive' },
+          {
+            District: {
+              DistrictTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
                   },
                 },
               },
-              description: { contains: data.address, mode: 'insensitive' },
             },
           },
-        },
-      ];
-    }
+          {
+            Region: {
+              RegionTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+          {
+            Passage: {
+              PassageTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+          {
+            Street: {
+              StreetTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+          {
+            Area: {
+              AreaTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+          {
+            Avenue: {
+              AvenueTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+          {
+            City: {
+              CityTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+          {
+            ResidentialArea: {
+              ResidentialAreaTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+          {
+            Neighborhood: {
+              NeighborhoodTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+          {
+            Neighborhood: {
+              NeighborhoodTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+          {
+            Impasse: {
+              ImpasseTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+          {
+            Village: {
+              VillageTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+          {
+            Lane: {
+              LaneTranslations: {
+                some: {
+                  searchVector: {
+                    search: formattedAddress,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+          {
+            Nearbees: {
+              some: {
+                Nearby: {
+                  NearbyTranslations: {
+                    some: {
+                      searchVector: {
+                        search: formattedAddress,
+                        mode: 'insensitive',
+                      },
+                    },
+                  },
+                },
+                descriptionSearchVector: {
+                  search: formattedAddress,
+                  mode: 'insensitive',
+                },
+              },
+            },
+          },
+        ];
+      }
 
       if (data.apartment) {
         where.apartment = { contains: data.apartment, mode: 'insensitive' };
       }
 
-    if (data.categoryId) {
-      where.subCategoryId = data.categoryId;
-    }
+      if (data.categoryId) {
+        where.subCategoryId = data.categoryId;
+      }
 
       if (data.cityId) {
         where.cityId = data.cityId;
@@ -578,14 +683,14 @@ export class OrganizationService {
         };
       }
 
-    const whereWithLang: any = {
-      ...(data.status
-        ? {
-            status: data.status,
-          }
-        : {}),
-      ...where
-    };
+      const whereWithLang: any = {
+        ...(data.status
+          ? {
+              status: data.status,
+            }
+          : {}),
+        ...where,
+      };
 
       if (data.search) {
         whereWithLang.name = {
@@ -861,6 +966,37 @@ export class OrganizationService {
     const findCategory = await this.cacheService.get(
       'organizationOne',
       data.id?.toString()
+    );
+
+    console.log(include, 'INCLUDE');
+
+    const organization = await this.prisma.organization.findFirst({
+      where: {
+        id: data.id,
+      },
+      orderBy: { name: 'asc' },
+      include: {
+        ...include,
+      },
+    });
+    for (let [key, prop] of Object.entries(includeConfig)) {
+      let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+      delete organization?.[idNameOfModules];
+    }
+    if (!organization) {
+      throw new NotFoundException('Organization is not found');
+    }
+
+    let formattedOrganization = formatOrganizationResponse(
+      organization,
+      modulesConfig
+    );
+    if (data.role !== 'moderator') {
+      delete formattedOrganization.secret;
+    }
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedOrganization
     );
     if (findCategory) {
       console.log(findCategory, 'findCategory');
@@ -1258,11 +1394,11 @@ export class OrganizationService {
         });
         this.logger.debug(`Method: ${methodName} - Request: `, UpdateOrg);
 
-            await this.cacheService.delete(
-      'organizationOne',
-      UpdateOrg.id?.toString()
-    );
-    await this.cacheService.invalidateAllCaches('organization');
+        await this.cacheService.delete(
+          'organizationOne',
+          UpdateOrg.id?.toString()
+        );
+        await this.cacheService.invalidateAllCaches('organization');
         return UpdateOrg;
       } else {
         const UpdateVersion = await this.prisma.organizationVersion.update({
@@ -1341,11 +1477,11 @@ export class OrganizationService {
       });
 
       this.logger.debug(`Method: ${methodName} - Response: `, UpdateOrg);
-          await this.cacheService.delete(
-      'organizationOne',
-      UpdateOrg.id?.toString()
-    );
-    await this.cacheService.invalidateAllCaches('organization');
+      await this.cacheService.delete(
+        'organizationOne',
+        UpdateOrg.id?.toString()
+      );
+      await this.cacheService.invalidateAllCaches('organization');
       return UpdateOrg;
     } else {
       const UpdateOrgVersion = await this.prisma.organizationVersion.update({
