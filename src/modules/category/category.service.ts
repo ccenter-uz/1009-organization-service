@@ -18,6 +18,7 @@ import { Prisma } from '@prisma/client';
 import { getOrderedData } from '@/common/helper/sql-rows-for-select/get-ordered-data.dto';
 import { CacheService } from '../cache/cache.service';
 import { formatCacheKey } from '@/common/helper/format-cache-maneger';
+import { getCategoryData } from '@/common/helper/sql-rows-for-select/get-category';
 
 @Injectable()
 export class CategoryService {
@@ -115,196 +116,192 @@ export class CategoryService {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const CacheKey = formatCacheKey(data);
-    const findCategores = await this.cacheService.get(
-      'category',
-      CacheKey
-    );
+    const findCategores = await this.cacheService.get('category', CacheKey);
     if (findCategores) {
       return findCategores;
     } else {
-      
-    if (data.all) {
-      const categories: any = await getOrderedData(
+      if (data.all) {
+        const categories: any = await getOrderedData(
+          'Category',
+          'category',
+          this.prisma,
+          data
+        );
+
+        const formattedCategories = [];
+
+        for (let i = 0; i < categories.length; i++) {
+          let category = categories[i];
+          const translations = category.CategoryTranslations;
+          const name = formatLanguageResponse(translations);
+          category = { ...category, name };
+          delete category.CategoryTranslations;
+
+          if (category.city) {
+            const cityTranslations = category.city.CityTranslations;
+            const cityName = formatLanguageResponse(cityTranslations);
+
+            delete category.city.CityTranslations;
+
+            const city = { ...category.city, name: cityName };
+
+            delete category.CityTranslations;
+
+            category = { ...category, city };
+          }
+          if (category.region) {
+            const regionTranslations = category.region.RegionTranslations;
+            const regionName = formatLanguageResponse(regionTranslations);
+
+            const region = { ...category.region, name: regionName };
+
+            category = { ...category, region };
+            delete category.region.RegionTranslations;
+          }
+          if (category.district) {
+            const districtName = formatLanguageResponse(
+              category.district.DistrictTranslations
+            );
+            const districtNewName = formatLanguageResponse(
+              category.district.DistrictNewNameTranslations
+            );
+            const districtOldName = formatLanguageResponse(
+              category.district.DistrictOldNameTranslations
+            );
+
+            const district = {
+              ...category.district,
+              name: districtName,
+              newName: districtNewName,
+              oldName: districtOldName,
+            };
+            category = { ...category, district };
+            delete category.district.DistrictTranslations;
+            delete category.district.DistrictNewNameTranslations;
+            delete category.district.DistrictOldNameTranslations;
+          }
+          formattedCategories.push(category);
+        }
+
+        this.logger.debug(
+          `Method: ${methodName} -  Response: `,
+          formattedCategories
+        );
+        await this.cacheService.setAll('category', CacheKey, {
+          data: formattedCategories,
+          totalDocs: categories.length,
+          totalPage: categories.length > 0 ? 1 : 0,
+        });
+        return {
+          data: formattedCategories,
+          totalDocs: categories.length,
+          totalPage: categories.length > 0 ? 1 : 0,
+        };
+      }
+
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+        cityId: data.cityId,
+        regionId: data.regionId,
+        districtId: data.districtId,
+      };
+      if (data.search) {
+        where.CategoryTranslations = {
+          some: {
+            name: {
+              contains: data.search,
+              mode: 'insensitive',
+            },
+          },
+        };
+      }
+      const count = await this.prisma.category.count({ where });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+
+      const categories: any = await getCategoryData(
         'Category',
         'category',
         this.prisma,
-        data
+        data,
+        pagination
       );
 
-      const formattedCategories = [];
+      // for (let i = 0; i < categories.length; i++) {
+      //   let category = categories[i];
+      //   const translations = category.CategoryTranslations;
+      //   const name = formatLanguageResponse(translations);
+      //   category = { ...category, name };
+      //   delete category.CategoryTranslations;
 
-      for (let i = 0; i < categories.length; i++) {
-        let category = categories[i];
-        const translations = category.CategoryTranslations;
-        const name = formatLanguageResponse(translations);
-        category = { ...category, name };
-        delete category.CategoryTranslations;
+      //   if (category.city) {
+      //     const cityTranslations = category.city.CityTranslations;
+      //     const cityName = formatLanguageResponse(cityTranslations);
 
-        if (category.city) {
-          const cityTranslations = category.city.CityTranslations;
-          const cityName = formatLanguageResponse(cityTranslations);
+      //     delete category.city.CityTranslations;
 
-          delete category.city.CityTranslations;
+      //     const city = { ...category.city, name: cityName };
 
-          const city = { ...category.city, name: cityName };
+      //     delete category.CityTranslations;
 
-          delete category.CityTranslations;
+      //     category = { ...category, city };
+      //   }
+      //   if (category.region) {
+      //     const regionTranslations = category.region.RegionTranslations;
+      //     const regionName = formatLanguageResponse(regionTranslations);
 
-          category = { ...category, city };
-        }
-        if (category.region) {
-          const regionTranslations = category.region.RegionTranslations;
-          const regionName = formatLanguageResponse(regionTranslations);
+      //     const region = { ...category.region, name: regionName };
 
-          const region = { ...category.region, name: regionName };
+      //     category = { ...category, region };
+      //     delete category.region.RegionTranslations;
+      //   }
+      //   if (category.district) {
+      //     const districtName = formatLanguageResponse(
+      //       category.district.DistrictTranslations
+      //     );
+      //     const districtNewName = formatLanguageResponse(
+      //       category.district.DistrictNewNameTranslations
+      //     );
+      //     const districtOldName = formatLanguageResponse(
+      //       category.district.DistrictOldNameTranslations
+      //     );
 
-          category = { ...category, region };
-          delete category.region.RegionTranslations;
-        }
-        if (category.district) {
-          const districtName = formatLanguageResponse(
-            category.district.DistrictTranslations
-          );
-          const districtNewName = formatLanguageResponse(
-            category.district.DistrictNewNameTranslations
-          );
-          const districtOldName = formatLanguageResponse(
-            category.district.DistrictOldNameTranslations
-          );
+      //     const district = {
+      //       ...category.district,
+      //       name: districtName,
+      //       newName: districtNewName,
+      //       oldName: districtOldName,
+      //     };
+      //     category = { ...category, district };
+      //     delete category.district.DistrictTranslations;
+      //     delete category.district.DistrictNewNameTranslations;
+      //     delete category.district.DistrictOldNameTranslations;
+      //   }
+      //   formattedCategories.push(category);
+      // }
+      this.logger.debug(`Method: ${methodName} - Response: `, categories[0]);
 
-          const district = {
-            ...category.district,
-            name: districtName,
-            newName: districtNewName,
-            oldName: districtOldName,
-          };
-          category = { ...category, district };
-          delete category.district.DistrictTranslations;
-          delete category.district.DistrictNewNameTranslations;
-          delete category.district.DistrictOldNameTranslations;
-        }
-        formattedCategories.push(category);
-      }
+      console.log(pagination.totalPage, 'TOTAL PAGE');
+      console.log(count, 'COUNT');
 
-      this.logger.debug(
-        `Method: ${methodName} -  Response: `,
-        formattedCategories
-      );
       await this.cacheService.setAll('category', CacheKey, {
-         data: formattedCategories,
-        totalDocs: categories.length,
-        totalPage: categories.length > 0 ? 1 : 0,
+        data: categories,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       });
       return {
-        data: formattedCategories,
-        totalDocs: categories.length,
-        totalPage: categories.length > 0 ? 1 : 0,
+        data: categories,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
-    }
-
-    const where: any = {
-      ...(data.status == 2
-        ? {}
-        : {
-            status: data.status,
-          }),
-      cityId: data.cityId,
-      regionId: data.regionId,
-      districtId: data.districtId,
-    };
-    if (data.search) {
-      where.CategoryTranslations = {
-        some: {
-          name: {
-            contains: data.search,
-            mode: 'insensitive',
-          },
-        },
-      };
-    }
-    const count = await this.prisma.category.count({ where });
-
-    const pagination = createPagination({
-      count,
-      page: data.page,
-      perPage: data.limit,
-    });
-
-    const categories: any = await getOrderedData(
-      'Category',
-      'category',
-      this.prisma,
-      data,
-      pagination
-    );
-
-    // for (let i = 0; i < categories.length; i++) {
-    //   let category = categories[i];
-    //   const translations = category.CategoryTranslations;
-    //   const name = formatLanguageResponse(translations);
-    //   category = { ...category, name };
-    //   delete category.CategoryTranslations;
-
-    //   if (category.city) {
-    //     const cityTranslations = category.city.CityTranslations;
-    //     const cityName = formatLanguageResponse(cityTranslations);
-
-    //     delete category.city.CityTranslations;
-
-    //     const city = { ...category.city, name: cityName };
-
-    //     delete category.CityTranslations;
-
-    //     category = { ...category, city };
-    //   }
-    //   if (category.region) {
-    //     const regionTranslations = category.region.RegionTranslations;
-    //     const regionName = formatLanguageResponse(regionTranslations);
-
-    //     const region = { ...category.region, name: regionName };
-
-    //     category = { ...category, region };
-    //     delete category.region.RegionTranslations;
-    //   }
-    //   if (category.district) {
-    //     const districtName = formatLanguageResponse(
-    //       category.district.DistrictTranslations
-    //     );
-    //     const districtNewName = formatLanguageResponse(
-    //       category.district.DistrictNewNameTranslations
-    //     );
-    //     const districtOldName = formatLanguageResponse(
-    //       category.district.DistrictOldNameTranslations
-    //     );
-
-    //     const district = {
-    //       ...category.district,
-    //       name: districtName,
-    //       newName: districtNewName,
-    //       oldName: districtOldName,
-    //     };
-    //     category = { ...category, district };
-    //     delete category.district.DistrictTranslations;
-    //     delete category.district.DistrictNewNameTranslations;
-    //     delete category.district.DistrictOldNameTranslations;
-    //   }
-    //   formattedCategories.push(category);
-    // }
-    this.logger.debug(`Method: ${methodName} - Response: `, categories[0]);
-
-    console.log(pagination.totalPage, 'TOTAL PAGE');
-    console.log(count, 'COUNT');
-
-      await this.cacheService.setAll('category', CacheKey, {
-   data: formattedCategories,
-      totalPage: pagination.totalPage,
-      totalDocs: count,
-      });
-    return {
-      data: categories,
-      totalPage: pagination.totalPage,
-      totalDocs: count,
-    };
     }
   }
 
@@ -503,74 +500,73 @@ export class CategoryService {
         data: { name: data.name[LanguageRequestEnum.CY] },
       });
     }
- 
-      const updatedCategory = await this.prisma.category.update({
-        where: {
-          id: category.id,
-        },
-        data: {
-          editedStaffNumber: data.staffNumber,
-          cityId: data.cityId,
-          regionId: data.regionId,
-          districtId: data.districtId,
-          orderNumber: data.orderNumber,
-          CategoryTranslations: {
-            updateMany:
-              translationUpdates.length > 0 ? translationUpdates : undefined,
-          },
-        },
-        include: {
-          CategoryTranslations: true,
-          city: {
-            include: {
-              CityTranslations: {
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          region: {
-            include: {
-              RegionTranslations: {
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          district: {
-            include: {
-              DistrictNewNameTranslations: {
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictOldNameTranslations: {
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-              DistrictTranslations: {
-                select: {
-                  languageCode: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
 
-      this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
-      await this.cacheService.delete('categoryOne', data.id?.toString());
-      await this.cacheService.invalidateAllCaches('category');
-      return updatedCategory
-    
+    const updatedCategory = await this.prisma.category.update({
+      where: {
+        id: category.id,
+      },
+      data: {
+        editedStaffNumber: data.staffNumber,
+        cityId: data.cityId,
+        regionId: data.regionId,
+        districtId: data.districtId,
+        orderNumber: data.orderNumber,
+        CategoryTranslations: {
+          updateMany:
+            translationUpdates.length > 0 ? translationUpdates : undefined,
+        },
+      },
+      include: {
+        CategoryTranslations: true,
+        city: {
+          include: {
+            CityTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        region: {
+          include: {
+            RegionTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+        district: {
+          include: {
+            DistrictNewNameTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictOldNameTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+            DistrictTranslations: {
+              select: {
+                languageCode: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
+    await this.cacheService.delete('categoryOne', data.id?.toString());
+    await this.cacheService.invalidateAllCaches('category');
+    return updatedCategory;
   }
 
   async remove(data: DeleteDto): Promise<CategoryInterfaces.Response> {
@@ -637,8 +633,8 @@ export class CategoryService {
         `Method: ${methodName} - Rresponse when delete true: `,
         category
       );
-    await this.cacheService.delete('categoryOne', data.id?.toString());
-    await this.cacheService.invalidateAllCaches('category');
+      await this.cacheService.delete('categoryOne', data.id?.toString());
+      await this.cacheService.invalidateAllCaches('category');
       return category;
     }
 
