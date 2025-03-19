@@ -633,7 +633,7 @@ export class ResidentialAreaService {
         regionId: data.regionId || residentialArea.regionId,
         cityId: data.cityId || residentialArea.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || residentialArea.staffNumber,
+        editedStaffNumber: data.staffNumber,
         index: data.index || residentialArea.index,
         orderNumber: data.orderNumber,
         ResidentialAreaTranslations: {

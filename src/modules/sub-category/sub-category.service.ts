@@ -300,7 +300,7 @@ export class SubCategoryService {
         id: subCategory.id,
       },
       data: {
-        staffNumber: data.staffNumber || subCategory.staffNumber,
+        editedStaffNumber: data.staffNumber,
         categoryId: data.categoryId || subCategory.categoryId,
         SubCategoryTranslations: {
           updateMany:

@@ -614,7 +614,7 @@ export class LaneService {
         regionId: data.regionId || lane.regionId,
         cityId: data.cityId || lane.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || lane.staffNumber,
+        editedStaffNumber: data.staffNumber,
         orderNumber: data.orderNumber,
         index: data.index || lane.index,
         LaneTranslations: {

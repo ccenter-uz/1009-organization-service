@@ -496,7 +496,7 @@ export class DistrictService {
       data: {
         regionId: data.regionId || district.regionId,
         cityId: data.cityId || district.cityId,
-        staffNumber: data.staffNumber || district.staffNumber,
+        editedStaffNumber: data.staffNumber,
         index: data.index || district.index,
         orderNumber: data.orderNumber,
         DistrictTranslations: {

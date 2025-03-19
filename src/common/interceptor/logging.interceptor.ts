@@ -71,11 +71,14 @@ export class LoggingInterceptor implements NestInterceptor {
         logDataComplete.duration = duration;
         if (response?.id) logDataComplete.organizationId = response?.id;
         if (response?.name) logDataComplete.organizationName = response?.name;
+        
+        if (typeof response?.name  !== 'object') {
+          this.saveLog(logDataComplete).catch((error) => {
+            console.error('Error saving log:', error);
+          });
+        }
 
         // Save the log asynchronously
-        this.saveLog(logDataComplete).catch((error) => {
-          console.error('Error saving log:', error);
-        });
 
         return response;
       })
