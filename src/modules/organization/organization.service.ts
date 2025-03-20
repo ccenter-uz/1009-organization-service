@@ -195,12 +195,9 @@ export class OrganizationService {
     let phoneCreateArray = [];
     let phones = data.phone['phones'];
     for (let i = 0; i < phones?.length; i++) {
-      const phoneType = await this.PhoneTypeService.findOne({
-        id: phones[i].phoneTypeId,
-      });
       phoneCreateArray.push({
         phone: phones[i].phone,
-        PhoneTypeId: phoneType.id,
+        PhoneTypeId: phones[i].phoneTypeId,
         isSecret: phones[i].isSecret,
       });
     }
