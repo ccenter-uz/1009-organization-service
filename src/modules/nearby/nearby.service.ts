@@ -35,6 +35,8 @@ export class NearbyService {
   async create(data: NearbyCreateDto): Promise<NearbyInterfaces.Response> {
     const methodName: string = this.create.name;
 
+    console.log(data);
+
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
@@ -46,9 +48,14 @@ export class NearbyService {
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
-    const district = await this.districtService.findOne({
-      id: data.districtId,
-    });
+
+    let district;
+    if (data.districtId) {
+      district = await this.districtService.findOne({
+        id: data.districtId,
+      });
+    }
+
     const nearby = await this.prisma.nearby.create({
       data: {
         nearbyCategoryId: nearbyCategory.id,
