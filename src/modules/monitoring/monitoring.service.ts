@@ -78,7 +78,12 @@ export class MonitoringService {
     if (data.method && data.method != 'ALL') {
       where.method = data.method;
     }
+    if(data.module) {
+      where.module = data.module;
+    }
 
+    console.log(where);
+    
     const count = await this.prisma.apiLogs.count({
       where,
     });
