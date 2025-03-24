@@ -716,19 +716,25 @@ export class OrganizationService {
 
       const result = [];
       for (let [index, org] of Object.entries(organization)) {
+        console.log('LOGGER 1');
         for (let [key, prop] of Object.entries(includeConfig)) {
           let idNameOfModules = key.toLocaleLowerCase() + 'Id';
           delete org?.[idNameOfModules];
         }
+        console.log('LOGGER 2');
         const formattedOrganization = formatOrganizationResponse(
           org,
           modulesConfig
         );
+        console.log(formattedOrganization, 'LOGGER 3');
 
         if (data.role !== 'moderator') {
           delete formattedOrganization.secret;
         }
+        console.log('LOGGER 4');
+
         result.push(formattedOrganization);
+        console.log('LOGGER 5');
       }
       this.logger.debug(`Method: ${methodName} - Response: `, result);
       await this.cacheService.setAll('organization', CacheKey, {
