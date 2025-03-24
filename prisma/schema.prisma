@@ -1448,6 +1448,7 @@ model ApiLogs {
   organizationId   Int?      @map("organization_id")
   organizationName String?   @map("organization_name") @db.VarChar()
   method           String?   @db.VarChar(50)
+  module           String?   @map("module") @db.VarChar(100)
   path             String?   @db.VarChar(150)
   request          String?
   response         String?
