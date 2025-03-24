@@ -360,7 +360,7 @@ export class OrganizationService {
     if (findOrganization) {
       return findOrganization;
     } else {
-      const formattedAddress = data.address
+      const formattedAddress = data?.address
         .split(' ')
         .map((word) => `${word}:*`)
         .join(' & ');
