@@ -481,18 +481,18 @@ export class OrganizationService {
               },
             },
           },
-          {
-            Neighborhood: {
-              NeighborhoodTranslations: {
-                some: {
-                  searchVector: {
-                    search: formattedAddress,
-                    mode: 'insensitive',
-                  },
-                },
-              },
-            },
-          },
+          // {
+          //   Neighborhood: {
+          //     NeighborhoodTranslations: {
+          //       some: {
+          //         searchVector: {
+          //           search: formattedAddress,
+          //           mode: 'insensitive',
+          //         },
+          //       },
+          //     },
+          //   },
+          // },
           {
             Impasse: {
               ImpasseTranslations: {
