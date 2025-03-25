@@ -708,6 +708,8 @@ export class OrganizationService {
         ...where,
       };
 
+      console.log('LOG 13.1');
+
       if (data.search) {
         console.log(data.search, 'LOG 14');
         whereWithLang.name = {
