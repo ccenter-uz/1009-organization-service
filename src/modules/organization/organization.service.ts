@@ -350,22 +350,30 @@ export class OrganizationService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
+    console.log(include, 'LOG 1');
     const where: any = {};
     const CacheKey = formatCacheKey(data);
+    console.log(CacheKey, 'LOG 2');
     const findOrganization = await this.cacheService.get(
       'organization',
       CacheKey
     );
+    console.log(findOrganization, 'LOG 3');
 
     if (findOrganization) {
+      console.log(findOrganization, 'if true', 'LOG 4');
       return findOrganization;
     } else {
+      console.log(findOrganization, 'if false', 'LOG 5');
       const formattedAddress = data?.address
         .split(' ')
         .map((word) => `${word}:*`)
         .join(' & ');
 
+      console.log(formattedAddress, 'LOG 6');
+
       if (data.address) {
+        console.log(data.address, 'if true', 'LOG 7');
         where.OR = [
           {
             addressSearchVector: {
@@ -550,7 +558,11 @@ export class OrganizationService {
             },
           },
         ];
+
+        console.log(data.address, 'if true', 'LOG 8');
       }
+
+      console.log('Filter', 'LOG 9');
 
       if (data.apartment) {
         where.apartment = { contains: data.apartment, mode: 'insensitive' };
@@ -646,7 +658,10 @@ export class OrganizationService {
         };
       }
 
+      console.log('Filter', 'LOG 10');
+
       if (data.all) {
+        console.log('Data All', 'LOG 11');
         const organizations = await this.prisma.organization.findMany({
           where,
           orderBy: { name: 'asc' },
@@ -673,6 +688,8 @@ export class OrganizationService {
           totalDocs: organizations.length,
           totalPage: organizations.length > 0 ? 1 : 0,
         });
+        console.log(result, 'Data All', 'LOG 12');
+
         return {
           data: result,
           totalDocs: organizations.length,
@@ -680,6 +697,7 @@ export class OrganizationService {
         };
       }
 
+      console.log('LOG 13');
       const whereWithLang: any = {
         ...(data.status
           ? {
@@ -690,6 +708,7 @@ export class OrganizationService {
       };
 
       if (data.search) {
+        console.log(data.search, 'LOG 14');
         whereWithLang.name = {
           contains: data.search,
           mode: 'insensitive',
@@ -699,12 +718,14 @@ export class OrganizationService {
       const count = await this.prisma.organization.count({
         where: whereWithLang,
       });
+      console.log(count, 'LOG 15');
 
       const pagination = createPagination({
         count,
         page: data.page,
         perPage: data.limit,
       });
+      console.log(pagination, 'LOG 15');
 
       const organization = await this.prisma.organization.findMany({
         where: whereWithLang,
@@ -713,6 +734,7 @@ export class OrganizationService {
         take: pagination.take,
         skip: pagination.skip,
       });
+      console.log(organization, 'LOG 15');
 
       const result = [];
       for (let [index, org] of Object.entries(organization)) {
