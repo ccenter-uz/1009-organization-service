@@ -718,6 +718,7 @@ export class OrganizationService {
         };
       }
 
+      console.log(whereWithLang, 'WHERE LANG');
       const count = await this.prisma.organization.count({
         where: whereWithLang,
       });
