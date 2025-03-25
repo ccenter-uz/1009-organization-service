@@ -365,14 +365,15 @@ export class OrganizationService {
       return findOrganization;
     } else {
       console.log(findOrganization, 'if false', 'LOG 5');
-      const formattedAddress = data?.address
-        .split(' ')
-        .map((word) => `${word}:*`)
-        .join(' & ');
-
-      console.log(formattedAddress, 'LOG 6');
 
       if (data.address) {
+        const formattedAddress = data?.address
+          .split(' ')
+          .map((word) => `${word}:*`)
+          .join(' & ');
+
+        console.log(formattedAddress, 'LOG 6');
+
         console.log(data.address, 'if true', 'LOG 7');
         where.OR = [
           {
