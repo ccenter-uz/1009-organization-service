@@ -59,6 +59,7 @@ import { Prisma } from '@prisma/client';
 import { NeighborhoodService } from '../neighborhood/neighborhood.service';
 import { CacheService } from '../cache/cache.service';
 import { formatCacheKey } from '@/common/helper/format-cache-maneger';
+import { getOrg } from '@/common/helper/for-Org/get-org-data.dto';
 
 
 @Injectable()
@@ -338,6 +339,8 @@ export class OrganizationService {
       'organization',
       CacheKey
     );
+ const query : any =  await  getOrg(data,this.prisma, {take:10, skip:0})
+console.log(query,'QUERY');
 
     if (findOrganization) { 
       return findOrganization
@@ -601,7 +604,7 @@ export class OrganizationService {
         perPage: data.limit,
       });
 
-      const organization = await this.prisma.organization.findMany({
+      let  organization1 = await this.prisma.organization.findMany({
         where: whereWithLang,
         orderBy: { name: 'asc' },
         include,
@@ -609,30 +612,38 @@ export class OrganizationService {
         skip: pagination.skip,
       });
 
-      const result = [];
-      for (let [index, org] of Object.entries(organization)) {
-        for (let [key, prop] of Object.entries(includeConfig)) {
-          let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-          delete org?.[idNameOfModules];
-        }
-        const formattedOrganization = formatOrganizationResponse(
-          org,
-          modulesConfig
-        );
 
-        if (data.role !== 'moderator') {
-          delete formattedOrganization.secret;
-        }
-        result.push(formattedOrganization);
-      }
-      this.logger.debug(`Method: ${methodName} - Response: `, result);
-      await this.cacheService.setAll('organization', CacheKey, {
-        data: result,
-        totalPage: pagination.totalPage,
-        totalDocs: count,
-      });
+      let organization = query
+      // const result = [];
+      // for (let [index, org] of Object.entries(organization1)) {
+        
+      //   for (let [key, prop] of Object.entries(includeConfig)) {
+      //     // console.log( key, 'key');
+          
+      //     let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+      //             //  console.log(org?.[idNameOfModules] , idNameOfModules, key, 'key');
+      //     delete org?.[idNameOfModules];
+      //   }
+      //   // console.log(org?.ProductServices, 'org');
+        
+      //   const formattedOrganization = formatOrganizationResponse(
+      //     org,
+      //     modulesConfig
+      //   );
+
+      //   if (data.role !== 'moderator') {
+      //     delete formattedOrganization.secret;
+      //   }
+      //   result.push(formattedOrganization);
+      // }
+      // this.logger.debug(`Method: ${methodName} - Response: `, result);
+      // await this.cacheService.setAll('organization', CacheKey, {
+      //   data: result,
+      //   totalPage: pagination.totalPage,
+      //   totalDocs: count,
+      // });
       return {
-        data: result,
+        data: organization,
         totalPage: pagination.totalPage,
         totalDocs: count,
       };
