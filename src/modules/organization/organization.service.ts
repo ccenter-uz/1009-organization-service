@@ -317,7 +317,26 @@ export class OrganizationService {
         ProductServices: true,
       },
     });
+
     this.logger.debug(`Method: ${methodName} - Response: `, organization);
+
+    if (data.address) {
+      await this.prisma.$executeRawUnsafe(`
+        UPDATE organization 
+        SET address_search_vector = to_tsvector('simple', address) 
+        WHERE id = ${organization.id}
+      `);
+    }
+
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE nearbees 
+      SET description_search_vector = to_tsvector('simple', description) 
+      WHERE organization_version_id = ${organization.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
 
     await this.organizationVersionService.create(organization);
 
@@ -332,119 +351,123 @@ export class OrganizationService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
+    console.log(include, 'LOG 1');
     const where: any = {};
     const CacheKey = formatCacheKey(data);
+    console.log(CacheKey, 'LOG 2');
     const findOrganization = await this.cacheService.get(
       'organization',
       CacheKey
     );
+    console.log(findOrganization, 'LOG 3');
 
-    if (findOrganization) {
-      return findOrganization;
+    if (findOrganization) { 
+      return findOrganization
     } else {
-      if (data.address) {
-        where.OR = [
-          { address: { contains: data.address, mode: 'insensitive' } },
-          {
-            District: {
-              DistrictTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
+
+    if (data.address) {
+      where.OR = [
+        { address: { contains: data.address, mode: 'insensitive' } },
+        {
+          District: {
+            DistrictTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
             },
           },
-          {
-            Region: {
-              RegionTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
+        },
+        {
+          Region: {
+            RegionTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
             },
           },
-          {
-            Passage: {
-              PassageTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
+        },
+        {
+          Passage: {
+            PassageTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
             },
           },
-          {
-            Street: {
-              StreetTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
+        },
+        {
+          Street: {
+            StreetTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
             },
           },
-          {
-            Area: {
-              AreaTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
+        },
+        {
+          Area: {
+            AreaTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
             },
           },
-          {
-            Avenue: {
-              AvenueTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
+        },
+        {
+          Avenue: {
+            AvenueTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
             },
           },
-          {
-            City: {
-              CityTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
+        },
+        {
+          City: {
+            CityTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
             },
           },
-          {
-            ResidentialArea: {
-              ResidentialAreaTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
+        },
+        {
+          ResidentialArea: {
+            ResidentialAreaTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
             },
           },
-          {
-            Neighborhood: {
-              NeighborhoodTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
+        },
+        {
+          Neighborhood: {
+            NeighborhoodTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
             },
           },
-          {
-            Impasse: {
-              ImpasseTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
+        },
+        {
+          Impasse: {
+            ImpasseTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
             },
           },
-          {
-            Village: {
-              VillageTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
+        },
+        {
+          Village: {
+            VillageTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
             },
           },
-          {
-            Lane: {
-              LaneTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
+        },
+        {
+          Lane: {
+            LaneTranslations: {
+              some: { name: { contains: data.address, mode: 'insensitive' } },
             },
           },
-          {
-            Nearbees: {
-              some: {
-                Nearby: {
-                  NearbyTranslations: {
-                    some: {
-                      name: { contains: data.address, mode: 'insensitive' },
-                    },
+        },
+        {
+          Nearbees: {
+            some: {
+              Nearby: {
+                NearbyTranslations: {
+                  some: {
+                    name: { contains: data.address, mode: 'insensitive' },
                   },
                 },
-                description: { contains: data.address, mode: 'insensitive' },
               },
+              description: { contains: data.address, mode: 'insensitive' },
             },
           },
-        ];
-      }
+        },
+      ];
+    }
 
       if (data.apartment) {
         where.apartment = { contains: data.apartment, mode: 'insensitive' };
@@ -541,6 +564,7 @@ export class OrganizationService {
       }
 
       if (data.all) {
+        console.log('Data All', 'LOG 11');
         const organizations = await this.prisma.organization.findMany({
           where,
           orderBy: { name: 'asc' },
@@ -567,12 +591,15 @@ export class OrganizationService {
           totalDocs: organizations.length,
           totalPage: organizations.length > 0 ? 1 : 0,
         });
+        console.log(result, 'Data All', 'LOG 12');
+
         return {
           data: result,
           totalDocs: organizations.length,
           totalPage: organizations.length > 0 ? 1 : 0,
         };
       }
+
 
       const whereWithLang: any = {
         ...(data.status
@@ -583,12 +610,15 @@ export class OrganizationService {
         ...where,
       };
 
+
       if (data.search) {
+        console.log(data.search, 'LOG 14');
         whereWithLang.name = {
           contains: data.search,
           mode: 'insensitive',
         };
       }
+
 
      const count = await this.prisma.organization.count({
        where: whereWithLang,
@@ -870,6 +900,37 @@ export class OrganizationService {
     const findCategory = await this.cacheService.get(
       'organizationOne',
       data.id?.toString()
+    );
+
+    console.log(include, 'INCLUDE');
+
+    const organization = await this.prisma.organization.findFirst({
+      where: {
+        id: data.id,
+      },
+      orderBy: { name: 'asc' },
+      include: {
+        ...include,
+      },
+    });
+    for (let [key, prop] of Object.entries(includeConfig)) {
+      let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+      delete organization?.[idNameOfModules];
+    }
+    if (!organization) {
+      throw new NotFoundException('Organization is not found');
+    }
+
+    let formattedOrganization = formatOrganizationResponse(
+      organization,
+      modulesConfig
+    );
+    if (data.role !== 'moderator') {
+      delete formattedOrganization.secret;
+    }
+    this.logger.debug(
+      `Method: ${methodName} - Response: `,
+      formattedOrganization
     );
     if (findCategory) {
       console.log(findCategory, 'findCategory');

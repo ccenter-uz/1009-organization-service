@@ -109,8 +109,8 @@ export async function getOrderedData(
                 GROUP BY dont.district_id
             )
         SELECT
-            c.*,  
-            (SELECT Translations FROM ${Prisma.raw(CapitalizaName)}Translations WHERE ${Prisma.raw(`${name}_id`)} = c.id) AS "${Prisma.raw(CapitalizaName)}Translations",
+            c.*,
+      (SELECT Translations FROM ${Prisma.raw(CapitalizaName)}Translations WHERE ${Prisma.raw(`${name}_id`)} = c.id) AS "${Prisma.raw(CapitalizaName)}Translations",
                                  
             JSONB_SET(
                 ROW_TO_JSON(city)::JSONB,  

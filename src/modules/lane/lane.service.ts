@@ -121,6 +121,16 @@ export class LaneService {
 
     this.logger.debug(`Method: ${methodName} - Response: `, lane);
 
+    await this.prisma.$executeRawUnsafe(`
+        UPDATE lane_translations 
+        SET search_vector = to_tsvector('simple', name) 
+        WHERE lane_id = ${lane.id}
+      `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     return lane;
   }
 

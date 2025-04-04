@@ -126,6 +126,16 @@ export class DistrictService {
 
     this.logger.debug(`Method: ${methodName} - Response: `, district);
 
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE district_translations 
+      SET search_vector = to_tsvector('simple', name) 
+      WHERE district_id = ${district.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     return district;
   }
 
