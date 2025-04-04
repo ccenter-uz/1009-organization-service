@@ -75,17 +75,21 @@ export async function getOrg(
     conditions.push(Prisma.sql`o.name ILIKE ${`%${data.name}%`}`);
   }
 
+  if (data.nearbyId) { 
+    conditions.push(Prisma.sql`nb."nearby_id" = ${data.nearbyId}`);
+  }
 
-    if (data.nearbyId) {
-      conditions.push(Prisma.sql`
-      EXISTS (
-        SELECT 1
-        FROM nearbees AS nb
-        WHERE nb.organization_version_id = o.id
-        AND nb.nearby_id  = ${data.nearbyId}
-      )
-    `);
-    }
+//   if (data.nearbyId) {
+//     conditions.push(Prisma.sql`
+// EXISTS (
+//     SELECT 1
+//     FROM "nearbees" nb
+//     WHERE nb."organization_version_id" = o."id"
+//     AND nb."nearby_id" = ${data.nearbyId}
+// )
+
+//     `);
+//   }
 
   if (data.phone) {
     conditions.push(Prisma.sql`
@@ -94,7 +98,7 @@ export async function getOrg(
         FROM phone p
         WHERE p.organization_id = o.id
         AND p.phone ILIKE ${`%${data.phone}%`}
-      )
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       )
     `);
   }
 
@@ -107,8 +111,7 @@ export async function getOrg(
         AND p.phone_type_id = ${data.phoneType}
       )
     `);
-   }
-
+  }
 
   if (data.regionId) {
     conditions.push(Prisma.sql`o.region_id = ${data.regionId}`);
@@ -407,57 +410,7 @@ NearbyTranslations AS (
   FROM nearby_translations nt
   GROUP BY nt."nearby_id"
 ),
-Nearbees AS (
-  SELECT
-    nb."organization_version_id",
-    JSON_AGG(
-      JSONB_BUILD_OBJECT(
-        'id', nb."id",
-        'description', nb."description",
-        'NearbyId', nb."nearby_id",
-        'createdAt', nb."created_at",
-        'updatedAt', nb."updated_at",
-        'deletedAt', nb."deleted_at",
-        'Nearby', COALESCE(
-          JSONB_BUILD_OBJECT(
-            'id', n."id",
-            'staffNumber', n."staff_number",
-            'editedStaffNumber', n."edited_staff_number",
-            'status', n."status",
-            'nearbyCategoryId', n."nearby_category_id",
-            'regionId', n."region_id",
-            'cityId', n."city_id",
-            'districtId', n."district_id",
-            'orderNumber', n."order_number",
-            'createdAt', n."created_at",
-            'deletedAt', n."deleted_at",
-            'updatedAt', n."updated_at",
-            'name', COALESCE(nt."name", '{}'::JSONB)
-          ),
-          '{}'::JSONB
-        ),
-        'NearbyCategory', COALESCE(
-          JSONB_BUILD_OBJECT(
-            'id', nc."id",
-            'name', nc."name",
-            'staffNumber', nc."staff_number",
-            'editedStaffNumber', nc."edited_staff_number",
-            'status', nc."status",
-            'orderNumber', nc."order_number",
-            'createdAt', nc."created_at",
-            'updatedAt', nc."updated_at",
-            'deletedAt', nc."deleted_at"
-          ),
-          '{}'::JSONB
-        )
-      )
-    )::JSONB AS Nearbees
-  FROM nearbees nb
-  LEFT JOIN nearby n ON nb."nearby_id" = n."id"
-  LEFT JOIN NearbyTranslations nt ON n."id" = nt."nearby_id"
-  LEFT JOIN nearby_category nc ON n."nearby_category_id" = nc."id"
-  GROUP BY nb."organization_version_id"
-),
+
 
 ProductServiceCategoryTranslations AS (
   SELECT
@@ -598,6 +551,8 @@ ProductServices AS (
     o.impasse_id AS "impasseId",
     o.segment_id AS "segmentId",
     o.neighborhood_id AS "neighborhoodId",
+        CASE
+        WHEN city.id IS NOT NULL THEN
       JSONB_BUILD_OBJECT(
         'id', city.id,
         'name', COALESCE(
@@ -609,8 +564,10 @@ ProductServices AS (
         'createdAt', city.created_at,
         'updatedAt', city.updated_at,
         'deletedAt', city.deleted_at
-    ) AS "city",
-
+    ) ELSE NULL
+    END  AS "city",
+        CASE
+        WHEN region.id IS NOT NULL THEN
           JSONB_BUILD_OBJECT(
         'id', region.id,
         'name', COALESCE(
@@ -621,8 +578,11 @@ ProductServices AS (
         'createdAt', region.created_at,
         'updatedAt', region.updated_at,
         'deletedAt', region.deleted_at
-    ) AS "region",
+    ) ELSE NULL
+    END  AS "region",
 
+    CASE
+        WHEN district.id IS NOT NULL THEN
         JSONB_BUILD_OBJECT(
         'id', district.id,
         'name', COALESCE(
@@ -647,8 +607,11 @@ ProductServices AS (
         'createdAt', district.created_at,
        -- 'updatedAt', district.upda ted_at,
         'deletedAt', district.deleted_at
-    ) AS "district",
+    )  ELSE NULL
+    END  AS "district",
 
+  CASE
+        WHEN village.id IS NOT NULL THEN
             JSONB_BUILD_OBJECT(
         'id', village.id,
         'name', COALESCE(
@@ -674,61 +637,43 @@ ProductServices AS (
         'createdAt', village.created_at,
         'updatedAt', village.updated_at,
         'deletedAt', village.deleted_at
-    ) AS "village",  
+    )  ELSE NULL
+    END AS "village"
+    
+    , 
 
-          JSONB_BUILD_OBJECT(
-        'id', residential_area.id,
-        'name', COALESCE(
-            (SELECT name FROM ResidentialAreaTranslations WHERE residential_area_id = residential_area.id),
-            '{}'::JSONB
-        ),
+    CASE
+        WHEN residential_area.id IS NOT NULL THEN
+            JSONB_BUILD_OBJECT(
+                'id', residential_area.id,
+                'name', COALESCE(
+                    (SELECT name FROM ResidentialAreaTranslations WHERE residential_area_id = residential_area.id),
+                    '{}'::JSONB
+                ),
                 'oldName', COALESCE(
-            (SELECT name FROM ResidentialAreaOldNameTranslations WHERE residential_area_id = residential_area.id),
-            '{}'::JSONB
-        ),
+                    (SELECT name FROM ResidentialAreaOldNameTranslations WHERE residential_area_id = residential_area.id),
+                    '{}'::JSONB
+                ),
                 'newName', COALESCE(
-            (SELECT name FROM ResidentialAreaNewNameTranslations WHERE residential_area_id = residential_area.id),
-            '{}'::JSONB
-        ),
-        'regionId', residential_area.region_id,
-        'cityId', residential_area.city_id,
-        'districtId', residential_area.district_id,
-        'index', residential_area.index,
-        'staffNumber', residential_area.staff_number,
-        'editedStaffNumber', residential_area.edited_staff_number,
-        'orderNumber', residential_area.order_number,
-        'createdAt', residential_area.created_at,
-        'updatedAt', residential_area.updated_at,
-        'deletedAt', residential_area.deleted_at
-    ) AS "residentialarea",  
-
-          JSONB_BUILD_OBJECT(
-        'id', residential_area.id,
-        'name', COALESCE(
-            (SELECT name FROM ResidentialAreaTranslations WHERE residential_area_id = residential_area.id),
-            '{}'::JSONB
-        ),
-                'oldName', COALESCE(
-            (SELECT name FROM ResidentialAreaOldNameTranslations WHERE residential_area_id = residential_area.id),
-            '{}'::JSONB
-        ),
-                'newName', COALESCE(
-            (SELECT name FROM ResidentialAreaNewNameTranslations WHERE residential_area_id = residential_area.id),
-            '{}'::JSONB
-        ),
-        'regionId', residential_area.region_id,
-        'cityId', residential_area.city_id,
-        'districtId', residential_area.district_id,
-        'index', residential_area.index,
-        'staffNumber', residential_area.staff_number,
-        'editedStaffNumber', residential_area.edited_staff_number,
-        'orderNumber', residential_area.order_number,
-        'status', residential_area.status,
-        'createdAt', residential_area.created_at,
-        'updatedAt', residential_area.updated_at,
-        'deletedAt', residential_area.deleted_at
-    ) AS "residentialarea",  
-
+                    (SELECT name FROM ResidentialAreaNewNameTranslations WHERE residential_area_id = residential_area.id),
+                    '{}'::JSONB
+                ),
+                'regionId', residential_area.region_id,
+                'cityId', residential_area.city_id,
+                'districtId', residential_area.district_id,
+                'index', residential_area.index,
+                'staffNumber', residential_area.staff_number,
+                'editedStaffNumber', residential_area.edited_staff_number,
+                'orderNumber', residential_area.order_number,
+                'status', residential_area.status,
+                'createdAt', residential_area.created_at,
+                'updatedAt', residential_area.updated_at,
+                'deletedAt', residential_area.deleted_at
+            )
+        ELSE NULL
+    END AS "residentialarea",
+   CASE
+        WHEN neighborhood.id IS NOT NULL THEN
               JSONB_BUILD_OBJECT(
         'id', neighborhood.id,
         'name', COALESCE(
@@ -754,8 +699,10 @@ ProductServices AS (
         'createdAt', neighborhood.created_at,
         'updatedAt', neighborhood.updated_at,
         'deletedAt', neighborhood.deleted_at
-    ) AS "neighborhood",  
-
+    ) ELSE NULL
+    END  AS "neighborhood",  
+   CASE
+        WHEN area.id IS NOT NULL THEN
                JSONB_BUILD_OBJECT(
         'id', area.id,
         'name', COALESCE(
@@ -781,8 +728,10 @@ ProductServices AS (
         'createdAt', area.created_at,
         'updatedAt', area.updated_at,
         'deletedAt', area.deleted_at
-    ) AS "area",  
-   
+    ) ELSE NULL
+    END  AS "area",  
+      CASE
+        WHEN street.id IS NOT NULL THEN
                 JSONB_BUILD_OBJECT(
         'id', street.id,
         'name', COALESCE(
@@ -808,8 +757,10 @@ ProductServices AS (
         'createdAt', street.created_at,
         'updatedAt', street.updated_at,
         'deletedAt', street.deleted_at
-    ) AS "street",
-
+    ) ELSE NULL
+    END  AS "street",
+   CASE
+        WHEN lane.id IS NOT NULL THEN
                    JSONB_BUILD_OBJECT(
         'id', lane.id,
         'name', COALESCE(
@@ -835,9 +786,11 @@ ProductServices AS (
         'createdAt', lane.created_at,
         'updatedAt', lane.updated_at,
         'deletedAt', lane.deleted_at
-    ) AS "lane", 
+    ) ELSE NULL
+    END  AS "lane", 
 
-
+   CASE
+        WHEN impasse.id IS NOT NULL THEN
         JSONB_BUILD_OBJECT(
         'id', impasse.id,
         'name', COALESCE(
@@ -863,8 +816,10 @@ ProductServices AS (
         'createdAt', impasse.created_at,
         'updatedAt', impasse.updated_at,
         'deletedAt', impasse.deleted_at
-    ) AS "impasse", 
-
+    ) ELSE NULL
+    END  AS "impasse", 
+   CASE
+        WHEN sub_category.id IS NOT NULL THEN
         JSONB_BUILD_OBJECT(
         'id', sub_category.id,
         'staffNumber', sub_category.staff_number,
@@ -880,8 +835,10 @@ ProductServices AS (
             '{}'::JSONB
         )
         
-    ) AS "subcategory",
-
+    ) ELSE NULL
+    END  AS "subcategory",
+   CASE
+        WHEN category.id IS NOT NULL THEN
          JSONB_BUILD_OBJECT(
             'id', category.id,
             'staffNumber', category.staff_number,
@@ -898,7 +855,8 @@ ProductServices AS (
             (SELECT name FROM CategoryTranslations WHERE category_id = category.id),
             '{}'::JSONB
             )
-        ) AS "category",
+        ) ELSE NULL
+    END  AS "category",
 
   COALESCE(
     (SELECT PaymentTypes FROM PaymentTypes WHERE organization_id = o.id),
@@ -908,17 +866,64 @@ ProductServices AS (
     (SELECT Phones FROM Phones WHERE "organization_id" = o.id),
     '[]'::JSONB
   ) AS "Phone",
-    COALESCE(
-    (SELECT Nearbees FROM Nearbees WHERE "organization_version_id" = o.id),
-    '[]'::JSONB
-  ) AS "Nearbees",
+  (
+    SELECT JSON_AGG(
+      JSONB_BUILD_OBJECT(
+        'id', nb."id",
+        'description', nb."description",
+        'NearbyId', nb."nearby_id",
+        'createdAt', nb."created_at",
+        'updatedAt', nb."updated_at",
+        'deletedAt', nb."deleted_at",
+        'Nearby', COALESCE(
+          JSONB_BUILD_OBJECT(
+            'id', n."id",
+            'staffNumber', n."staff_number",
+            'editedStaffNumber', n."edited_staff_number",
+            'status', n."status",
+            'nearbyCategoryId', n."nearby_category_id",
+            'regionId', n."region_id",
+            'cityId', n."city_id",
+            'districtId', n."district_id",
+            'orderNumber', n."order_number",
+            'createdAt', n."created_at",
+            'deletedAt', n."deleted_at",
+            'updatedAt', n."updated_at",
+            'name', COALESCE(nt."name", '{}'::JSONB)
+          ),
+          '{}'::JSONB
+        ),
+        'NearbyCategory', COALESCE(
+          JSONB_BUILD_OBJECT(
+            'id', nc."id",
+            'name', nc."name",
+            'staffNumber', nc."staff_number",
+            'editedStaffNumber', nc."edited_staff_number",
+            'status', nc."status",
+            'orderNumber', nc."order_number",
+            'createdAt', nc."created_at",
+            'updatedAt', nc."updated_at",
+            'deletedAt', nc."deleted_at"
+          ),
+          '{}'::JSONB
+        )
+      )
+    )::JSONB
+    FROM nearbees nb
+    LEFT JOIN nearby n ON nb."nearby_id" = n."id"
+    LEFT JOIN NearbyTranslations nt ON n."id" = nt."nearby_id"
+    LEFT JOIN nearby_category nc ON n."nearby_category_id" = nc."id"
+    WHERE nb."organization_version_id" = o.id
+  ) AS "Nearbees" ,
 
   COALESCE(
   (SELECT ProductServices FROM ProductServices WHERE "organization_id" = o.id),
   '[]'::JSONB
 ) AS "ProductServices",
   COALESCE(pic.Pictures, '[]'::JSONB) AS "Picture",
-  
+
+      CASE
+        WHEN main_organization.id IS NOT NULL THEN
         JSONB_BUILD_OBJECT(
     'id', main_organization.id,
     'name', main_organization.name,
@@ -929,7 +934,10 @@ ProductServices AS (
     'createdAt', main_organization.created_at,
     'updatedAt', main_organization.updated_at,
     'deletedAt', main_organization.deleted_at
-  ) AS "mainorganization", 
+  ) ELSE NULL
+    END  AS "mainorganization",
+    CASE
+        WHEN segment.id IS NOT NULL THEN
         JSONB_BUILD_OBJECT(
     'id', segment.id,
     'name', segment.name,
@@ -938,7 +946,8 @@ ProductServices AS (
     'orderNumber' , segment.order_number,
     'updatedAt', segment.updated_at,
     'deletedAt', segment.deleted_at
-  ) AS "segment"
+  ) ELSE NULL
+    END  AS "segment"
 
     FROM
       organization o
@@ -958,6 +967,7 @@ ProductServices AS (
     LEFT JOIN category ON sub_category.category_id = category.id 
     LEFT JOIN main_organization  ON o.main_organization_id = main_organization.id 
     LEFT JOIN product_services ps ON ps.organization_id = o.id
+     LEFT JOIN nearbees nb ON    o."id" =  nb."organization_version_id"
     ${whereClauseFinal}
     ORDER BY o.name ASC
     ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}

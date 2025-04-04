@@ -61,7 +61,6 @@ import { CacheService } from '../cache/cache.service';
 import { formatCacheKey } from '@/common/helper/format-cache-maneger';
 import { getOrg } from '@/common/helper/for-Org/get-org-data.dto';
 
-
 @Injectable()
 export class OrganizationService {
   private logger = new Logger(OrganizationService.name);
@@ -339,124 +338,121 @@ export class OrganizationService {
       'organization',
       CacheKey
     );
- const query : any =  await  getOrg(data,this.prisma, {take:10, skip:0})
-console.log(query,'QUERY');
 
-    if (findOrganization) { 
-      return findOrganization
+    if (findOrganization) {
+      return findOrganization;
     } else {
-
-    if (data.address) {
-      where.OR = [
-        { address: { contains: data.address, mode: 'insensitive' } },
-        {
-          District: {
-            DistrictTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+      if (data.address) {
+        where.OR = [
+          { address: { contains: data.address, mode: 'insensitive' } },
+          {
+            District: {
+              DistrictTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Region: {
-            RegionTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Region: {
+              RegionTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Passage: {
-            PassageTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Passage: {
+              PassageTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Street: {
-            StreetTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Street: {
+              StreetTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Area: {
-            AreaTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Area: {
+              AreaTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Avenue: {
-            AvenueTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Avenue: {
+              AvenueTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          City: {
-            CityTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            City: {
+              CityTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          ResidentialArea: {
-            ResidentialAreaTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            ResidentialArea: {
+              ResidentialAreaTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Neighborhood: {
-            NeighborhoodTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Neighborhood: {
+              NeighborhoodTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Impasse: {
-            ImpasseTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Impasse: {
+              ImpasseTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Village: {
-            VillageTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Village: {
+              VillageTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Lane: {
-            LaneTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Lane: {
+              LaneTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Nearbees: {
-            some: {
-              Nearby: {
-                NearbyTranslations: {
-                  some: {
-                    name: { contains: data.address, mode: 'insensitive' },
+          {
+            Nearbees: {
+              some: {
+                Nearby: {
+                  NearbyTranslations: {
+                    some: {
+                      name: { contains: data.address, mode: 'insensitive' },
+                    },
                   },
                 },
+                description: { contains: data.address, mode: 'insensitive' },
               },
-              description: { contains: data.address, mode: 'insensitive' },
             },
           },
-        },
-      ];
-    }
+        ];
+      }
 
       if (data.apartment) {
         where.apartment = { contains: data.apartment, mode: 'insensitive' };
       }
 
-    if (data.categoryId) {
-      where.subCategoryId = data.categoryId;
-    }
+      if (data.categoryId) {
+        where.subCategoryId = data.categoryId;
+      }
 
       if (data.cityId) {
         where.cityId = data.cityId;
@@ -578,14 +574,14 @@ console.log(query,'QUERY');
         };
       }
 
-    const whereWithLang: any = {
-      ...(data.status
-        ? {
-            status: data.status,
-          }
-        : {}),
-      ...where
-    };
+      const whereWithLang: any = {
+        ...(data.status
+          ? {
+              status: data.status,
+            }
+          : {}),
+        ...where,
+      };
 
       if (data.search) {
         whereWithLang.name = {
@@ -594,38 +590,43 @@ console.log(query,'QUERY');
         };
       }
 
-      const count = await this.prisma.organization.count({
-        where: whereWithLang,
-      });
+     const count = await this.prisma.organization.count({
+       where: whereWithLang,
+     });
 
-      const pagination = createPagination({
-        count,
-        page: data.page,
-        perPage: data.limit,
-      });
+     const pagination = createPagination({
+       count,
+       page: data.page,
+       perPage: data.limit,
+     });
 
-      let  organization1 = await this.prisma.organization.findMany({
-        where: whereWithLang,
-        orderBy: { name: 'asc' },
-        include,
-        take: pagination.take,
-        skip: pagination.skip,
-      });
+     const organization: any = await getOrg(data, this.prisma, {
+       take: pagination.take,
+       skip: pagination.skip,
+     });
 
 
-      let organization = query
+      // let organization1 = await this.prisma.organization.findMany({
+      //   where: whereWithLang,
+      //   orderBy: { name: 'asc' },
+      //   include,
+      //   take: pagination.take,
+      //   skip: pagination.skip,
+      // });
+
+
       // const result = [];
       // for (let [index, org] of Object.entries(organization1)) {
-        
+
       //   for (let [key, prop] of Object.entries(includeConfig)) {
       //     // console.log( key, 'key');
-          
+
       //     let idNameOfModules = key.toLocaleLowerCase() + 'Id';
       //             //  console.log(org?.[idNameOfModules] , idNameOfModules, key, 'key');
       //     delete org?.[idNameOfModules];
       //   }
       //   // console.log(org?.ProductServices, 'org');
-        
+
       //   const formattedOrganization = formatOrganizationResponse(
       //     org,
       //     modulesConfig
@@ -1266,11 +1267,11 @@ console.log(query,'QUERY');
         });
         this.logger.debug(`Method: ${methodName} - Request: `, UpdateOrg);
 
-            await this.cacheService.delete(
-      'organizationOne',
-      UpdateOrg.id?.toString()
-    );
-    await this.cacheService.invalidateAllCaches('organization');
+        await this.cacheService.delete(
+          'organizationOne',
+          UpdateOrg.id?.toString()
+        );
+        await this.cacheService.invalidateAllCaches('organization');
         return UpdateOrg;
       } else {
         const UpdateVersion = await this.prisma.organizationVersion.update({
@@ -1349,11 +1350,11 @@ console.log(query,'QUERY');
       });
 
       this.logger.debug(`Method: ${methodName} - Response: `, UpdateOrg);
-          await this.cacheService.delete(
-      'organizationOne',
-      UpdateOrg.id?.toString()
-    );
-    await this.cacheService.invalidateAllCaches('organization');
+      await this.cacheService.delete(
+        'organizationOne',
+        UpdateOrg.id?.toString()
+      );
+      await this.cacheService.invalidateAllCaches('organization');
       return UpdateOrg;
     } else {
       const UpdateOrgVersion = await this.prisma.organizationVersion.update({
