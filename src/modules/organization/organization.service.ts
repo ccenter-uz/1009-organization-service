@@ -359,7 +359,6 @@ export class OrganizationService {
       'organization',
       CacheKey
     );
-    console.log(findOrganization, 'LOG 3');
 
     if (findOrganization) { 
       return findOrganization
