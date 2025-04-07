@@ -82,7 +82,6 @@ model SubCategoryTranslations {
 
 model MainOrganization {
   id                  Int                   @id @default(autoincrement())
-  name                String
   staffNumber         String?               @map("staff_number") @db.VarChar(40)
   editedStaffNumber   String?               @map("edited_staff_number") @db.VarChar(40)
   status              Int                   @default(1) @db.SmallInt()
@@ -92,8 +91,21 @@ model MainOrganization {
   deletedAt           DateTime?             @updatedAt @map("deleted_at")
   Organization        Organization[]
   OrganizationVersion OrganizationVersion[]
-
+  MainOrganizationTranslations    MainOrganizationTranslations[]
   @@map("main_organization")
+}
+
+model MainOrganizationTranslations {
+  id            Int            @id @default(autoincrement())
+  mainOrganizationId Int       @map("main_organization_id")
+  languageCode  String         @map("language_code")
+  name          String
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamp
+  updatedAt     DateTime?      @updatedAt @map("updated_at")
+
+  mainOrganization MainOrganization @relation(fields: [mainOrganizationId], references: [id])
+
+  @@map("main_organization_translations")
 }
 
 model Segment {
