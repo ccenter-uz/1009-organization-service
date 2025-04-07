@@ -63,7 +63,7 @@ export async function getDistrictData(
 
   const result: any = await prisma.$queryRaw(
     Prisma.sql`
-        WITH
+        WITH1
             ${Prisma.raw(CapitalizaName)}Translations AS (
                 SELECT
                     ct.${Prisma.raw(`${name}_id`)},
