@@ -79,17 +79,6 @@ export async function getOrg(
     conditions.push(Prisma.sql`nb."nearby_id" = ${data.nearbyId}`);
   }
 
-//   if (data.nearbyId) {
-//     conditions.push(Prisma.sql`
-// EXISTS (
-//     SELECT 1
-//     FROM "nearbees" nb
-//     WHERE nb."organization_version_id" = o."id"
-//     AND nb."nearby_id" = ${data.nearbyId}
-// )
-
-//     `);
-//   }
 
   if (data.phone) {
     conditions.push(Prisma.sql`
@@ -507,7 +496,14 @@ ProductServices AS (
     )::JSONB AS Pictures
   FROM picture pic
   GROUP BY pic."organization_id"
-)
+), 
+    MainOrganizationTranslations AS (
+      SELECT
+        mot.main_organization_id,
+        jsonb_object_agg(mot.language_code, mot.name) AS name
+      FROM main_organization_translations mot
+      GROUP BY mot.main_organization_id
+    )
 
 
 
@@ -926,7 +922,10 @@ ProductServices AS (
         WHEN main_organization.id IS NOT NULL THEN
         JSONB_BUILD_OBJECT(
     'id', main_organization.id,
-    'name', main_organization.name,
+    'name', COALESCE(
+            (SELECT name FROM MainOrganizationTranslations WHERE main_organization_id = main_organization.id),
+            '{}'::JSONB
+            ),
     'status', main_organization.status,
     'staffNumber' , main_organization.staff_number,
     'editedStaffNumber' , main_organization.edited_staff_number,
