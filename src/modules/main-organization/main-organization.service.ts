@@ -155,7 +155,7 @@ export class MainOrganizationService {
       const mainOrg = mainOrganization[i];
       const translations = mainOrg?.MainOrganizationTranslations;
       const name = formatLanguageResponse(translations);
-      console.log(name, 'name' , translations, 'translations');
+      console.log(name, 'name', translations, 'translations');
 
       delete mainOrg.MainOrganizationTranslations;
 
@@ -198,6 +198,29 @@ export class MainOrganizationService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const mainOrganization = await this.findOne({ id: data.id });
 
+    const translationUpdates = [];
+
+    if (data.name?.[LanguageRequestEnum.RU]) {
+      translationUpdates.push({
+        where: { languageCode: LanguageRequestEnum.RU },
+        data: { name: data.name[LanguageRequestEnum.RU] },
+      });
+    }
+
+    if (data.name?.[LanguageRequestEnum.UZ]) {
+      translationUpdates.push({
+        where: { languageCode: LanguageRequestEnum.UZ },
+        data: { name: data.name[LanguageRequestEnum.UZ] },
+      });
+    }
+
+    if (data.name?.[LanguageRequestEnum.CY]) {
+      translationUpdates.push({
+        where: { languageCode: LanguageRequestEnum.CY },
+        data: { name: data.name[LanguageRequestEnum.CY] },
+      });
+    }
+
     const updatedMainOrganization = await this.prisma.mainOrganization.update({
       where: {
         id: mainOrganization.id,
@@ -205,20 +228,8 @@ export class MainOrganizationService {
       data: {
         editedStaffNumber: data.staffNumber,
         MainOrganizationTranslations: {
-          create: [
-            {
-              languageCode: LanguageRequestEnum.RU,
-              name: data.name[LanguageRequestEnum.RU],
-            },
-            {
-              languageCode: LanguageRequestEnum.UZ,
-              name: data.name[LanguageRequestEnum.UZ],
-            },
-            {
-              languageCode: LanguageRequestEnum.CY,
-              name: data.name[LanguageRequestEnum.CY],
-            },
-          ],
+          updateMany:
+            translationUpdates.length > 0 ? translationUpdates : undefined,
         },
         orderNumber: data.orderNumber,
       },
