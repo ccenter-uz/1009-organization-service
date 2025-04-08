@@ -21,6 +21,7 @@ export class LoggingInterceptor implements NestInterceptor {
         userNumericId: data.numericId || null,
         userFullName: data.fullName || null,
         userRole: data.role || null,
+        referenceId: data.referenceId || null,
         organizationId: data.organizationId || null,
         organizationName: data.organizationName || null,
         method: data.method,
@@ -54,6 +55,7 @@ export class LoggingInterceptor implements NestInterceptor {
       role: logData.user?.role,
       organizationId: null,
       organizationName: null,
+      referenceId: null,
       method: logData.method,
       path: logData.path,
       request: req,
@@ -65,15 +67,21 @@ export class LoggingInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((response) => {
         const duration = Date.now() - startTime;
+        console.log(response, 'response', logDataComplete.path?.split('/')[1]);
 
         // Add response details to log data
         logDataComplete.response = response;
         logDataComplete.status = res.statusCode;
         logDataComplete.duration = duration;
-        if (response?.id) logDataComplete.organizationId = response?.id;
-        if (response?.name) logDataComplete.organizationName = response?.name;
-        
-        if (typeof response?.name  !== 'object') {
+        if (logDataComplete.path?.split('/')[1] === 'organization') {
+          if (response?.id) logDataComplete.organizationId = response?.id;
+          if (response?.name) logDataComplete.organizationName = response?.name;
+        }
+
+        if (response?.id) logDataComplete.referenceId = response?.id;
+        // if (response?.name) logDataComplete.organizationName = response?.name;
+        // if (response?.name) logDataComplete.organizationName = response?.name;
+        if (typeof response?.name !== 'object') {
           this.saveLog(logDataComplete).catch((error) => {
             console.error('Error saving log:', error);
           });
