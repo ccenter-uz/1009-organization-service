@@ -70,6 +70,10 @@ export class MonitoringService {
       where.organizationId = data.organizationId;
     }
 
+    if (data.referenceId) {
+      where.referenceId = data.referenceId;
+    }
+
     if (data.onlyOrgs) {
       where.organizationName = {
         not: null,
@@ -82,7 +86,6 @@ export class MonitoringService {
       where.module = data.module;
     }
 
-    console.log(where);
     
     const count = await this.prisma.apiLogs.count({
       where,
