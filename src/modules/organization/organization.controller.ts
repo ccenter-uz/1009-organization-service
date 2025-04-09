@@ -24,6 +24,7 @@ import { OrganizationDeleteDto } from 'types/organization/organization/dto/delet
 import { OrganizationRestoreDto } from 'types/organization/organization/dto/get-restore-organization.dto';
 import { OrganizationVersionInterfaces } from 'types/organization/organization-version';
 import { UnconfirmOrganizationFilterDto } from 'types/organization/organization/dto/filter-unconfirm-organization.dto';
+import { ObjectAdressFilterDto } from 'types/organization/organization/dto/filter-object-adress-organization.dto';
 
 @Controller('organization')
 export class OrganizationController {
@@ -61,6 +62,14 @@ export class OrganizationController {
     @Payload() data: UnconfirmOrganizationFilterDto
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
     return this.organizationService.findUnconfirm(data);
+  }
+
+  @Get('object-adress')
+  @MessagePattern({ cmd: Commands.GET_OBJECT_ADDRESS })
+  findObjectAdress(
+    @Payload() data: ObjectAdressFilterDto
+  ): Promise<any> {
+    return this.organizationService.findObjectAdress(data);
   }
 
   @Get('by-id')
