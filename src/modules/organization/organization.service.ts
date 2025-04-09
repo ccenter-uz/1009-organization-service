@@ -894,11 +894,29 @@ export class OrganizationService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
     if (data.module == 'street') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+
+      const count = await this.prisma.street.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
       const streets = await getOrderedDataWithDistrict(
         'Street',
         'street',
         this.prisma,
-        data
+        data,
+        pagination
       );
 
       const formattedStreet = [];
@@ -971,8 +989,8 @@ export class OrganizationService {
 
       return {
         data: formattedStreet,
-        totalDocs: streets.length,
-        totalPage: streets.length > 0 ? 1 : 0,
+        totalDocs: pagination.totalPage,
+        totalPage: count,
       };
     }
 
