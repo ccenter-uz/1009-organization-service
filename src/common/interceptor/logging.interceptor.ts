@@ -83,7 +83,7 @@ export class LoggingInterceptor implements NestInterceptor {
           if (response?.name) logDataComplete.organizationName = response?.name;
         }
 
-        // if (response?.id) logDataComplete.referenceId = response?.id;
+         if (response?.id) logDataComplete.referenceId = response?.id;
         // if (typeof response?.name !== 'object') {
         //   this.saveLog(logDataComplete).catch((error) => {
         //     console.error('Error saving log:', error);
