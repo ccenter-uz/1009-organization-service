@@ -995,11 +995,29 @@ export class OrganizationService {
     }
 
     if (data.module == 'area') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+
+      const count = await this.prisma.area.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
       let areas = await getOrderedDataWithDistrict(
         'Area',
         'area',
         this.prisma,
-        data
+        data,
+        pagination
       );
 
       const formattedArea = [];
@@ -1080,11 +1098,28 @@ export class OrganizationService {
     }
 
     if (data.module == 'lane') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+      const count = await this.prisma.lane.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
       const lanes = await getOrderedDataWithDistrict(
         'Lane',
         'lane',
         this.prisma,
-        data
+        data,
+        pagination
       );
 
       const formattedLane = [];
@@ -1157,17 +1192,36 @@ export class OrganizationService {
 
       return {
         data: formattedLane,
-        totalDocs: lanes.length,
-        totalPage: lanes.length > 0 ? 1 : 0,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
     }
 
     if (data.module == 'residential-area') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+
+      const count = await this.prisma.residentialArea.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+
       let residentialAreas = await getOrderedDataWithDistrict(
         'ResidentialArea',
         'residential_area',
         this.prisma,
-        data
+        data,
+        pagination
       );
 
       const formattedResidentialArea = [];
@@ -1246,17 +1300,34 @@ export class OrganizationService {
 
       return {
         data: formattedResidentialArea,
-        totalDocs: residentialAreas.length,
-        totalPage: residentialAreas.length > 0 ? 1 : 0,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
     }
 
     if (data.module == 'neighborhood') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+      const count = await this.prisma.neighborhood.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
       let neighborhoods = await getOrderedDataWithDistrict(
         'Neighborhood',
         'neighborhood',
         this.prisma,
-        data
+        data,
+        pagination
       );
 
       const formattedNeighborhood = [];
@@ -1333,17 +1404,35 @@ export class OrganizationService {
 
       return {
         data: formattedNeighborhood,
-        totalDocs: neighborhoods.length,
-        totalPage: neighborhoods.length > 0 ? 1 : 0,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
     }
 
     if (data.module == 'impasse') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+
+      const count = await this.prisma.impasse.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
       let impasses = await getOrderedDataWithDistrict(
         'Impasse',
         'impasse',
         this.prisma,
-        data
+        data,
+        pagination
       );
 
       const formattedImpasse = [];
@@ -1414,17 +1503,35 @@ export class OrganizationService {
 
       return {
         data: formattedImpasse,
-        totalDocs: impasses.length,
-        totalPage: impasses.length > 0 ? 1 : 0,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
     }
 
     if (data.module == 'avenue') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+
+      const count = await this.prisma.avenue.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
       let avenues = await getOrderedDataWithDistrict(
         'Avenue',
         'avenue',
         this.prisma,
-        data
+        data,
+        pagination
       );
       const formattedAvenue = [];
 
@@ -1496,17 +1603,35 @@ export class OrganizationService {
 
       return {
         data: formattedAvenue,
-        totalDocs: avenues.length,
-        totalPage: avenues.length > 0 ? 1 : 0,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
     }
 
     if (data.module == 'passage') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+
+      const count = await this.prisma.passage.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
       let passages = await getOrderedDataWithDistrict(
         'Passage',
         'passage',
         this.prisma,
-        data
+        data,
+        pagination
       );
 
       const formattedPassage = [];
@@ -1576,8 +1701,8 @@ export class OrganizationService {
 
       return {
         data: formattedPassage,
-        totalDocs: passages.length,
-        totalPage: passages.length > 0 ? 1 : 0,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
     }
   }
