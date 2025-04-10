@@ -17,7 +17,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
     await this.prisma.apiLogs.create({
       data: {
-        userId: data.userId,
+        userId: data.userId || null,
         userNumericId: data.numericId || null,
         userFullName: data.fullName || null,
         userRole: data.role || null,
