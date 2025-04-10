@@ -81,27 +81,28 @@ model SubCategoryTranslations {
 }
 
 model MainOrganization {
-  id                  Int                   @id @default(autoincrement())
-  staffNumber         String?               @map("staff_number") @db.VarChar(40)
-  editedStaffNumber   String?               @map("edited_staff_number") @db.VarChar(40)
-  status              Int                   @default(1) @db.SmallInt()
-  orderNumber         Int?                  @map("order_number")
-  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamp
-  updatedAt           DateTime?             @updatedAt @map("updated_at")
-  deletedAt           DateTime?             @updatedAt @map("deleted_at")
-  Organization        Organization[]
-  OrganizationVersion OrganizationVersion[]
-  MainOrganizationTranslations    MainOrganizationTranslations[]
+  id                           Int                            @id @default(autoincrement())
+  staffNumber                  String?                        @map("staff_number") @db.VarChar(40)
+  editedStaffNumber            String?                        @map("edited_staff_number") @db.VarChar(40)
+  status                       Int                            @default(1) @db.SmallInt()
+  orderNumber                  Int?                           @map("order_number")
+  createdAt                    DateTime                       @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                    DateTime?                      @updatedAt @map("updated_at")
+  deletedAt                    DateTime?                      @updatedAt @map("deleted_at")
+  Organization                 Organization[]
+  OrganizationVersion          OrganizationVersion[]
+  MainOrganizationTranslations MainOrganizationTranslations[]
+
   @@map("main_organization")
 }
 
 model MainOrganizationTranslations {
-  id            Int            @id @default(autoincrement())
+  id                 Int       @id @default(autoincrement())
   mainOrganizationId Int       @map("main_organization_id")
-  languageCode  String         @map("language_code")
-  name          String
-  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamp
-  updatedAt     DateTime?      @updatedAt @map("updated_at")
+  languageCode       String    @map("language_code")
+  name               String
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt          DateTime? @updatedAt @map("updated_at")
 
   mainOrganization MainOrganization @relation(fields: [mainOrganizationId], references: [id])
 
@@ -1485,7 +1486,7 @@ model AdditionalTableContentTranslations {
 
 model ApiLogs {
   id               Int       @id @default(autoincrement())
-  userId           Int       @map("user_id")
+  userId           Int?      @map("user_id")
   userNumericId    String?   @map("user_numeric_id") @db.VarChar(15)
   userFullName     String?   @map("user_full_name") @db.VarChar(300)
   userRole         String?   @map("user_role") @db.VarChar(50)

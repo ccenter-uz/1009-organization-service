@@ -199,29 +199,29 @@ export class DistrictService {
         totalPage: district.length > 0 ? 1 : 0,
       };
     }
-
+    
     const where: any = {
       ...(data.status == 2
         ? {}
         : {
-            status: data.status,
-          }),
-      regionId: data.regionId,
-      cityId: data.cityId,
-    };
-    if (data.search) {
-      where.OR = [
-        {
-          DistrictTranslations: {
-            some: {
-              name: {
-                contains: data.search,
-                mode: 'insensitive',
+          status: data.status,
+        }),
+        regionId: data.regionId,
+        cityId: data.cityId,
+      };
+      if (data.search) {
+        where.OR = [
+          {
+            DistrictTranslations: {
+              some: {
+                name: {
+                  contains: data.search,
+                  mode: 'insensitive',
+                },
               },
             },
           },
-        },
-        {
+          {
           DistrictNewNameTranslations: {
             some: {
               name: {
@@ -246,13 +246,14 @@ export class DistrictService {
     const count = await this.prisma.district.count({
       where,
     });
-
+    
     const pagination = createPagination({
       count,
       page: data.page,
       perPage: data.limit,
     });
-
+    
+    console.log('data in district', data);
     const district = await getDistrictData(
       'District',
       'district',
@@ -260,6 +261,8 @@ export class DistrictService {
       data,
       pagination
     );
+    console.log(district, 'district');
+    
 
     const formattedDistrict = [];
 

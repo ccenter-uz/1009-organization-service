@@ -17,7 +17,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
     await this.prisma.apiLogs.create({
       data: {
-        userId: data.userId,
+        userId: data.userId || null,
         userNumericId: data.numericId || null,
         userFullName: data.fullName || null,
         userRole: data.role || null,
@@ -43,10 +43,16 @@ export class LoggingInterceptor implements NestInterceptor {
       return next.handle();
     }
 
+    console.log(req, 'REQ');
+
     const { logData } = req;
     delete req?.logData;
 
+    console.log(logData, 'LOG DATA');
+
     const startTime = Date.now();
+
+    console.log(logData.user?.id, 'USER ID IN LOG DATA');
 
     const logDataComplete = {
       userId: logData.user?.id,
@@ -77,12 +83,15 @@ export class LoggingInterceptor implements NestInterceptor {
           if (response?.name) logDataComplete.organizationName = response?.name;
         }
 
-        if (response?.id) logDataComplete.referenceId = response?.id;
-        if (typeof response?.name !== 'object') {
-          this.saveLog(logDataComplete).catch((error) => {
-            console.error('Error saving log:', error);
-          });
-        }
+         if (response?.id) logDataComplete.referenceId = response?.id;
+        // if (typeof response?.name !== 'object') {
+        //   this.saveLog(logDataComplete).catch((error) => {
+        //     console.error('Error saving log:', error);
+        //   });
+        // }
+        this.saveLog(logDataComplete).catch((error) => {
+          console.error('Error saving log:', error);
+        });
 
         // Save the log asynchronously
 
