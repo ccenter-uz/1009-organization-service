@@ -105,6 +105,7 @@ export class CacheService {
       cacheName,
       allKeys,
     });
+    
     await Promise.all(allKeys.map((key) => this.cacheManager.del(key)));
 
     await this.cacheManager.del(`${cacheName}-keys`);

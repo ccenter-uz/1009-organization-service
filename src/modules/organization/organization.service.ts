@@ -2000,7 +2000,7 @@ export class OrganizationService {
             `Method: ${methodName} - Response: `,
             UpdateVersion
           );
-          return await this.prisma.organization.update({
+          const updateOrg =  await this.prisma.organization.update({
             where: {
               id: organizationVersion.organizationId,
             },
@@ -2008,6 +2008,15 @@ export class OrganizationService {
               status: OrganizationStatusEnum.Accepted,
             },
           });
+
+          await this.cacheService.delete(
+            'organizationOne',
+            data.id?.toString()
+          );
+
+          await this.cacheService.invalidateAllCaches('organization');
+
+          return updateOrg;
         } else if (
           organizationVersion.method == OrganizationMethodEnum.Delete
         ) {
