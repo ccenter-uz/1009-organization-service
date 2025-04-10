@@ -43,10 +43,16 @@ export class LoggingInterceptor implements NestInterceptor {
       return next.handle();
     }
 
+    console.log(req, 'REQ');
+
     const { logData } = req;
     delete req?.logData;
 
+    console.log(logData, 'LOG DATA');
+
     const startTime = Date.now();
+
+    console.log(logData.user?.id, 'USER ID IN LOG DATA');
 
     const logDataComplete = {
       userId: logData.user?.id,
