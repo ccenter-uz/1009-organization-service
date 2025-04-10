@@ -2000,7 +2000,7 @@ export class OrganizationService {
             `Method: ${methodName} - Response: `,
             UpdateVersion
           );
-          const updateOrg =  await this.prisma.organization.update({
+          const updateOrg = await this.prisma.organization.update({
             where: {
               id: organizationVersion.organizationId,
             },
@@ -2090,7 +2090,9 @@ export class OrganizationService {
         });
 
         this.logger.debug(`Method: ${methodName} - Response: `, UpdateVersion);
+        await this.cacheService.delete('organizationOne', data.id?.toString());
 
+        await this.cacheService.invalidateAllCaches('organization');
         return UpdateVersion;
       }
     }
