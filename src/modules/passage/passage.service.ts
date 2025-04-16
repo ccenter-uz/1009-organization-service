@@ -120,6 +120,16 @@ export class PassageService {
     });
     this.logger.debug(`Method: ${methodName} - Response: `, passage);
 
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE passage_translations 
+      SET search_vector = to_tsvector('simple', name) 
+      WHERE passage_id = ${passage.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     return passage;
   }
 
@@ -604,7 +614,7 @@ export class PassageService {
         regionId: data.regionId || passage.regionId,
         cityId: data.cityId || passage.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || passage.staffNumber,
+        editedStaffNumber: data.staffNumber,
         index: data.index || passage.index,
         orderNumber: data.orderNumber,
         PassageTranslations: {

@@ -126,6 +126,16 @@ export class DistrictService {
 
     this.logger.debug(`Method: ${methodName} - Response: `, district);
 
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE district_translations 
+      SET search_vector = to_tsvector('simple', name) 
+      WHERE district_id = ${district.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     return district;
   }
 
@@ -141,6 +151,7 @@ export class DistrictService {
         this.prisma,
         data
       );
+      
 
       const formattedDistrict = [];
 
@@ -188,29 +199,29 @@ export class DistrictService {
         totalPage: district.length > 0 ? 1 : 0,
       };
     }
-
+    
     const where: any = {
       ...(data.status == 2
         ? {}
         : {
-            status: data.status,
-          }),
-      regionId: data.regionId,
-      cityId: data.cityId,
-    };
-    if (data.search) {
-      where.OR = [
-        {
-          DistrictTranslations: {
-            some: {
-              name: {
-                contains: data.search,
-                mode: 'insensitive',
+          status: data.status,
+        }),
+        regionId: data.regionId,
+        cityId: data.cityId,
+      };
+      if (data.search) {
+        where.OR = [
+          {
+            DistrictTranslations: {
+              some: {
+                name: {
+                  contains: data.search,
+                  mode: 'insensitive',
+                },
               },
             },
           },
-        },
-        {
+          {
           DistrictNewNameTranslations: {
             some: {
               name: {
@@ -235,13 +246,14 @@ export class DistrictService {
     const count = await this.prisma.district.count({
       where,
     });
-
+    
     const pagination = createPagination({
       count,
       page: data.page,
       perPage: data.limit,
     });
-
+    
+    console.log('data in district', data);
     const district = await getDistrictData(
       'District',
       'district',
@@ -249,6 +261,8 @@ export class DistrictService {
       data,
       pagination
     );
+    console.log(district, 'district');
+    
 
     const formattedDistrict = [];
 
@@ -496,7 +510,7 @@ export class DistrictService {
       data: {
         regionId: data.regionId || district.regionId,
         cityId: data.cityId || district.cityId,
-        staffNumber: data.staffNumber || district.staffNumber,
+        editedStaffNumber: data.staffNumber,
         index: data.index || district.index,
         orderNumber: data.orderNumber,
         DistrictTranslations: {

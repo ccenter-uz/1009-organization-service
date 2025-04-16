@@ -93,7 +93,7 @@ export class NeighborhoodService {
       };
     }
 
-    const residentialArea = await this.prisma.neighborhood.create({
+    const neighborhood = await this.prisma.neighborhood.create({
       data: {
         regionId: region.id,
         cityId: city.id,
@@ -126,9 +126,19 @@ export class NeighborhoodService {
       },
     });
 
-    this.logger.debug(`Method: ${methodName} - Response: `, residentialArea);
+    this.logger.debug(`Method: ${methodName} - Response: `, neighborhood);
 
-    return residentialArea;
+    await this.prisma.$executeRawUnsafe(`
+        UPDATE neighborhood_translations 
+        SET search_vector = to_tsvector('simple', name) 
+        WHERE neighborhood_id = ${neighborhood.id}
+      `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
+    return neighborhood;
   }
 
   async findAll(
@@ -628,7 +638,7 @@ export class NeighborhoodService {
         regionId: data.regionId || neighborhood.regionId,
         cityId: data.cityId || neighborhood.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || neighborhood.staffNumber,
+        editedStaffNumber: data.staffNumber,
         index: data.index || neighborhood.index,
         orderNumber: data.orderNumber,
         NeighborhoodTranslations: {

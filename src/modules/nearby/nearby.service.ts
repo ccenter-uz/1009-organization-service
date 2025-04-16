@@ -35,6 +35,8 @@ export class NearbyService {
   async create(data: NearbyCreateDto): Promise<NearbyInterfaces.Response> {
     const methodName: string = this.create.name;
 
+    console.log(data);
+
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
       id: data.regionId,
@@ -46,9 +48,14 @@ export class NearbyService {
     const city = await this.cityService.findOne({
       id: data.cityId,
     });
-    const district = await this.districtService.findOne({
-      id: data.districtId,
-    });
+
+    let district;
+    if (data.districtId) {
+      district = await this.districtService.findOne({
+        id: data.districtId,
+      });
+    }
+
     const nearby = await this.prisma.nearby.create({
       data: {
         nearbyCategoryId: nearbyCategory.id,
@@ -81,6 +88,7 @@ export class NearbyService {
             id: true,
             name: true,
             staffNumber: true,
+            editedStaffNumber: true,
             status: true,
             createdAt: true,
             updatedAt: true,
@@ -107,6 +115,16 @@ export class NearbyService {
       },
     });
     this.logger.debug(`Method: ${methodName} - Response: `, nearby);
+
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE nearby_translations 
+      SET search_vector = to_tsvector('simple', name) 
+      WHERE nearby_id = ${nearby.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
 
     return nearby;
   }
@@ -346,6 +364,7 @@ export class NearbyService {
             id: true,
             name: true,
             staffNumber: true,
+            editedStaffNumber: true,
             status: true,
             createdAt: true,
             updatedAt: true,
@@ -467,7 +486,7 @@ export class NearbyService {
         regionId: data.regionId || nearby.regionId || null,
         cityId: data.cityId || nearby.cityId || null,
         districtId: data.districtId || nearby?.districtId || null,
-        staffNumber: data.staffNumber || nearby.staffNumber || null,
+        editedStaffNumber: data.staffNumber,
         orderNumber: data.orderNumber || null,
         NearbyTranslations: {
           updateMany:
@@ -481,6 +500,7 @@ export class NearbyService {
             id: true,
             name: true,
             staffNumber: true,
+            editedStaffNumber: true,
             status: true,
             createdAt: true,
             updatedAt: true,
@@ -549,6 +569,7 @@ export class NearbyService {
             id: true,
             name: true,
             staffNumber: true,
+            editedStaffNumber: true,
             status: true,
             createdAt: true,
             updatedAt: true,
@@ -602,6 +623,7 @@ export class NearbyService {
             id: true,
             name: true,
             staffNumber: true,
+            editedStaffNumber: true,
             status: true,
             createdAt: true,
             updatedAt: true,

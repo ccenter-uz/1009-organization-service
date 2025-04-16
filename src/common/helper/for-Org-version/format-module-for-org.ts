@@ -191,6 +191,14 @@ export const modulesConfigVersion = [
     ],
   },
   {
+    nameKey: 'Neighborhood',
+    includeKeys: [
+      'NeighborhoodTranslations',
+      'NewNameTranslations',
+      'OldNameTranslations',
+    ],
+  },
+  {
     nameKey: 'Street',
     includeKeys: [
       'StreetTranslations',

@@ -70,12 +70,23 @@ export class MonitoringService {
       where.organizationId = data.organizationId;
     }
 
+    if (data.referenceId) {
+      where.referenceId = data.referenceId;
+    }
+
     if (data.onlyOrgs) {
       where.organizationName = {
         not: null,
       };
     }
+    if (data.method && data.method != 'ALL') {
+      where.method = data.method;
+    }
+    if(data.module) {
+      where.module = data.module;
+    }
 
+    
     const count = await this.prisma.apiLogs.count({
       where,
     });

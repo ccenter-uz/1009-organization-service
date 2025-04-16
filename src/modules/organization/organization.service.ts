@@ -57,6 +57,12 @@ import { UnconfirmOrganizationFilterDto } from 'types/organization/organization/
 import { PassageService } from '../passage/passage.service';
 import { Prisma } from '@prisma/client';
 import { NeighborhoodService } from '../neighborhood/neighborhood.service';
+import { CacheService } from '../cache/cache.service';
+import { formatCacheKey } from '@/common/helper/format-cache-maneger';
+import { getOrg } from '@/common/helper/for-Org/get-org-data.dto';
+import { ObjectAdressFilterDto } from 'types/organization/organization/dto/filter-object-adress-organization.dto';
+import { formatLanguageResponse } from '@/common/helper/format-language.helper';
+import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 
 @Injectable()
 export class OrganizationService {
@@ -84,7 +90,8 @@ export class OrganizationService {
     private readonly NearbyService: NearbyService,
     private readonly SegmentService: SegmentService,
     private readonly PhoneTypeService: PhoneTypeService,
-    private readonly PassageService: PassageService
+    private readonly PassageService: PassageService,
+    private readonly cacheService: CacheService
   ) {}
 
   async create(
@@ -192,12 +199,9 @@ export class OrganizationService {
     let phoneCreateArray = [];
     let phones = data.phone['phones'];
     for (let i = 0; i < phones?.length; i++) {
-      const phoneType = await this.PhoneTypeService.findOne({
-        id: phones[i].phoneTypeId,
-      });
       phoneCreateArray.push({
         phone: phones[i].phone,
-        PhoneTypeId: phoneType.id,
+        PhoneTypeId: phones[i].phoneTypeId,
         isSecret: phones[i].isSecret,
       });
     }
@@ -316,9 +320,30 @@ export class OrganizationService {
         ProductServices: true,
       },
     });
+
     this.logger.debug(`Method: ${methodName} - Response: `, organization);
 
+    if (data.address) {
+      await this.prisma.$executeRawUnsafe(`
+        UPDATE organization 
+        SET address_search_vector = to_tsvector('simple', address) 
+        WHERE id = ${organization.id}
+      `);
+    }
+
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE nearbees 
+      SET description_search_vector = to_tsvector('simple', description) 
+      WHERE organization_version_id = ${organization.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     await this.organizationVersionService.create(organization);
+
+    await this.cacheService.invalidateAllCaches('organization');
     return organization;
   }
 
@@ -329,288 +354,327 @@ export class OrganizationService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
+    console.log(include, 'LOG 1');
     const where: any = {};
+    const CacheKey = formatCacheKey(data);
+    console.log(CacheKey, 'LOG 2');
+    const findOrganization = await this.cacheService.get(
+      'organization',
+      CacheKey
+    );
 
-    if (data.address) {
-      where.OR = [
-        { address: { contains: data.address, mode: 'insensitive' } },
-        {
-          District: {
-            DistrictTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+    if (findOrganization) {
+      return findOrganization;
+    } else {
+      if (data.address) {
+        where.OR = [
+          { address: { contains: data.address, mode: 'insensitive' } },
+          {
+            District: {
+              DistrictTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Region: {
-            RegionTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Region: {
+              RegionTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Passage: {
-            PassageTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Passage: {
+              PassageTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Street: {
-            StreetTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Street: {
+              StreetTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Area: {
-            AreaTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Area: {
+              AreaTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Avenue: {
-            AvenueTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Avenue: {
+              AvenueTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          City: {
-            CityTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            City: {
+              CityTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          ResidentialArea: {
-            ResidentialAreaTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            ResidentialArea: {
+              ResidentialAreaTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Impasse: {
-            ImpasseTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Neighborhood: {
+              NeighborhoodTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Village: {
-            VillageTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Impasse: {
+              ImpasseTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Lane: {
-            LaneTranslations: {
-              some: { name: { contains: data.address, mode: 'insensitive' } },
+          {
+            Village: {
+              VillageTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
             },
           },
-        },
-        {
-          Nearbees: {
-            some: {
-              Nearby: {
-                NearbyTranslations: {
-                  some: {
-                    name: { contains: data.address, mode: 'insensitive' },
+          {
+            Lane: {
+              LaneTranslations: {
+                some: { name: { contains: data.address, mode: 'insensitive' } },
+              },
+            },
+          },
+          {
+            Nearbees: {
+              some: {
+                Nearby: {
+                  NearbyTranslations: {
+                    some: {
+                      name: { contains: data.address, mode: 'insensitive' },
+                    },
                   },
                 },
+                description: { contains: data.address, mode: 'insensitive' },
               },
-              description: { contains: data.address, mode: 'insensitive' },
             },
           },
-        },
-      ];
-    }
-
-    if (data.apartment) {
-      where.apartment = { contains: data.apartment, mode: 'insensitive' };
-    }
-
-    if (data.categoryId) {
-      where.SubCategory = {
-        categoryId: data.categoryId,
-      };
-    }
-
-    if (data.cityId) {
-      where.cityId = data.cityId;
-    }
-
-    if (data.districtId) {
-      where.districtId = data.districtId;
-    }
-
-    if (data.home) {
-      where.home = { contains: data.home, mode: 'insensitive' };
-    }
-
-    if (data.kvartal) {
-      where.kvartal = { contains: data.kvartal, mode: 'insensitive' };
-    }
-
-    if (data.mainOrg) {
-      where.mainOrganizationId = data.mainOrg;
-    }
-
-    if (data.name) {
-      where.name = { contains: data.name, mode: 'insensitive' };
-    }
-
-    if (data.phone) {
-      where.Phone = {
-        some: { phone: { contains: data.phone, mode: 'insensitive' } },
-      };
-    }
-
-    if (data.phoneType) {
-      where.Phone = { some: { PhoneTypes: { id: data.phoneType } } };
-    }
-
-    if (data.regionId) {
-      where.regionId = data.regionId;
-    }
-
-    if (data.subCategoryId) {
-      where.subCategoryId = data.subCategoryId;
-    }
-
-    if (data.villageId) {
-      where.villageId = data.villageId;
-    }
-
-    if (data.streetId) {
-      where.streetId = data.streetId;
-    }
-
-    if (data.belongAbonent === true) {
-      where.createdBy = CreatedByEnum.Client;
-    }
-
-    if (data.bounded === true) {
-      where.createdBy = CreatedByEnum.Billing;
-    }
-
-    if (data.mine === true) {
-      where.staffNumber = data.staffNumber;
-    }
-
-    if (data.nearbyId) {
-      where.Nearbees = {
-        some: {
-          NearbyId: data.nearbyId,
-        },
-      };
-    }
-
-    if (data.categoryTuId) {
-      where.ProductServices = {
-        some: {
-          ProductServiceCategoryId: data.categoryTuId,
-        },
-      };
-    }
-
-    if (data.subCategoryTuId) {
-      where.ProductServices = {
-        some: {
-          ProductServiceSubCategoryId: data.subCategoryTuId,
-        },
-      };
-    }
-
-    if (data.all) {
-      const organizations = await this.prisma.organization.findMany({
-        where,
-        orderBy: { name: 'asc' },
-        include,
-      });
-      const result = [];
-      for (let [index, org] of Object.entries(organizations)) {
-        for (let [key, prop] of Object.entries(includeConfig)) {
-          let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-          delete org?.[idNameOfModules];
-        }
-        const formattedOrganization = formatOrganizationResponse(
-          org,
-          modulesConfig
-        );
-        if (data.role !== 'moderator') {
-          delete formattedOrganization.secret;
-        }
-        result.push(formattedOrganization);
+        ];
       }
-      this.logger.debug(`Method: ${methodName} - Response: `, result);
 
-      return {
-        data: result,
-        totalDocs: organizations.length,
-        totalPage: organizations.length > 0 ? 1 : 0,
-      };
-    }
+      if (data.apartment) {
+        where.apartment = { contains: data.apartment, mode: 'insensitive' };
+      }
 
-    const whereWithLang: any = {
-      ...(data.status
-        ? {
-            status: data.status,
+      if (data.categoryId) {
+        where.subCategoryId = data.categoryId;
+      }
+
+      if (data.cityId) {
+        where.cityId = data.cityId;
+      }
+
+      if (data.districtId) {
+        where.districtId = data.districtId;
+      }
+
+      if (data.home) {
+        where.home = { contains: data.home, mode: 'insensitive' };
+      }
+
+      if (data.kvartal) {
+        where.kvartal = { contains: data.kvartal, mode: 'insensitive' };
+      }
+
+      if (data.mainOrg) {
+        where.mainOrganizationId = data.mainOrg;
+      }
+
+      if (data.name) {
+        where.name = { contains: data.name, mode: 'insensitive' };
+      }
+
+      if (data.phone) {
+        where.Phone = {
+          some: { phone: { contains: data.phone, mode: 'insensitive' } },
+        };
+      }
+
+      if (data.phoneType) {
+        where.Phone = { some: { PhoneTypes: { id: data.phoneType } } };
+      }
+
+      if (data.regionId) {
+        where.regionId = data.regionId;
+      }
+
+      if (data.subCategoryId) {
+        where.subCategoryId = data.subCategoryId;
+      }
+
+      if (data.villageId) {
+        where.villageId = data.villageId;
+      }
+
+      if (data.streetId) {
+        where.streetId = data.streetId;
+      }
+
+      if (data.belongAbonent === true) {
+        where.createdBy = CreatedByEnum.Client;
+      }
+
+      if (data.bounded === true) {
+        where.createdBy = CreatedByEnum.Billing;
+      }
+
+      if (data.mine === true) {
+        where.staffNumber = data.staffNumber;
+      }
+
+      if (data.nearbyId) {
+        where.Nearbees = {
+          some: {
+            NearbyId: data.nearbyId,
+          },
+        };
+      }
+
+      if (data.categoryTuId) {
+        where.ProductServices = {
+          some: {
+            ProductServiceCategoryId: data.categoryTuId,
+          },
+        };
+      }
+
+      if (data.subCategoryTuId) {
+        where.ProductServices = {
+          some: {
+            ProductServiceSubCategoryId: data.subCategoryTuId,
+          },
+        };
+      }
+
+      if (data.all) {
+        console.log('Data All', 'LOG 11');
+        const organizations = await this.prisma.organization.findMany({
+          where,
+          orderBy: { name: 'asc' },
+          include,
+        });
+        const result = [];
+        for (let [index, org] of Object.entries(organizations)) {
+          for (let [key, prop] of Object.entries(includeConfig)) {
+            let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+            delete org?.[idNameOfModules];
           }
-        : {}),
-      ...where,
-    };
+          const formattedOrganization = formatOrganizationResponse(
+            org,
+            modulesConfig
+          );
+          if (data.role !== 'moderator') {
+            delete formattedOrganization.secret;
+          }
+          result.push(formattedOrganization);
+        }
+        this.logger.debug(`Method: ${methodName} - Response: `, result);
+        await this.cacheService.setAll('organization', CacheKey, {
+          data: result,
+          totalDocs: organizations.length,
+          totalPage: organizations.length > 0 ? 1 : 0,
+        });
+        console.log(result, 'Data All', 'LOG 12');
 
-    if (data.search) {
-      whereWithLang.name = {
-        contains: data.search,
-        mode: 'insensitive',
+        return {
+          data: result,
+          totalDocs: organizations.length,
+          totalPage: organizations.length > 0 ? 1 : 0,
+        };
+      }
+
+      const whereWithLang: any = {
+        ...(data.status
+          ? {
+              status: data.status,
+            }
+          : {}),
+        ...where,
+      };
+
+      if (data.search) {
+        console.log(data.search, 'LOG 14');
+        whereWithLang.name = {
+          contains: data.search,
+          mode: 'insensitive',
+        };
+      }
+
+      const count = await this.prisma.organization.count({
+        where: whereWithLang,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+
+      const organization: any = await getOrg(data, this.prisma, {
+        take: pagination.take,
+        skip: pagination.skip,
+      });
+
+      // let organization1 = await this.prisma.organization.findMany({
+      //   where: whereWithLang,
+      //   orderBy: { name: 'asc' },
+      //   include,
+      //   take: pagination.take,
+      //   skip: pagination.skip,
+      // });
+
+      // const result = [];
+      // for (let [index, org] of Object.entries(organization1)) {
+
+      //   for (let [key, prop] of Object.entries(includeConfig)) {
+      //     // console.log( key, 'key');
+
+      //     let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+      //             //  console.log(org?.[idNameOfModules] , idNameOfModules, key, 'key');
+      //     delete org?.[idNameOfModules];
+      //   }
+      //   // console.log(org?.ProductServices, 'org');
+
+      //   const formattedOrganization = formatOrganizationResponse(
+      //     org,
+      //     modulesConfig
+      //   );
+
+      //   if (data.role !== 'moderator') {
+      //     delete formattedOrganization.secret;
+      //   }
+      //   result.push(formattedOrganization);
+      // }
+      // this.logger.debug(`Method: ${methodName} - Response: `, result);
+      // await this.cacheService.setAll('organization', CacheKey, {
+      //   data: result,
+      //   totalPage: pagination.totalPage,
+      //   totalDocs: count,
+      // });
+      return {
+        data: organization,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
     }
-
-    const count = await this.prisma.organization.count({
-      where: whereWithLang,
-    });
-
-    const pagination = createPagination({
-      count,
-      page: data.page,
-      perPage: data.limit,
-    });
-
-    const organization = await this.prisma.organization.findMany({
-      where: whereWithLang,
-      orderBy: { name: 'asc' },
-      include,
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-
-    const result = [];
-    for (let [index, org] of Object.entries(organization)) {
-      for (let [key, prop] of Object.entries(includeConfig)) {
-        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-        delete org?.[idNameOfModules];
-      }
-      const formattedOrganization = formatOrganizationResponse(
-        org,
-        modulesConfig
-      );
-
-      if (data.role !== 'moderator') {
-        delete formattedOrganization.secret;
-      }
-      result.push(formattedOrganization);
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, result);
-
-    return {
-      data: result,
-      totalPage: pagination.totalPage,
-      totalDocs: count,
-    };
   }
 
   async findMy(
@@ -618,22 +682,85 @@ export class OrganizationService {
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
     const methodName: string = this.findMy.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const include = buildIncludeVersion(includeConfigVersion, data);
-    const where = {
-      staffNumber: data.staffNumber,
-    };
-    if (data.all) {
-      const organizations = await this.prisma.organizationVersion.findMany({
-        where,
+    const CacheKey = formatCacheKey(data);
+    const findOrganization = await this.cacheService.get(
+      'organization',
+      CacheKey
+    );
+    if (findOrganization) {
+      return findOrganization;
+    } else {
+      const include = buildIncludeVersion(includeConfigVersion, data);
+      const where = {
+        staffNumber: data.staffNumber,
+      };
+      if (data.all) {
+        const organizations = await this.prisma.organizationVersion.findMany({
+          where,
+          orderBy: { name: 'desc' },
+          include,
+        });
+        const result = [];
+        for (let [index, org] of Object.entries(organizations)) {
+          for (let [key, prop] of Object.entries(includeConfig)) {
+            let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+            delete org?.[idNameOfModules];
+          }
+          const formattedOrganization = formatOrganizationResponseVersion(
+            org,
+            modulesConfigVersion
+          );
+          if (data.role !== 'moderator') {
+            delete formattedOrganization.secret;
+          }
+          result.push(formattedOrganization);
+        }
+        this.logger.debug(`Method: ${methodName} - Response: `, result);
+        await this.cacheService.setAll('organization', CacheKey, {
+          data: result,
+          totalDocs: organizations.length,
+          totalPage: organizations.length > 0 ? 1 : 0,
+        });
+        return {
+          data: result,
+          totalDocs: organizations.length,
+          totalPage: organizations.length > 0 ? 1 : 0,
+        };
+      }
+
+      const whereWithLang: any = {
+        ...{
+          status: data.status,
+        },
+        ...where,
+      };
+
+      const count = await this.prisma.organizationVersion.count({
+        where: whereWithLang,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+
+      const organization = await this.prisma.organizationVersion.findMany({
+        where: whereWithLang,
         orderBy: { name: 'desc' },
         include,
+        take: pagination.take,
+        skip: pagination.skip,
       });
+
       const result = [];
-      for (let [index, org] of Object.entries(organizations)) {
+
+      for (let [index, org] of Object.entries(organization)) {
         for (let [key, prop] of Object.entries(includeConfig)) {
           let idNameOfModules = key.toLocaleLowerCase() + 'Id';
           delete org?.[idNameOfModules];
         }
+
         const formattedOrganization = formatOrganizationResponseVersion(
           org,
           modulesConfigVersion
@@ -644,63 +771,17 @@ export class OrganizationService {
         result.push(formattedOrganization);
       }
       this.logger.debug(`Method: ${methodName} - Response: `, result);
-
+      await this.cacheService.setAll('organization', CacheKey, {
+        data: result,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      });
       return {
         data: result,
-        totalDocs: organizations.length,
-        totalPage: organizations.length > 0 ? 1 : 0,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
       };
     }
-
-    const whereWithLang: any = {
-      ...{
-        status: data.status,
-      },
-      ...where,
-    };
-
-    const count = await this.prisma.organizationVersion.count({
-      where: whereWithLang,
-    });
-
-    const pagination = createPagination({
-      count,
-      page: data.page,
-      perPage: data.limit,
-    });
-
-    const organization = await this.prisma.organizationVersion.findMany({
-      where: whereWithLang,
-      orderBy: { name: 'desc' },
-      include,
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-
-    const result = [];
-
-    for (let [index, org] of Object.entries(organization)) {
-      for (let [key, prop] of Object.entries(includeConfig)) {
-        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-        delete org?.[idNameOfModules];
-      }
-
-      const formattedOrganization = formatOrganizationResponseVersion(
-        org,
-        modulesConfigVersion
-      );
-      if (data.role !== 'moderator') {
-        delete formattedOrganization.secret;
-      }
-      result.push(formattedOrganization);
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, result);
-
-    return {
-      data: result,
-      totalPage: pagination.totalPage,
-      totalDocs: count,
-    };
   }
 
   async findUnconfirm(
@@ -708,93 +789,934 @@ export class OrganizationService {
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
     const methodName: string = this.findUnconfirm.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const include = buildIncludeVersion(includeConfigVersion, data);
+    const CachKey = formatCacheKey(data);
+    const findOrganization = await this.cacheService.get(
+      'organization',
+      CachKey
+    );
+    if (findOrganization) {
+      return findOrganization;
+    } else {
+      const include = buildIncludeVersion(includeConfigVersion, data);
 
-    const where = {
-      status: 0,
-      name: data.search
-        ? { contains: data.search, mode: Prisma.QueryMode.insensitive }
-        : undefined,
-      createdBy:
-        data.createdBy == CreatedByEnum.All ? undefined : data.createdBy,
-    };
-    if (data.all) {
-      const organizations = await this.prisma.organizationVersion.findMany({
-        where,
+      const where = {
+        status: 0,
+        name: data.search
+          ? { contains: data.search, mode: Prisma.QueryMode.insensitive }
+          : undefined,
+        createdBy:
+          data.createdBy == CreatedByEnum.All ? undefined : data.createdBy,
+      };
+      if (data.all) {
+        const organizations = await this.prisma.organizationVersion.findMany({
+          where,
+          orderBy: { name: 'desc' },
+          include,
+        });
+        const result = [];
+        for (let [index, org] of Object.entries(organizations)) {
+          for (let [key, prop] of Object.entries(includeConfig)) {
+            let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+            delete org?.[idNameOfModules];
+          }
+          const formattedOrganization = formatOrganizationResponseVersion(
+            org,
+            modulesConfigVersion
+          );
+          result.push(formattedOrganization);
+        }
+        this.logger.debug(`Method: ${methodName} - Response: `, result);
+        await this.cacheService.setAll('organization', CachKey, {
+          data: result,
+          totalDocs: organizations.length,
+          totalPage: organizations.length > 0 ? 1 : 0,
+        });
+        return {
+          data: result,
+          totalDocs: organizations.length,
+          totalPage: organizations.length > 0 ? 1 : 0,
+        };
+      }
+
+      const whereWithLang: any = {
+        ...where,
+      };
+
+      const count = await this.prisma.organizationVersion.count({
+        where: whereWithLang,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+
+      const organization = await this.prisma.organizationVersion.findMany({
+        where: whereWithLang,
         orderBy: { name: 'desc' },
         include,
+        take: pagination.take,
+        skip: pagination.skip,
       });
+
       const result = [];
-      for (let [index, org] of Object.entries(organizations)) {
+
+      for (let [index, org] of Object.entries(organization)) {
         for (let [key, prop] of Object.entries(includeConfig)) {
           let idNameOfModules = key.toLocaleLowerCase() + 'Id';
           delete org?.[idNameOfModules];
         }
+
         const formattedOrganization = formatOrganizationResponseVersion(
           org,
           modulesConfigVersion
         );
+
         result.push(formattedOrganization);
       }
       this.logger.debug(`Method: ${methodName} - Response: `, result);
-
+      await this.cacheService.setAll('organization', CachKey, {
+        data: result,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      });
       return {
         data: result,
-        totalDocs: organizations.length,
-        totalPage: organizations.length > 0 ? 1 : 0,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      };
+    }
+  }
+
+  async findObjectAdress(data: ObjectAdressFilterDto) {
+    const methodName: string = this.findObjectAdress.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
+    if (data.module == 'street') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+
+      const count = await this.prisma.street.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+      const streets = await getOrderedDataWithDistrict(
+        'Street',
+        'street',
+        this.prisma,
+        data,
+        pagination
+      );
+
+      const formattedStreet = [];
+
+      for (let i = 0; i < streets.length; i++) {
+        let streetData = streets[i];
+        const translations = streetData.StreetTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = streetData.StreetNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = streetData.StreetOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+
+        delete streetData.StreetTranslations;
+        delete streetData.StreetNewNameTranslations;
+        delete streetData.StreetOldNameTranslations;
+
+        const regionTranslations = streetData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete streetData.region.RegionTranslations;
+        const region = { ...streetData.region, name: regionName };
+        delete streetData.region;
+
+        const cityTranslations = streetData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete streetData.city.CityTranslations;
+        const city = { ...streetData.city, name: cityName };
+        delete streetData.city;
+        if (streetData?.district) {
+          const districtData = streetData?.district;
+          let districtName: string | object;
+          let districtNameNew: string | object;
+          let districtNameOld: string | object;
+
+          if (districtData) {
+            const districtTranslations = districtData.DistrictTranslations;
+            districtName = formatLanguageResponse(districtTranslations);
+            const districtTranslationsNew =
+              districtData.DistrictNewNameTranslations;
+            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            const districtTranslationsOld =
+              districtData.DistrictOldNameTranslations;
+            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            delete districtData.DistrictTranslations;
+            delete districtData.DistrictNewNameTranslations;
+            delete districtData.DistrictOldNameTranslations;
+          }
+
+          const district = {
+            ...districtData,
+            name: districtName,
+            newName: districtNameNew,
+            oldName: districtNameOld,
+          };
+          streetData = {
+            ...streetData,
+            district,
+          };
+        }
+        formattedStreet.push({
+          ...streetData,
+          name,
+          newName: nameNew,
+          oldName: nameOld,
+          region,
+          city,
+        });
+      }
+      this.logger.debug(`Method: ${methodName} - Response: `, formattedStreet);
+
+      return {
+        data: formattedStreet,
+        totalDocs: pagination.totalPage,
+        totalPage: count,
       };
     }
 
-    const whereWithLang: any = {
-      ...where,
-    };
+    if (data.module == 'area') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
 
-    const count = await this.prisma.organizationVersion.count({
-      where: whereWithLang,
-    });
+      const count = await this.prisma.area.count({
+        where,
+      });
 
-    const pagination = createPagination({
-      count,
-      page: data.page,
-      perPage: data.limit,
-    });
-
-    const organization = await this.prisma.organizationVersion.findMany({
-      where: whereWithLang,
-      orderBy: { name: 'desc' },
-      include,
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-
-    const result = [];
-
-    for (let [index, org] of Object.entries(organization)) {
-      for (let [key, prop] of Object.entries(includeConfig)) {
-        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-        delete org?.[idNameOfModules];
-      }
-
-      const formattedOrganization = formatOrganizationResponseVersion(
-        org,
-        modulesConfigVersion
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+      let areas = await getOrderedDataWithDistrict(
+        'Area',
+        'area',
+        this.prisma,
+        data,
+        pagination
       );
 
-      result.push(formattedOrganization);
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, result);
+      const formattedArea = [];
 
-    return {
-      data: result,
-      totalPage: pagination.totalPage,
-      totalDocs: count,
-    };
+      for (let i = 0; i < areas.length; i++) {
+        let areaData = areas[i];
+        const translations = areaData.AreaTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = areaData.AreaNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = areaData.AreaOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete areaData.AreaTranslations;
+        delete areaData.AreaNewNameTranslations;
+        delete areaData.AreaOldNameTranslations;
+
+        const regionTranslations = areaData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete areaData.region.RegionTranslations;
+        const region = { ...areaData.region, name: regionName };
+        delete areaData.region;
+
+        const cityTranslations = areaData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete areaData.city.CityTranslations;
+        const city = { ...areaData.city, name: cityName };
+        delete areaData.city;
+
+        if (areaData?.district) {
+          const districtData = areaData?.district;
+          let districtName: string | object;
+          let districtNameNew: string | object;
+          let districtNameOld: string | object;
+
+          if (districtData) {
+            const districtTranslations = districtData.DistrictTranslations;
+            districtName = formatLanguageResponse(districtTranslations);
+            const districtTranslationsNew =
+              districtData.DistrictNewNameTranslations;
+            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            const districtTranslationsOld =
+              districtData.DistrictOldNameTranslations;
+            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            delete districtData.DistrictTranslations;
+            delete districtData.DistrictNewNameTranslations;
+            delete districtData.DistrictOldNameTranslations;
+          }
+
+          const district = {
+            ...districtData,
+            name: districtName,
+            newName: districtNameNew,
+            oldName: districtNameOld,
+          };
+
+          areaData = {
+            ...areaData,
+            district,
+          };
+        }
+
+        formattedArea.push({
+          ...areaData,
+          name,
+          newName: nameNew,
+          oldName: nameOld,
+          region,
+          city,
+        });
+      }
+
+      this.logger.debug(`Method: ${methodName} -  Response: `, formattedArea);
+      return {
+        data: formattedArea,
+        totalDocs: areas.length,
+        totalPage: areas.length > 0 ? 1 : 0,
+      };
+    }
+
+    if (data.module == 'lane') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+      const count = await this.prisma.lane.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+      const lanes = await getOrderedDataWithDistrict(
+        'Lane',
+        'lane',
+        this.prisma,
+        data,
+        pagination
+      );
+
+      const formattedLane = [];
+
+      for (let i = 0; i < lanes.length; i++) {
+        let laneData = lanes[i];
+        const translations = laneData.LaneTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = laneData.LaneNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = laneData.LaneOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete laneData.LaneTranslations;
+        delete laneData.LaneNewNameTranslations;
+        delete laneData.LaneOldNameTranslations;
+
+        const regionTranslations = laneData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete laneData.region.RegionTranslations;
+        const region = { ...laneData.region, name: regionName };
+        delete laneData.region;
+
+        const cityTranslations = laneData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete laneData.city.CityTranslations;
+        const city = { ...laneData.city, name: cityName };
+        delete laneData.city;
+        if (laneData?.district) {
+          const districtData = laneData?.district;
+          let districtName: string | object;
+          let districtNameNew: string | object;
+          let districtNameOld: string | object;
+
+          if (districtData) {
+            const districtTranslations = districtData.DistrictTranslations;
+            districtName = formatLanguageResponse(districtTranslations);
+            const districtTranslationsNew =
+              districtData.DistrictNewNameTranslations;
+            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            const districtTranslationsOld =
+              districtData.DistrictOldNameTranslations;
+            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            delete districtData.DistrictTranslations;
+            delete districtData.DistrictNewNameTranslations;
+            delete districtData.DistrictOldNameTranslations;
+          }
+
+          const district = {
+            ...districtData,
+            name: districtName,
+            newName: districtNameNew,
+            oldName: districtNameOld,
+          };
+          laneData = {
+            ...laneData,
+            district,
+          };
+        }
+        this.logger.debug(`Method: ${methodName} -  Response: `, laneData);
+
+        formattedLane.push({
+          ...laneData,
+          name,
+          newName: nameNew,
+          oldName: nameOld,
+          region,
+          city,
+        });
+      }
+
+      return {
+        data: formattedLane,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      };
+    }
+
+    if (data.module == 'residential-area') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+
+      const count = await this.prisma.residentialArea.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+
+      let residentialAreas = await getOrderedDataWithDistrict(
+        'ResidentialArea',
+        'residential_area',
+        this.prisma,
+        data,
+        pagination
+      );
+
+      const formattedResidentialArea = [];
+
+      for (let i = 0; i < residentialAreas.length; i++) {
+        let residentialAreaData = residentialAreas[i];
+        const translations = residentialAreaData.ResidentialAreaTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew =
+          residentialAreaData.ResidentialAreaNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld =
+          residentialAreaData.ResidentialAreaOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete residentialAreaData.ResidentialAreaTranslations;
+        delete residentialAreaData.ResidentialAreaNewNameTranslations;
+        delete residentialAreaData.ResidentialAreaOldNameTranslations;
+
+        const regionTranslations =
+          residentialAreaData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete residentialAreaData.region.RegionTranslations;
+        const region = { ...residentialAreaData.region, name: regionName };
+        delete residentialAreaData.region;
+
+        const cityTranslations = residentialAreaData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete residentialAreaData.city.CityTranslations;
+        const city = { ...residentialAreaData.city, name: cityName };
+        delete residentialAreaData.city;
+        if (residentialAreaData?.district) {
+          const districtData = residentialAreaData?.district;
+          let districtName: string | object;
+          let districtNameNew: string | object;
+          let districtNameOld: string | object;
+
+          if (districtData) {
+            const districtTranslations = districtData.DistrictTranslations;
+            districtName = formatLanguageResponse(districtTranslations);
+            const districtTranslationsNew =
+              districtData.DistrictNewNameTranslations;
+            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            const districtTranslationsOld =
+              districtData.DistrictOldNameTranslations;
+            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            delete districtData.DistrictTranslations;
+            delete districtData.DistrictNewNameTranslations;
+            delete districtData.DistrictOldNameTranslations;
+          }
+
+          const district = {
+            ...districtData,
+            name: districtName,
+            newName: districtNameNew,
+            oldName: districtNameOld,
+          };
+          residentialAreaData = {
+            ...residentialAreaData,
+            district,
+          };
+        }
+        formattedResidentialArea.push({
+          ...residentialAreaData,
+          name,
+          newName: nameNew,
+          oldName: nameOld,
+
+          region,
+          city,
+        });
+      }
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedResidentialArea
+      );
+
+      return {
+        data: formattedResidentialArea,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      };
+    }
+
+    if (data.module == 'neighborhood') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+      const count = await this.prisma.neighborhood.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+      let neighborhoods = await getOrderedDataWithDistrict(
+        'Neighborhood',
+        'neighborhood',
+        this.prisma,
+        data,
+        pagination
+      );
+
+      const formattedNeighborhood = [];
+
+      for (let i = 0; i < neighborhoods.length; i++) {
+        let neighborhoodData = neighborhoods[i];
+        const translations = neighborhoodData.NeighborhoodTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew =
+          neighborhoodData.NeighborhoodNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld =
+          neighborhoodData.NeighborhoodOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete neighborhoodData.NeighborhoodTranslations;
+        delete neighborhoodData.NeighborhoodNewNameTranslations;
+        delete neighborhoodData.NeighborhoodOldNameTranslations;
+
+        const regionTranslations = neighborhoodData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete neighborhoodData.region.RegionTranslations;
+        const region = { ...neighborhoodData.region, name: regionName };
+        delete neighborhoodData.region;
+
+        const cityTranslations = neighborhoodData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete neighborhoodData.city.CityTranslations;
+        const city = { ...neighborhoodData.city, name: cityName };
+        delete neighborhoodData.city;
+        if (neighborhoodData?.district) {
+          const districtData = neighborhoodData?.district;
+          let districtName: string | object;
+          let districtNameNew: string | object;
+          let districtNameOld: string | object;
+
+          if (districtData) {
+            const districtTranslations = districtData.DistrictTranslations;
+            districtName = formatLanguageResponse(districtTranslations);
+            const districtTranslationsNew =
+              districtData.DistrictNewNameTranslations;
+            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            const districtTranslationsOld =
+              districtData.DistrictOldNameTranslations;
+            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            delete districtData.DistrictTranslations;
+            delete districtData.DistrictNewNameTranslations;
+            delete districtData.DistrictOldNameTranslations;
+          }
+
+          const district = {
+            ...districtData,
+            name: districtName,
+            newName: districtNameNew,
+            oldName: districtNameOld,
+          };
+          neighborhoodData = {
+            ...neighborhoodData,
+            district,
+          };
+        }
+        formattedNeighborhood.push({
+          ...neighborhoodData,
+          name,
+          newName: nameNew,
+          oldName: nameOld,
+          region,
+          city,
+        });
+      }
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedNeighborhood
+      );
+
+      return {
+        data: formattedNeighborhood,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      };
+    }
+
+    if (data.module == 'impasse') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+
+      const count = await this.prisma.impasse.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+      let impasses = await getOrderedDataWithDistrict(
+        'Impasse',
+        'impasse',
+        this.prisma,
+        data,
+        pagination
+      );
+
+      const formattedImpasse = [];
+
+      for (let i = 0; i < impasses.length; i++) {
+        let impasseData = impasses[i];
+        const translations = impasseData.ImpasseTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = impasseData.ImpasseNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = impasseData.ImpasseOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete impasseData.ImpasseTranslations;
+        delete impasseData.ImpasseNewNameTranslations;
+        delete impasseData.ImpasseOldNameTranslations;
+
+        const regionTranslations = impasseData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete impasseData.region.RegionTranslations;
+        const region = { ...impasseData.region, name: regionName };
+        delete impasseData.region;
+
+        const cityTranslations = impasseData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete impasseData.city.CityTranslations;
+        const city = { ...impasseData.city, name: cityName };
+        delete impasseData.city;
+
+        if (impasseData?.district) {
+          const districtData = impasseData?.district;
+          let districtName: string | object;
+          let districtNameNew: string | object;
+          let districtNameOld: string | object;
+
+          if (districtData) {
+            const districtTranslations = districtData.DistrictTranslations;
+            districtName = formatLanguageResponse(districtTranslations);
+            const districtTranslationsNew =
+              districtData.DistrictNewNameTranslations;
+            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            const districtTranslationsOld =
+              districtData.DistrictOldNameTranslations;
+            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            delete districtData.DistrictTranslations;
+            delete districtData.DistrictNewNameTranslations;
+            delete districtData.DistrictOldNameTranslations;
+          }
+
+          const district = {
+            ...impasseData.district,
+            name: districtName,
+            districtNameNew,
+            districtNameOld,
+          };
+          impasseData = { ...impasseData, district };
+        }
+        this.logger.debug(`Method: ${methodName} -  Response: `, impasseData);
+
+        formattedImpasse.push({
+          ...impasseData,
+          name,
+          newName: nameNew,
+          oldName: nameOld,
+          region,
+          city,
+        });
+      }
+
+      return {
+        data: formattedImpasse,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      };
+    }
+
+    if (data.module == 'avenue') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+
+      const count = await this.prisma.avenue.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+      let avenues = await getOrderedDataWithDistrict(
+        'Avenue',
+        'avenue',
+        this.prisma,
+        data,
+        pagination
+      );
+      const formattedAvenue = [];
+
+      for (let i = 0; i < avenues.length; i++) {
+        let avenueData = avenues[i];
+        const translations = avenueData.AvenueTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = avenueData.AvenueNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = avenueData.AvenueOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete avenueData.AvenueTranslations;
+        delete avenueData.AvenueNewNameTranslations;
+        delete avenueData.AvenueOldNameTranslations;
+
+        const regionTranslations = avenueData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete avenueData.region.RegionTranslations;
+        const region = { ...avenueData.region, name: regionName };
+        delete avenueData.region;
+
+        const cityTranslations = avenueData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete avenueData.city.CityTranslations;
+        const city = { ...avenueData.city, name: cityName };
+        delete avenueData.city;
+        if (avenueData?.district) {
+          const districtData = avenueData?.district;
+          let districtName: string | object;
+          let districtNameNew: string | object;
+          let districtNameOld: string | object;
+
+          if (districtData) {
+            const districtTranslations = districtData.DistrictTranslations;
+            districtName = formatLanguageResponse(districtTranslations);
+            const districtTranslationsNew =
+              districtData.DistrictNewNameTranslations;
+            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            const districtTranslationsOld =
+              districtData.DistrictOldNameTranslations;
+            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            delete districtData.DistrictTranslations;
+            delete districtData.DistrictNewNameTranslations;
+            delete districtData.DistrictOldNameTranslations;
+          }
+
+          const district = {
+            ...avenueData.district,
+            name: districtName,
+            districtNameNew,
+            districtNameOld,
+          };
+          avenueData = {
+            ...avenueData,
+            district,
+          };
+        }
+        formattedAvenue.push({
+          ...avenueData,
+          name,
+          newName: nameNew,
+          oldName: nameOld,
+          region,
+          city,
+        });
+      }
+
+      this.logger.debug(`Method: ${methodName} - Response: `, formattedAvenue);
+
+      return {
+        data: formattedAvenue,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      };
+    }
+
+    if (data.module == 'passage') {
+      const where: any = {
+        ...(data.status == 2
+          ? {}
+          : {
+              status: data.status,
+            }),
+      };
+
+      const count = await this.prisma.passage.count({
+        where,
+      });
+
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+      let passages = await getOrderedDataWithDistrict(
+        'Passage',
+        'passage',
+        this.prisma,
+        data,
+        pagination
+      );
+
+      const formattedPassage = [];
+
+      for (let i = 0; i < passages.length; i++) {
+        let passageData = passages[i];
+        const translations = passageData.PassageTranslations;
+        const name = formatLanguageResponse(translations);
+        const translationsNew = passageData.PassageNewNameTranslations;
+        const nameNew = formatLanguageResponse(translationsNew);
+        const translationsOld = passageData.PassageOldNameTranslations;
+        const nameOld = formatLanguageResponse(translationsOld);
+        delete passageData.PassageTranslations;
+        delete passageData.PassageNewNameTranslations;
+        delete passageData.PassageOldNameTranslations;
+
+        const regionTranslations = passageData.region.RegionTranslations;
+        const regionName = formatLanguageResponse(regionTranslations);
+        delete passageData.region.RegionTranslations;
+        const region = { ...passageData.region, name: regionName };
+        delete passageData.region;
+
+        const cityTranslations = passageData.city.CityTranslations;
+        const cityName = formatLanguageResponse(cityTranslations);
+        delete passageData.city.CityTranslations;
+        const city = { ...passageData.city, name: cityName };
+        delete passageData.city;
+        if (passageData?.district) {
+          const districtData = passageData?.district;
+          let districtName: string | object;
+          let districtNameNew: string | object;
+          let districtNameOld: string | object;
+
+          if (districtData) {
+            const districtTranslations = districtData.DistrictTranslations;
+            districtName = formatLanguageResponse(districtTranslations);
+            const districtTranslationsNew =
+              districtData.DistrictNewNameTranslations;
+            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            const districtTranslationsOld =
+              districtData.DistrictOldNameTranslations;
+            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            delete districtData.DistrictTranslations;
+            delete districtData.DistrictNewNameTranslations;
+            delete districtData.DistrictOldNameTranslations;
+          }
+
+          const district = {
+            ...passageData.district,
+            name: districtName,
+            districtNameNew,
+            districtNameOld,
+          };
+          passageData = { ...passageData, district };
+        }
+
+        formattedPassage.push({
+          ...passageData,
+          name,
+          newName: nameNew,
+          oldName: nameOld,
+          region,
+          city,
+        });
+      }
+      this.logger.debug(`Method: ${methodName} - Response: `, formattedPassage);
+
+      return {
+        data: formattedPassage,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      };
+    }
   }
 
   async findOne(data: GetOneDto): Promise<OrganizationInterfaces.Response> {
     const methodName: string = this.findOne.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
+    const findCategory = await this.cacheService.get(
+      'organizationOne',
+      data.id?.toString()
+    );
+
+    console.log(include, 'INCLUDE');
 
     const organization = await this.prisma.organization.findFirst({
       where: {
@@ -824,8 +1746,46 @@ export class OrganizationService {
       `Method: ${methodName} - Response: `,
       formattedOrganization
     );
+    if (findCategory) {
+      console.log(findCategory, 'findCategory');
 
-    return formattedOrganization;
+      return findCategory;
+    } else {
+      const organization = await this.prisma.organization.findFirst({
+        where: {
+          id: data.id,
+        },
+        orderBy: { name: 'asc' },
+        include: {
+          ...include,
+        },
+      });
+      for (let [key, prop] of Object.entries(includeConfig)) {
+        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+        delete organization?.[idNameOfModules];
+      }
+      if (!organization) {
+        throw new NotFoundException('Organization is not found');
+      }
+
+      let formattedOrganization = formatOrganizationResponse(
+        organization,
+        modulesConfig
+      );
+      if (data.role !== 'moderator') {
+        delete formattedOrganization.secret;
+      }
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedOrganization
+      );
+      await this.cacheService.set(
+        'organizationOne',
+        data.id?.toString(),
+        formattedOrganization
+      );
+      return formattedOrganization;
+    }
   }
 
   async update(id: number): Promise<OrganizationInterfaces.Response> {
@@ -954,7 +1914,7 @@ export class OrganizationService {
         index: organizationVersion.index,
         transport: organizationVersion.transport,
         workTime: organizationVersion.workTime,
-        staffNumber: organizationVersion.staffNumber,
+        editedStaffNumber: organizationVersion.editedStaffNumber,
         description: organizationVersion.description,
         passageId: organizationVersion.passageId,
         status: OrganizationStatusEnum.Accepted,
@@ -983,6 +1943,12 @@ export class OrganizationService {
       },
     });
     this.logger.debug(`Method: ${methodName} - Response: `, UpdateOrganization);
+    await this.cacheService.delete(
+      'organizationOne',
+      UpdateOrganization.id?.toString()
+    );
+    await this.cacheService.invalidateAllCaches('organization');
+
     return UpdateOrganization;
   }
 
@@ -1034,7 +2000,7 @@ export class OrganizationService {
             `Method: ${methodName} - Response: `,
             UpdateVersion
           );
-          return await this.prisma.organization.update({
+          const updateOrg = await this.prisma.organization.update({
             where: {
               id: organizationVersion.organizationId,
             },
@@ -1042,6 +2008,15 @@ export class OrganizationService {
               status: OrganizationStatusEnum.Accepted,
             },
           });
+
+          await this.cacheService.delete(
+            'organizationOne',
+            data.id?.toString()
+          );
+
+          await this.cacheService.invalidateAllCaches('organization');
+
+          return updateOrg;
         } else if (
           organizationVersion.method == OrganizationMethodEnum.Delete
         ) {
@@ -1115,7 +2090,9 @@ export class OrganizationService {
         });
 
         this.logger.debug(`Method: ${methodName} - Response: `, UpdateVersion);
+        await this.cacheService.delete('organizationOne', data.id?.toString());
 
+        await this.cacheService.invalidateAllCaches('organization');
         return UpdateVersion;
       }
     }
@@ -1176,6 +2153,11 @@ export class OrganizationService {
         });
         this.logger.debug(`Method: ${methodName} - Request: `, UpdateOrg);
 
+        await this.cacheService.delete(
+          'organizationOne',
+          UpdateOrg.id?.toString()
+        );
+        await this.cacheService.invalidateAllCaches('organization');
         return UpdateOrg;
       } else {
         const UpdateVersion = await this.prisma.organizationVersion.update({
@@ -1254,6 +2236,11 @@ export class OrganizationService {
       });
 
       this.logger.debug(`Method: ${methodName} - Response: `, UpdateOrg);
+      await this.cacheService.delete(
+        'organizationOne',
+        UpdateOrg.id?.toString()
+      );
+      await this.cacheService.invalidateAllCaches('organization');
       return UpdateOrg;
     } else {
       const UpdateOrgVersion = await this.prisma.organizationVersion.update({

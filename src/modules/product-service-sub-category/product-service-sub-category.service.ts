@@ -290,8 +290,7 @@ export class ProductServiceSubCategoryService {
           id: ProductServiceSubCategory.id,
         },
         data: {
-          staffNumber:
-            data.staffNumber || ProductServiceSubCategory.staffNumber,
+          editedStaffNumber: data.staffNumber,
           orderNumber: data.orderNumber,
           productServiceCategoryId:
             data.productServiceCategoryId ||

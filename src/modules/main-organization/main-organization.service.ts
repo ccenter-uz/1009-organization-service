@@ -7,6 +7,7 @@ import {
   DeleteDto,
   GetOneDto,
   LanguageRequestDto,
+  LanguageRequestEnum,
   ListQueryDto,
 } from 'types/global';
 import {
@@ -15,7 +16,10 @@ import {
   MainOrganizationUpdateDto,
 } from 'types/organization/main-organization';
 import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
-
+import { getSingleData } from '@/common/helper/sql-rows-for-select/get-single-data.dto';
+import { Prisma } from '@prisma/client';
+import { formatLanguageResponse } from '@/common/helper/format-language.helper';
+import { getSingleOrderedData } from '@/common/helper/sql-rows-for-select/get-single-ordered-data.dto';
 @Injectable()
 export class MainOrganizationService {
   private logger = new Logger(MainOrganizationService.name);
@@ -31,12 +35,30 @@ export class MainOrganizationService {
     const mainOrganization = await this.prisma.mainOrganization.create({
       data: {
         staffNumber: data.staffNumber,
-        name: data.name,
+        MainOrganizationTranslations: {
+          create: [
+            {
+              languageCode: LanguageRequestEnum.RU,
+              name: data.name[LanguageRequestEnum.RU],
+            },
+            {
+              languageCode: LanguageRequestEnum.UZ,
+              name: data.name[LanguageRequestEnum.UZ],
+            },
+            {
+              languageCode: LanguageRequestEnum.CY,
+              name: data.name[LanguageRequestEnum.CY],
+            },
+          ],
+        },
         orderNumber: data.orderNumber,
+      },
+      include: {
+        MainOrganizationTranslations: true,
       },
     });
 
-    this.logger.debug(`Method: ${methodName} - Response: `, mainOrganization);    
+    this.logger.debug(`Method: ${methodName} - Response: `, mainOrganization);
 
     return mainOrganization;
   }
@@ -46,34 +68,51 @@ export class MainOrganizationService {
   ): Promise<MainOrganizationInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
+    const conditions: Prisma.Sql[] = [];
+    if (data.status === 0 || data.status === 1)
+      conditions.push(Prisma.sql`c.status = ${data.status}`);
+    if (data.search) {
+      conditions.push(Prisma.sql`
+              EXISTS (
+                SELECT 1
+                FROM main_organization_translations ct
+                WHERE ct.main_organization_id = c.id
+                  AND ct.name ILIKE ${`%${data.search}%`}
+                ORDER BY ct.language_code   
+                LIMIT 1
+              )
+            `);
+    }
     if (data.all) {
-      const mainOrganization = await this.prisma.mainOrganization.findMany({
-        where: {
-          ...(data.status !== 2
-            ? {
-                status: data.status,
-              }
-            : {}),
-        },
-        orderBy:
-          data.order === 'name'
-            ? [
-                { name: 'asc' },
-                {
-                  orderNumber: 'asc',
-                },
-              ]
-            : [
-                {
-                  orderNumber: 'asc',
-                },
-                { name: 'asc' },
-              ],
-      });
-      this.logger.debug(`Method: ${methodName} - Response: `, mainOrganization);
+      const mainOrganization = await getSingleOrderedData(
+        'MainOrganization',
+        'main_organization',
+        this.prisma,
+        data,
+        conditions
+      );
+
+      console.log(mainOrganization, 'mainOrganization');
+
+      const formattedCategories = [];
+
+      for (let i = 0; i < mainOrganization.length; i++) {
+        const mainOrg = mainOrganization[i];
+        const translations = mainOrg?.MainOrganizationTranslations;
+        const name = formatLanguageResponse(translations);
+
+        delete mainOrg.MainOrganizationTranslations;
+
+        formattedCategories.push({ ...mainOrg, name });
+      }
+
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        formattedCategories
+      );
 
       return {
-        data: mainOrganization,
+        data: formattedCategories,
         totalDocs: mainOrganization.length,
         totalPage: mainOrganization.length > 0 ? 1 : 0,
       };
@@ -103,28 +142,32 @@ export class MainOrganizationService {
       perPage: data.limit,
     });
 
-    const mainOrganization = await this.prisma.mainOrganization.findMany({
-      where,
-      orderBy:
-        data.order === 'name'
-          ? [
-              { name: 'asc' },
-              {
-                orderNumber: 'asc',
-              },
-            ]
-          : [
-              {
-                orderNumber: 'asc',
-              },
-              { name: 'asc' },
-            ],
-      take: pagination.take,
-      skip: pagination.skip,
-    });
-    this.logger.debug(`Method: ${methodName} -  Response: `, mainOrganization);
+    const mainOrganization = await getSingleOrderedData(
+      'MainOrganization',
+      'main_organization',
+      this.prisma,
+      data,
+      conditions,
+      pagination
+    );
+    const formattedCategories = [];
+    for (let i = 0; i < mainOrganization.length; i++) {
+      const mainOrg = mainOrganization[i];
+      const translations = mainOrg?.MainOrganizationTranslations;
+      const name = formatLanguageResponse(translations);
+      console.log(name, 'name', translations, 'translations');
+
+      delete mainOrg.MainOrganizationTranslations;
+
+      formattedCategories.push({ ...mainOrg, name });
+    }
+
+    this.logger.debug(
+      `Method: ${methodName} -  Response: `,
+      formattedCategories
+    );
     return {
-      data: mainOrganization,
+      data: formattedCategories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
@@ -155,14 +198,43 @@ export class MainOrganizationService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const mainOrganization = await this.findOne({ id: data.id });
 
+    const translationUpdates = [];
+
+    if (data.name?.[LanguageRequestEnum.RU]) {
+      translationUpdates.push({
+        where: { languageCode: LanguageRequestEnum.RU },
+        data: { name: data.name[LanguageRequestEnum.RU] },
+      });
+    }
+
+    if (data.name?.[LanguageRequestEnum.UZ]) {
+      translationUpdates.push({
+        where: { languageCode: LanguageRequestEnum.UZ },
+        data: { name: data.name[LanguageRequestEnum.UZ] },
+      });
+    }
+
+    if (data.name?.[LanguageRequestEnum.CY]) {
+      translationUpdates.push({
+        where: { languageCode: LanguageRequestEnum.CY },
+        data: { name: data.name[LanguageRequestEnum.CY] },
+      });
+    }
+
     const updatedMainOrganization = await this.prisma.mainOrganization.update({
       where: {
         id: mainOrganization.id,
       },
       data: {
-        staffNumber: data.staffNumber,
-        name: data.name,
+        editedStaffNumber: data.staffNumber,
+        MainOrganizationTranslations: {
+          updateMany:
+            translationUpdates.length > 0 ? translationUpdates : undefined,
+        },
         orderNumber: data.orderNumber,
+      },
+      include: {
+        MainOrganizationTranslations: true,
       },
     });
 

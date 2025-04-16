@@ -83,7 +83,6 @@ export class OrganizationVersionService {
         phone: phones[i].phone,
         PhoneTypeId: phones[i].PhoneTypeId,
         isSecret: phones[i].isSecret,
-        // phoneAction: OrganizationVersionActionsEnum.GET,
       });
     }
     const createdPicturesVersion = [];
@@ -92,16 +91,13 @@ export class OrganizationVersionService {
     for (let i = 0; i < pictures?.length; i++) {
       createdPicturesVersion.push({
         link: pictures[i].link,
-        //  pictureAction: OrganizationVersionActionsEnum.GET,
       });
     }
 
     let nearbeesCreateVersionArray = [];
     let nearbees = data['Nearbees'];
     for (let i = 0; i < nearbees?.length; i++) {
-      //  const nearby = await this.NearbyService.findOne({
-      //    id: nearbees[i].nearbyId,
-      //  });
+
       nearbeesCreateVersionArray.push({
         description: nearbees[i]?.description,
         NearbyId: nearbees[i].NearbyId,
@@ -521,12 +517,10 @@ export class OrganizationVersionService {
         },
       });
       for (let i = 0; i < phones?.length; i++) {
-        const phoneType = await this.phoneTypeService.findOne({
-          id: phones[i].phoneTypeId,
-        });
+
         PhoneCreateVersionArray.push({
           phone: phones[i].phone,
-          PhoneTypeId: phoneType.id,
+          PhoneTypeId: phones[i].phoneTypeId,
           isSecret: phones[i].isSecret,
         });
       }
@@ -655,8 +649,7 @@ export class OrganizationVersionService {
           laneId: data.laneId || null,
           impasseId: data.impasseId || null,
           segmentId: data.segmentId || null,
-          mainOrganizationId:
-            data.mainOrganizationId || null,
+          mainOrganizationId: data.mainOrganizationId || null,
           subCategoryId:
             data.subCategoryId || organizationVersion.subCategoryId,
           account: data.account || null,
@@ -674,7 +667,7 @@ export class OrganizationVersionService {
           index: data.index || organizationVersion.index,
           transport: data.transport || organizationVersion.transport,
           workTime: data.workTime || organizationVersion.workTime,
-          staffNumber: data.staffNumber || organizationVersion.staffNumber,
+          editedStaffNumber: data.staffNumber,
           description: data.description || organizationVersion.description,
           passageId: data.passageId || null,
           status: status,

@@ -17,13 +17,15 @@ export class LoggingInterceptor implements NestInterceptor {
 
     await this.prisma.apiLogs.create({
       data: {
-        userId: data.userId,
+        userId: data.userId || null,
         userNumericId: data.numericId || null,
         userFullName: data.fullName || null,
         userRole: data.role || null,
+        referenceId: data.referenceId || null,
         organizationId: data.organizationId || null,
         organizationName: data.organizationName || null,
         method: data.method,
+        module: data.path?.split('/')[1],
         path: data.path,
         request: JSON.stringify(data.request, null, 2),
         response: JSON.stringify(data.response, null, 2),
@@ -41,10 +43,15 @@ export class LoggingInterceptor implements NestInterceptor {
       return next.handle();
     }
 
+
     const { logData } = req;
     delete req?.logData;
 
+ 
+
     const startTime = Date.now();
+
+
 
     const logDataComplete = {
       userId: logData.user?.id,
@@ -53,6 +60,7 @@ export class LoggingInterceptor implements NestInterceptor {
       role: logData.user?.role,
       organizationId: null,
       organizationName: null,
+      referenceId: null,
       method: logData.method,
       path: logData.path,
       request: req,
@@ -69,13 +77,22 @@ export class LoggingInterceptor implements NestInterceptor {
         logDataComplete.response = response;
         logDataComplete.status = res.statusCode;
         logDataComplete.duration = duration;
-        if (response?.id) logDataComplete.organizationId = response?.id;
-        if (response?.name) logDataComplete.organizationName = response?.name;
+        if (logDataComplete.path?.split('/')[1] === 'organization') {
+          if (response?.id) logDataComplete.organizationId = response?.id;
+          if (response?.name) logDataComplete.organizationName = response?.name;
+        }
 
-        // Save the log asynchronously
+         if (response?.id) logDataComplete.referenceId = response?.id;
+        // if (typeof response?.name !== 'object') {
+        //   this.saveLog(logDataComplete).catch((error) => {
+        //     console.error('Error saving log:', error);
+        //   });
+        // }
         this.saveLog(logDataComplete).catch((error) => {
           console.error('Error saving log:', error);
         });
+
+        // Save the log asynchronously
 
         return response;
       })

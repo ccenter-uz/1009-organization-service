@@ -469,7 +469,7 @@ export class AdditionalService {
     const updatedAdditional = await this.prisma.additional.update({
       where: { id: additional.id },
       data: {
-        staffNumber: data.staffNumber || additional.staffNumber,
+        editedStaffNumber: data.staffNumber,
         AdditionalTranslations: {
           updateMany: generateUpdates(data.name),
         },

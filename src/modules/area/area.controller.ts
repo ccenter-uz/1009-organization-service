@@ -18,7 +18,6 @@ import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 @Controller('area')
 export class AreaController {
   constructor(private readonly areaService: AreaService) {}
-
   @Post()
   @MessagePattern({ cmd: Commands.CREATE })
   create(@Payload() data: AreaCreateDto): Promise<AreaInterfaces.Response> {

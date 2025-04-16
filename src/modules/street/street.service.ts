@@ -121,6 +121,16 @@ export class StreetService {
     });
     this.logger.debug(`Method: ${methodName} - Response: `, street);
 
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE street_translations 
+      SET search_vector = to_tsvector('simple', name) 
+      WHERE street_id = ${street.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     return street;
   }
 
@@ -612,7 +622,7 @@ export class StreetService {
         regionId: data.regionId || street.regionId,
         cityId: data.cityId || street.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || street.staffNumber,
+        editedStaffNumber: data.staffNumber,
         index: data.index || street.index,
         orderNumber: data.orderNumber,
         StreetTranslations: {

@@ -52,6 +52,17 @@ export class RegionService {
     });
 
     this.logger.debug(`Method: ${methodName} - Response: `, region);
+
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE region_translations 
+      SET search_vector = to_tsvector('simple', name) 
+      WHERE region_id = ${region.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     return region;
   }
 

@@ -121,6 +121,16 @@ export class AvenueService {
     });
     this.logger.debug(`Method: ${methodName} - Response: `, avenue);
 
+    await this.prisma.$executeRawUnsafe(`
+      UPDATE avenue_translations 
+      SET search_vector = to_tsvector('simple', name) 
+      WHERE avenue_id = ${avenue.id}
+    `);
+
+    this.logger.debug(
+      `Method: ${methodName} - Updating translation for tsvector`
+    );
+
     return avenue;
   }
 
@@ -614,7 +624,7 @@ export class AvenueService {
         regionId: data.regionId || avenue.regionId,
         cityId: data.cityId || avenue.cityId,
         districtId: data.districtId || null,
-        staffNumber: data.staffNumber || avenue.staffNumber,
+           editedStaffNumber: data.staffNumber ,
         index: data.index || avenue.index,
         orderNumber: data.orderNumber,
         AvenueTranslations: {
