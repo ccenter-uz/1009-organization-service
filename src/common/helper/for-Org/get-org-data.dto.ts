@@ -71,7 +71,7 @@ export async function getOrg(
     conditions.push(Prisma.sql`o.main_organization_id = ${data.mainOrg}`);
   }
 
-  if (data.search) {
+  if (data.name) {
     conditions.push(Prisma.sql`o.name ILIKE ${`%${data.name}%`}`);
   }
 
@@ -962,11 +962,17 @@ ProductServices AS (
     LEFT JOIN impasse ON o.impasse_id = impasse.id
     LEFT JOIN segment ON o.segment_id = segment.id
     LEFT JOIN sub_category  ON o.sub_category_id = sub_category.id 
-    LEFT JOIN Pictures pic ON pic."organization_id" = o.id
     LEFT JOIN category ON sub_category.category_id = category.id 
     LEFT JOIN main_organization  ON o.main_organization_id = main_organization.id 
-    LEFT JOIN product_services ps ON ps.organization_id = o.id
-     LEFT JOIN nearbees nb ON    o."id" =  nb."organization_version_id"
+    LEFT JOIN LATERAL (
+    SELECT * FROM Pictures pic WHERE pic.organization_id = o.id LIMIT 1
+) pic ON true
+LEFT JOIN LATERAL (
+    SELECT * FROM product_services ps WHERE ps.organization_id = o.id LIMIT 1
+) ps ON true
+LEFT JOIN LATERAL (
+    SELECT * FROM nearbees nb WHERE nb.organization_version_id = o.id LIMIT 1
+) nb ON true
     ${whereClauseFinal}
     ORDER BY o.name ASC
     ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}

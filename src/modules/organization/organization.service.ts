@@ -633,42 +633,12 @@ export class OrganizationService {
         skip: pagination.skip,
       });
 
-      // let organization1 = await this.prisma.organization.findMany({
-      //   where: whereWithLang,
-      //   orderBy: { name: 'asc' },
-      //   include,
-      //   take: pagination.take,
-      //   skip: pagination.skip,
-      // });
-
-      // const result = [];
-      // for (let [index, org] of Object.entries(organization1)) {
-
-      //   for (let [key, prop] of Object.entries(includeConfig)) {
-      //     // console.log( key, 'key');
-
-      //     let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-      //             //  console.log(org?.[idNameOfModules] , idNameOfModules, key, 'key');
-      //     delete org?.[idNameOfModules];
-      //   }
-      //   // console.log(org?.ProductServices, 'org');
-
-      //   const formattedOrganization = formatOrganizationResponse(
-      //     org,
-      //     modulesConfig
-      //   );
-
-      //   if (data.role !== 'moderator') {
-      //     delete formattedOrganization.secret;
-      //   }
-      //   result.push(formattedOrganization);
-      // }
-      // this.logger.debug(`Method: ${methodName} - Response: `, result);
-      // await this.cacheService.setAll('organization', CacheKey, {
-      //   data: result,
-      //   totalPage: pagination.totalPage,
-      //   totalDocs: count,
-      // });
+      this.logger.debug(`Method: ${methodName} - Response: `, organization);
+      await this.cacheService.setAll('organization', CacheKey, {
+        data: organization,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      });
       return {
         data: organization,
         totalPage: pagination.totalPage,
