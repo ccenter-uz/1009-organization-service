@@ -862,8 +862,11 @@ ProductServices AS (
     (SELECT Phones FROM Phones WHERE "organization_id" = o.id),
     '[]'::JSONB
   ) AS "Phone",
-  (
-    SELECT JSON_AGG(
+  -- boshlanishi 
+(
+  SELECT CASE 
+    WHEN COUNT(nb.*) = 0 THEN '[]'::jsonb
+    ELSE JSONB_AGG(
       JSONB_BUILD_OBJECT(
         'id', nb."id",
         'description', nb."description",
@@ -871,8 +874,9 @@ ProductServices AS (
         'createdAt', nb."created_at",
         'updatedAt', nb."updated_at",
         'deletedAt', nb."deleted_at",
-        'Nearby', COALESCE(
-          JSONB_BUILD_OBJECT(
+        'Nearby', CASE 
+          WHEN n."id" IS NULL THEN '{}'::jsonb
+          ELSE JSONB_BUILD_OBJECT(
             'id', n."id",
             'staffNumber', n."staff_number",
             'editedStaffNumber', n."edited_staff_number",
@@ -885,12 +889,12 @@ ProductServices AS (
             'createdAt', n."created_at",
             'deletedAt', n."deleted_at",
             'updatedAt', n."updated_at",
-            'name', COALESCE(nt."name", '{}'::JSONB)
-          ),
-          '{}'::JSONB
-        ),
-        'NearbyCategory', COALESCE(
-          JSONB_BUILD_OBJECT(
+            'name', COALESCE(nt."name", '{}'::jsonb)
+          )
+        END,
+        'NearbyCategory', CASE
+          WHEN nc."id" IS NULL THEN '{}'::jsonb
+          ELSE JSONB_BUILD_OBJECT(
             'id', nc."id",
             'name', nc."name",
             'staffNumber', nc."staff_number",
@@ -900,17 +904,17 @@ ProductServices AS (
             'createdAt', nc."created_at",
             'updatedAt', nc."updated_at",
             'deletedAt', nc."deleted_at"
-          ),
-          '{}'::JSONB
-        )
+          )
+        END
       )
-    )::JSONB
-    FROM nearbees nb
-    LEFT JOIN nearby n ON nb."nearby_id" = n."id"
-    LEFT JOIN NearbyTranslations nt ON n."id" = nt."nearby_id"
-    LEFT JOIN nearby_category nc ON n."nearby_category_id" = nc."id"
-    WHERE nb."organization_version_id" = o.id
-  ) AS "Nearbees" ,
+    )
+  END
+  FROM nearbees nb
+  LEFT JOIN nearby n ON nb."nearby_id" = n."id"
+  LEFT JOIN NearbyTranslations nt ON n."id" = nt."nearby_id"
+  LEFT JOIN nearby_category nc ON n."nearby_category_id" = nc."id"
+  WHERE nb."organization_version_id" = o.id
+) AS "Nearbees" ,
 
   COALESCE(
   (SELECT ProductServices FROM ProductServices WHERE "organization_id" = o.id),
