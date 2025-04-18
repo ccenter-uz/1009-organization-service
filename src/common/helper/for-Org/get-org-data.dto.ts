@@ -11,8 +11,10 @@ export async function getOrg(
 
   const conditions: Prisma.Sql[] = [];
   const whereClause = Prisma.empty;
-  if (data.status === 0 || data.status === 1)
-    conditions.push(Prisma.sql`o.status = ${data.status}`);
+  if (data.status === 0 || data.status === 1 || data.status === -1)
+  conditions.push(Prisma.sql`o.status = ${data.status}`);
+
+  
   // Build where conditions for the filters in data
   //   if (data.address) {
   //     conditions.push(
