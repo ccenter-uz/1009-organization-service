@@ -139,7 +139,9 @@ export class StreetService {
   ): Promise<StreetInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
+    
     if (data.all) {
+      console.log(data);
       const streets = await getOrderedDataWithDistrict(
         'Street',
         'street',
@@ -231,6 +233,7 @@ export class StreetService {
       regionId: data.regionId,
       districtId: data.districtId,
     };
+    
     if (data.search) {
       where.OR = [
         {
@@ -265,6 +268,8 @@ export class StreetService {
         },
       ];
     }
+        console.log('where', where);
+
     const count = await this.prisma.street.count({
       where,
     });
