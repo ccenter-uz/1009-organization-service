@@ -71,7 +71,6 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((response) => {
-        console.log('Response:', response);
         
         const duration = Date.now() - startTime;
 
