@@ -71,6 +71,8 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((response) => {
+        console.log('Response:', response);
+        
         const duration = Date.now() - startTime;
 
         // Add response details to log data
@@ -82,7 +84,8 @@ export class LoggingInterceptor implements NestInterceptor {
           if (response?.name) logDataComplete.organizationName = response?.name;
         }
 
-         if (response?.id) logDataComplete.referenceId = response?.id;
+        if (response?.id) logDataComplete.referenceId = response?.id;
+        if(response?.status  ) logDataComplete.status = response?.status;
         // if (typeof response?.name !== 'object') {
         //   this.saveLog(logDataComplete).catch((error) => {
         //     console.error('Error saving log:', error);

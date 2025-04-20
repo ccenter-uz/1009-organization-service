@@ -193,7 +193,6 @@ export class ProductServiceCategoryService {
           status: data.status == 2 ? undefined : data.status,
         },
       });
-      console.log('count', count, data.status);
 
       formattedCategories.push({
         ...productServiceCategory,
