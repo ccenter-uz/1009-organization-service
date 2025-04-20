@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException,Inject,forwardRef } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   SubCategoryCreateDto,
@@ -17,13 +17,15 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { CategoryService } from '../category/category.service';
 import { Prisma } from '@prisma/client';
 import { getSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/get-sub-category-ordered.dto';
+import { SubCategoryDeleteDto } from 'types/organization/sub-category/dto/delete-sub-category.dto';
 @Injectable()
 export class SubCategoryService {
   private logger = new Logger(SubCategoryService.name);
 
   constructor(
+    @Inject(forwardRef(() => CategoryService))
+    private readonly categoryService: CategoryService,
     private readonly prisma: PrismaService,
-    private readonly categoryService: CategoryService
   ) {}
 
   async create(
@@ -319,7 +321,9 @@ export class SubCategoryService {
     return updatedSubCategory;
   }
 
-  async remove(data: DeleteDto): Promise<SubCategoryInterfaces.Response> {
+  async remove(
+    data: SubCategoryDeleteDto
+  ): Promise<SubCategoryInterfaces.Response> {
     const methodName: string = this.remove.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
@@ -347,7 +351,7 @@ export class SubCategoryService {
 
     const updatedSubCategory = await this.prisma.subCategory.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
-      data: { status: DefaultStatus.INACTIVE },
+      data: { status: DefaultStatus.INACTIVE, deleteReason: data.deleteReason },
       include: {
         category: true,
         SubCategoryTranslations: {
