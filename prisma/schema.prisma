@@ -22,6 +22,7 @@ model Category {
   cityId               Int?                   @map("city_id")
   districtId           Int?                   @map("district_id")
   orderNumber          Int?                   @map("order_number")
+  deleteReason         String?                @map("delete_reason") @db.Text()
   createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamp
   updatedAt            DateTime?              @updatedAt @map("updated_at")
   deletedAt            DateTime?              @updatedAt @map("deleted_at")
@@ -55,6 +56,7 @@ model SubCategory {
   status            Int       @default(1) @db.SmallInt()
   categoryId        Int       @map("category_id")
   orderNumber       Int?      @map("order_number")
+  deleteReason      String?   @map("delete_reason") @db.Text()
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt         DateTime? @updatedAt @map("updated_at")
   deletedAt         DateTime? @updatedAt @map("deleted_at")
@@ -132,6 +134,7 @@ model ProductServiceCategory {
   createdAt                          DateTime                             @default(now()) @map("created_at") @db.Timestamp
   updatedAt                          DateTime?                            @updatedAt @map("updated_at")
   deletedAt                          DateTime?                            @updatedAt @map("deleted_at")
+  deleteReason                       String?                              @map("delete_reason") @db.Text()
   Product_service_sub_categories     ProductServiceSubCategory[]
   ProductServiceCategoryTranslations ProductServiceCategoryTranslations[]
 
@@ -148,7 +151,6 @@ model ProductServiceCategoryTranslations {
   name                     String
   createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                DateTime? @updatedAt @map("updated_at")
-
   ProductServiceCategory ProductServiceCategory @relation(fields: [productServiceCategoryId], references: [id])
 
   @@map("product_service_category_translations")
@@ -161,6 +163,7 @@ model ProductServiceSubCategory {
   status                   Int       @default(1) @db.SmallInt()
   productServiceCategoryId Int       @map("product_service_category_id")
   orderNumber              Int?      @map("order_number")
+  deleteReason             String?   @map("delete_reason") @db.Text()
   createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                DateTime? @updatedAt @map("updated_at")
   deletedAt                DateTime? @updatedAt @map("deleted_at")

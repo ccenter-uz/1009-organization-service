@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import {
@@ -19,12 +25,16 @@ import { getOrderedData } from '@/common/helper/sql-rows-for-select/get-ordered-
 import { CacheService } from '../cache/cache.service';
 import { formatCacheKey } from '@/common/helper/format-cache-maneger';
 import { getCategoryData } from '@/common/helper/sql-rows-for-select/get-category';
+import { CategoryDeleteDto } from 'types/organization/category/dto/delete-category.dto';
+import { SubCategoryService } from '../sub-category/sub-category.service';
 
 @Injectable()
 export class CategoryService {
   private logger = new Logger(CategoryService.name);
 
   constructor(
+    @Inject(forwardRef(() => SubCategoryService))
+    private readonly SubCategoryService: SubCategoryService,
     private readonly prisma: PrismaService,
     private readonly cacheService: CacheService
   ) {}
@@ -570,7 +580,7 @@ export class CategoryService {
     return updatedCategory;
   }
 
-  async remove(data: DeleteDto): Promise<CategoryInterfaces.Response> {
+  async remove(data: CategoryDeleteDto): Promise<CategoryInterfaces.Response> {
     const methodName: string = this.remove.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
@@ -629,6 +639,20 @@ export class CategoryService {
           },
         },
       });
+      const findSubCategory = await this.SubCategoryService.findAll({
+        categoryId: data.id,
+        all: true,
+        status: 1,
+        page: 1,
+        limit: 100,
+      });
+
+      for (const subCategory of findSubCategory.data) {
+        await this.SubCategoryService.remove({
+          id: subCategory.id,
+          delete: data.delete,
+        });
+      }
 
       this.logger.debug(
         `Method: ${methodName} - Rresponse when delete true: `,
@@ -641,7 +665,7 @@ export class CategoryService {
 
     const category = await this.prisma.category.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
-      data: { status: DefaultStatus.INACTIVE },
+      data: { status: DefaultStatus.INACTIVE, deleteReason: data.deleteReason },
       include: {
         CategoryTranslations: {
           select: {
@@ -693,6 +717,21 @@ export class CategoryService {
         },
       },
     });
+
+    const findSubCategory = await this.SubCategoryService.findAll({
+      categoryId: data.id,
+      all: true,
+      status: 1,
+      page: 1,
+      limit: 100,
+    });
+
+    for (const subCategory of findSubCategory.data) {
+      await this.SubCategoryService.remove({
+        id: subCategory.id,
+        delete: data.delete,
+      });
+    }
 
     this.logger.debug(
       `Method: ${methodName} - Rresponse when delete false: `,

@@ -1,5 +1,10 @@
-import { ProductServiceSubCategoryFilterDto } from './../../../types/organization/product-service-sub-category/dto/filter-product-service-sub-category.dto';
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
@@ -17,12 +22,15 @@ import {
 } from 'types/organization/product-service-sub-category';
 import { getSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/get-sub-category-ordered.dto';
 import { Prisma } from '@prisma/client';
+import { ProductServiceSubCategoryDeleteDto } from 'types/organization/product-service-sub-category/dto/delete-product-service-sub-category.dto';
+import { ProductServiceSubCategoryFilterDto } from './../../../types/organization/product-service-sub-category/dto/filter-product-service-sub-category.dto';
 @Injectable()
 export class ProductServiceSubCategoryService {
   private logger = new Logger(ProductServiceSubCategoryService.name);
   constructor(
+    @Inject(forwardRef(() => ProductServiceCategoryService))
+    private readonly ProductServiceCategoryService: ProductServiceCategoryService,
     private readonly prisma: PrismaService,
-    private readonly ProductServiceCategoryService: ProductServiceCategoryService
   ) {}
 
   async create(
@@ -316,7 +324,7 @@ export class ProductServiceSubCategoryService {
   }
 
   async remove(
-    data: DeleteDto
+    data: ProductServiceSubCategoryDeleteDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
     const methodName: string = this.remove.name;
 
@@ -347,7 +355,10 @@ export class ProductServiceSubCategoryService {
     const updatedProductCategory =
       await this.prisma.productServiceSubCategory.update({
         where: { id: data.id, status: DefaultStatus.ACTIVE },
-        data: { status: DefaultStatus.INACTIVE },
+        data: {
+          status: DefaultStatus.INACTIVE,
+          deleteReason: data.deleteReason,
+        },
         include: {
           ProductServiceCategory: true,
           ProductServiceSubCategoryTranslations: {
