@@ -63,6 +63,7 @@ import { getOrg } from '@/common/helper/for-Org/get-org-data.dto';
 import { ObjectAdressFilterDto } from 'types/organization/organization/dto/filter-object-adress-organization.dto';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
+import { getOrgCount } from '@/common/helper/for-Org/get-org-data-count.dto';
 
 @Injectable()
 export class OrganizationService {
@@ -366,204 +367,6 @@ export class OrganizationService {
     if (findOrganization) {
       return findOrganization;
     } else {
-      if (data.address) {
-        where.OR = [
-          { address: { contains: data.address, mode: 'insensitive' } },
-          {
-            District: {
-              DistrictTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Region: {
-              RegionTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Passage: {
-              PassageTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Street: {
-              StreetTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Area: {
-              AreaTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Avenue: {
-              AvenueTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            City: {
-              CityTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            ResidentialArea: {
-              ResidentialAreaTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Neighborhood: {
-              NeighborhoodTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Impasse: {
-              ImpasseTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Village: {
-              VillageTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Lane: {
-              LaneTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Nearbees: {
-              some: {
-                Nearby: {
-                  NearbyTranslations: {
-                    some: {
-                      name: { contains: data.address, mode: 'insensitive' },
-                    },
-                  },
-                },
-                description: { contains: data.address, mode: 'insensitive' },
-              },
-            },
-          },
-        ];
-      }
-
-      if (data.apartment) {
-        where.apartment = { contains: data.apartment, mode: 'insensitive' };
-      }
-
-      if (data.categoryId) {
-        where.subCategoryId = data.categoryId;
-      }
-
-      if (data.cityId) {
-        where.cityId = data.cityId;
-      }
-
-      if (data.districtId) {
-        where.districtId = data.districtId;
-      }
-
-      if (data.home) {
-        where.home = { contains: data.home, mode: 'insensitive' };
-      }
-
-      if (data.kvartal) {
-        where.kvartal = { contains: data.kvartal, mode: 'insensitive' };
-      }
-
-      if (data.mainOrg) {
-        where.mainOrganizationId = data.mainOrg;
-      }
-
-      if (data.name) {
-        where.name = { contains: data.name, mode: 'insensitive' };
-      }
-
-      if (data.phone) {
-        where.Phone = {
-          some: { phone: { contains: data.phone, mode: 'insensitive' } },
-        };
-      }
-
-      if (data.phoneType) {
-        where.Phone = { some: { PhoneTypes: { id: data.phoneType } } };
-      }
-
-      if (data.regionId) {
-        where.regionId = data.regionId;
-      }
-
-      if (data.subCategoryId) {
-        where.subCategoryId = data.subCategoryId;
-      }
-
-      if (data.villageId) {
-        where.villageId = data.villageId;
-      }
-
-      if (data.streetId) {
-        where.streetId = data.streetId;
-      }
-
-      if (data.belongAbonent === true) {
-        where.createdBy = CreatedByEnum.Client;
-      }
-
-      if (data.bounded === true) {
-        where.createdBy = CreatedByEnum.Billing;
-      }
-
-      if (data.mine === true) {
-        where.staffNumber = data.staffNumber;
-      }
-
-      if (data.nearbyId) {
-        where.Nearbees = {
-          some: {
-            NearbyId: data.nearbyId,
-          },
-        };
-      }
-
-      if (data.categoryTuId) {
-        where.ProductServices = {
-          some: {
-            ProductServiceCategoryId: data.categoryTuId,
-          },
-        };
-      }
-
-      if (data.subCategoryTuId) {
-        where.ProductServices = {
-          some: {
-            ProductServiceSubCategoryId: data.subCategoryTuId,
-          },
-        };
-      }
-
       if (data.all) {
         console.log('Data All', 'LOG 11');
         const organizations = await this.prisma.organization.findMany({
@@ -601,29 +404,10 @@ export class OrganizationService {
         };
       }
 
-      const whereWithLang: any = {
-        ...(data.status
-          ? {
-              status: data.status,
-            }
-          : {}),
-        ...where,
-      };
-
-      if (data.search) {
-        console.log(data.search, 'LOG 14');
-        whereWithLang.name = {
-          contains: data.search,
-          mode: 'insensitive',
-        };
-      }
-
-      const count = await this.prisma.organization.count({
-        where: whereWithLang,
-      });
+      const count = await getOrgCount(data, this.prisma);
 
       const pagination = createPagination({
-        count,
+        count: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
         page: data.page,
         perPage: data.limit,
       });
@@ -642,7 +426,7 @@ export class OrganizationService {
       return {
         data: organization,
         totalPage: pagination.totalPage,
-        totalDocs: count,
+        totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
       };
     }
   }

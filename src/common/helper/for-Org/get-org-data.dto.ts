@@ -12,35 +12,99 @@ export async function getOrg(
   const conditions: Prisma.Sql[] = [];
   const whereClause = Prisma.empty;
   if (data.status === 0 || data.status === 1 || data.status === -1)
-  conditions.push(Prisma.sql`o.status = ${data.status}`);
+    conditions.push(Prisma.sql`o.status = ${data.status}`);
 
-  
-  // Build where conditions for the filters in data
-  //   if (data.address) {
-  //     conditions.push(
-  //       Prisma.sql`
-  //         OR
-  //         (
-  //           address ILIKE ${`%${data.address}%`}
-  //         )
-  //         OR EXISTS (
-  //           SELECT 1
-  //           FROM district_translations dt
-  //           WHERE dt.district_id = o.district_id
-  //           AND dt.name ILIKE ${`%${data.address}%`}
-  //           LIMIT 1
-  //         )
-  //         OR EXISTS (
-  //           SELECT 1
-  //           FROM region_translations rt
-  //           WHERE rt.region_id = o.region_id
-  //           AND rt.name ILIKE ${`%${data.address}%`}
-  //           LIMIT 1
-  //         )
-  //         -- Add other necessary checks for fields like 'Passage', 'Street', etc. similar to `address`
-  //       `
-  //     );
-  //   }
+  if (data.address) {
+    const query = data.address.replace('-', ' ').toLowerCase();
+
+    conditions.push(
+      Prisma.sql`
+      (
+        COALESCE(o.address_search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        OR EXISTS (
+          SELECT 1 FROM district_translations dt
+          WHERE dt.district_id = o.district_id
+          AND COALESCE(dt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM region_translations rt
+          WHERE rt.region_id = o.region_id
+          AND COALESCE(rt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM passage_translations pt
+          JOIN passage p ON pt.passage_id = p.id
+          WHERE p.id = o.passage_id
+          AND COALESCE(pt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM street_translations st
+          JOIN street s ON st.street_id = s.id
+          WHERE s.id = o.street_id
+          AND COALESCE(st.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM area_translations at
+          JOIN area a ON at.area_id = a.id
+          WHERE a.id = o.area_id
+          AND COALESCE(at.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM avenue_translations avtt
+          JOIN avenue av ON avtt.avenue_id = av.id
+          WHERE av.id = o.avenue_id
+          AND COALESCE(avtt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM city_translations ct
+          JOIN city c ON ct.city_id = c.id
+          WHERE c.id = o.city_id
+          AND COALESCE(ct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM residential_area_translations rat
+          JOIN residential_area ra ON rat.residential_area_id = ra.id
+          WHERE ra.id = o.residential_id
+          AND COALESCE(rat.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM neighborhood_translations nt
+          JOIN neighborhood n ON nt.neighborhood_id = n.id
+          WHERE n.id = o.neighborhood_id
+          AND COALESCE(nt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM impasse_translations it
+          JOIN impasse i ON it.impasse_id = i.id
+          WHERE i.id = o.impasse_id
+          AND COALESCE(it.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM village_translations vt
+          JOIN village v ON vt.village_id = v.id
+          WHERE v.id = o.village_id
+          AND COALESCE(vt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM lane_translations lt
+          JOIN lane l ON lt.lane_id = l.id
+          WHERE l.id = o.lane_id
+          AND COALESCE(lt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM nearbees no
+          JOIN nearby n ON no.nearby_id = n.id
+          JOIN nearby_translations nt ON nt.nearby_id = n.id
+          WHERE no.organization_version_id = o.id
+          AND (
+            COALESCE(nt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+            OR COALESCE(no.description_search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+          )
+        )
+      )
+    `
+    );
+  }
 
   if (data.apartment) {
     conditions.push(Prisma.sql`o.apartment ILIKE ${`%${data.apartment}%`}`);
@@ -77,10 +141,9 @@ export async function getOrg(
     conditions.push(Prisma.sql`o.name ILIKE ${`%${data.name}%`}`);
   }
 
-  if (data.nearbyId) { 
+  if (data.nearbyId) {
     conditions.push(Prisma.sql`nb."nearby_id" = ${data.nearbyId}`);
   }
-
 
   if (data.phone) {
     conditions.push(Prisma.sql`
@@ -507,9 +570,6 @@ ProductServices AS (
       GROUP BY mot.main_organization_id
     )
 
-
-
-
     SELECT
     o.id,
     o.name,
@@ -549,6 +609,7 @@ ProductServices AS (
     o.impasse_id AS "impasseId",
     o.segment_id AS "segmentId",
     o.neighborhood_id AS "neighborhoodId",
+   CAST(COUNT(*) OVER() AS INTEGER) AS "totalCount",
         CASE
         WHEN city.id IS NOT NULL THEN
       JSONB_BUILD_OBJECT(
@@ -953,7 +1014,6 @@ ProductServices AS (
     'deletedAt', segment.deleted_at
   ) ELSE NULL
     END  AS "segment"
-
     FROM
       organization o
     LEFT JOIN city ON o.city_id = city.id
@@ -982,7 +1042,8 @@ LEFT JOIN LATERAL (
     ${whereClauseFinal}
     ORDER BY o.name ASC
     ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}
-  `
+  
+    `
     )
     .catch((e) => {
       console.log(e, 'prisma Eror');
