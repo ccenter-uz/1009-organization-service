@@ -3,16 +3,14 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ProductServiceCategoryService } from './product-service-category.service';
 import { ProductServiceCategoryServiceCommands as Commands } from 'types/organization/product-service-category/commands';
 
-import {
-  DeleteDto,
-  GetOneDto,
-} from 'types/global';
+import { DeleteDto, GetOneDto } from 'types/global';
 import {
   ProductServiseCategoryCreateDto,
   ProductServiseCategoryInterfaces,
   ProductServiseCategoryUpdateDto,
 } from 'types/organization/product-service-category';
 import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
+import { ProductServiceCategoryDeleteDto } from 'types/organization/product-service-category/dto/delete-product-service-category.dto';
 
 @Controller('product-service-category')
 export class ProductServiceCategoryController {
@@ -55,7 +53,7 @@ export class ProductServiceCategoryController {
   @Delete()
   @MessagePattern({ cmd: Commands.DELETE })
   remove(
-    @Payload() data: DeleteDto
+    @Payload() data: ProductServiceCategoryDeleteDto
   ): Promise<ProductServiseCategoryInterfaces.Response> {
     return this.categoryService.remove(data);
   }

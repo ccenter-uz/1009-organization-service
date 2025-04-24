@@ -117,17 +117,20 @@ export class ProductServiceCategoryService {
         const name = formatLanguageResponse(translations);
         delete productServiceCategory.ProductServiceCategoryTranslations;
 
-        const count = await this.prisma.productServiceSubCategory.count({
+        const count = await this.prisma.organization.count({
           where: {
-            productServiceCategoryId: productServiceCategory.id,
-            status: data.status == 2 ? undefined : data.status,
+            ProductServices: {
+              some: {
+                ProductServiceCategoryId: productServiceCategory.id,
+              },
+            },
           },
         });
 
         formattedCategories.push({
           ...productServiceCategory,
           name,
-          subCategoryCount: count,
+          orgCount: count,
         });
       }
       this.logger.debug(
@@ -187,17 +190,20 @@ export class ProductServiceCategoryService {
       const name = formatLanguageResponse(translations);
       delete productServiceCategory.ProductServiceCategoryTranslations;
 
-      const count = await this.prisma.productServiceSubCategory.count({
+      const count = await this.prisma.organization.count({
         where: {
-          productServiceCategoryId: productServiceCategory.id,
-          status: data.status == 2 ? undefined : data.status,
+          ProductServices: {
+            some: {
+              ProductServiceCategoryId: productServiceCategory.id,
+            },
+          },
         },
       });
 
       formattedCategories.push({
         ...productServiceCategory,
         name,
-        subCategoryCount: count,
+        orgCount: count,
       });
     }
     this.logger.debug(
