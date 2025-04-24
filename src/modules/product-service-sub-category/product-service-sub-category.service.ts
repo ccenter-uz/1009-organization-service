@@ -30,7 +30,7 @@ export class ProductServiceSubCategoryService {
   constructor(
     @Inject(forwardRef(() => ProductServiceCategoryService))
     private readonly ProductServiceCategoryService: ProductServiceCategoryService,
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaService
   ) {}
 
   async create(
@@ -126,10 +126,35 @@ export class ProductServiceSubCategoryService {
         delete ProductServiceSubCategories[i].ProductServiceCategory
           .ProductServiceCategoryTranslations;
         delete subCategory.ProductServiceSubCategoryTranslations;
+        const count = await this.prisma.organization.count({
+          where: {
+            ProductServices: {
+              some: {
+                ProductServiceSubCategoryId: ProductServiceSubCategories[i].id,
+              },
+            },
+          },
+        });
+
+        const orgCountCategory = await this.prisma.organization.count({
+          where: {
+            ProductServices: {
+              some: {
+                ProductServiceCategoryId: category.id,
+              },
+            },
+          },
+        });
+
         formattedSubCategories.push({
           ...subCategory,
           name,
-          ProductServiceCategory: { ...category, name: { ...categoryName } },
+          orgCount: count,
+          ProductServiceCategory: {
+            ...category,
+            name: { ...categoryName },
+            orgCount: orgCountCategory,
+          },
         });
       }
       this.logger.debug(
@@ -196,10 +221,35 @@ export class ProductServiceSubCategoryService {
       delete ProductServiceSubCategories[i].ProductServiceCategory
         .ProductServiceCategoryTranslations;
       delete subCategory.ProductServiceSubCategoryTranslations;
+
+      const count = await this.prisma.organization.count({
+        where: {
+          ProductServices: {
+            some: {
+              ProductServiceSubCategoryId: ProductServiceSubCategories[i].id,
+            },
+          },
+        },
+      });
+
+      const orgCountCategory = await this.prisma.organization.count({
+        where: {
+          ProductServices: {
+            some: {
+              ProductServiceCategoryId: category.id,
+            },
+          },
+        },
+      });
       formattedSubCategories.push({
         ...subCategory,
         name,
-        ProductServiceCategory: { ...category, name: { ...categoryName } },
+        orgCount: count,
+        ProductServiceCategory: {
+          ...category,
+          name: { ...categoryName },
+          orgCount: orgCountCategory,
+        },
       });
     }
     this.logger.debug(
@@ -327,6 +377,7 @@ export class ProductServiceSubCategoryService {
     data: ProductServiceSubCategoryDeleteDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
     const methodName: string = this.remove.name;
+    console.log(data, 'data');
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {

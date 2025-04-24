@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException,Inject,forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   SubCategoryCreateDto,
@@ -25,7 +31,7 @@ export class SubCategoryService {
   constructor(
     @Inject(forwardRef(() => CategoryService))
     private readonly categoryService: CategoryService,
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaService
   ) {}
 
   async create(
@@ -325,6 +331,7 @@ export class SubCategoryService {
     data: SubCategoryDeleteDto
   ): Promise<SubCategoryInterfaces.Response> {
     const methodName: string = this.remove.name;
+    console.log(data, 'data');
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
