@@ -648,7 +648,7 @@ export class OrganizationService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
     if (data.module == 'street') {
-      const street = await this.StreetService.findAll({
+      const Street = await this.StreetService.findAll({
         all: data.all,
         search: data.search,
         status: data.status,
@@ -656,11 +656,15 @@ export class OrganizationService {
         limit: data.limit,
       });
 
-      return street;
+      for (let street of Street.data) {
+        street['module'] = 'street';
+      }
+
+      return Street;
     }
 
     if (data.module == 'area') {
-      const area = await this.AreaService.findAll({
+      const Area = await this.AreaService.findAll({
         all: data.all,
         search: data.search,
         status: data.status,
@@ -668,11 +672,15 @@ export class OrganizationService {
         limit: data.limit,
       });
 
-      return area;
+      for (let area of Area.data) {
+        area['module'] = 'area';
+      }
+
+      return Area;
     }
 
     if (data.module == 'lane') {
-      const lane = await this.LaneService.findAll({
+      const Lane = await this.LaneService.findAll({
         all: data.all,
         search: data.search,
         status: data.status,
@@ -680,55 +688,71 @@ export class OrganizationService {
         limit: data.limit,
       });
 
-      return lane;
+      for (let lane of Lane.data) {
+        lane['module'] = 'lane';
+      }
+
+      return Lane;
     }
 
     if (data.module == 'residential-area') {
-      const residentialArea = await this.ResidentialAreaService.findAll({
+      const ResidentialArea = await this.ResidentialAreaService.findAll({
         all: data.all,
         search: data.search,
         status: data.status,
         page: data.page,
         limit: data.limit,
       });
+      for (let residentialArea of ResidentialArea.data) {
+        residentialArea['module'] = 'residential-area';
+      }
 
-      return residentialArea;
+      return ResidentialArea;
     }
 
     if (data.module == 'neighborhood') {
-      const neighborhood = await this.ImpasseService.findAll({
+      const Neighborhood = await this.ImpasseService.findAll({
         all: data.all,
         search: data.search,
         status: data.status,
         page: data.page,
         limit: data.limit,
       });
+      for (let neighborhood of Neighborhood.data) {
+        neighborhood['module'] = 'neighborhood';
+      }
 
-      return neighborhood;
+      return Neighborhood;
     }
 
     if (data.module == 'impasse') {
-      const impasse = await this.ImpasseService.findAll({
+      const Impasse = await this.ImpasseService.findAll({
         all: data.all,
         search: data.search,
         status: data.status,
         page: data.page,
         limit: data.limit,
       });
+      for (let impasse of Impasse.data) {
+        impasse['module'] = 'impasse';
+      }
 
-      return impasse;
+      return Impasse;
     }
 
     if (data.module == 'avenue') {
-      const avenue = await this.AvenueService.findAll({
+      const Avenue = await this.AvenueService.findAll({
         all: data.all,
         search: data.search,
         status: data.status,
         page: data.page,
         limit: data.limit,
       });
+      for (let avenue of Avenue.data) {
+        avenue['module'] = 'avenue';
+      }
 
-      return avenue;
+      return Avenue;
     }
 
     if (data.module == 'passage') {
@@ -739,6 +763,10 @@ export class OrganizationService {
         page: data.page,
         limit: data.limit,
       });
+
+      for (let passage of Passage.data) {
+        passage['module'] = 'passage';
+      }
 
       return Passage;
     }

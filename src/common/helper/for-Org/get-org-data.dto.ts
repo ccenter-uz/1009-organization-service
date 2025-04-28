@@ -188,6 +188,35 @@ export async function getOrg(
     conditions.push(Prisma.sql`o.street_id = ${data.streetId}`);
   }
 
+  if (data.module == 'street') {
+    conditions.push(Prisma.sql`o.street_id = ${data.objectAdressId}`);
+  }
+
+  if (data.module == 'area') {
+    conditions.push(Prisma.sql`o.area_id = ${data.objectAdressId}`);
+  }
+
+  if (data.module == 'lane') {
+    conditions.push(Prisma.sql`o.lane_id = ${data.objectAdressId}`);
+  }
+  if (data.module == 'residential-area') {
+    conditions.push(Prisma.sql`o.residential_id = ${data.objectAdressId}`);
+  }
+
+  if (data.module == 'neighborhood') {
+    conditions.push(Prisma.sql`o.neighborhood_id = ${data.objectAdressId}`);
+  }
+  if (data.module == 'impasse') {
+    conditions.push(Prisma.sql`o.impasse_id = ${data.objectAdressId}`);
+  }
+
+  if (data.module == 'avenue') {
+    conditions.push(Prisma.sql`o.avenue_id = ${data.objectAdressId}`);
+  }
+  if (data.module == 'passage') {
+    conditions.push(Prisma.sql`o.passage_id = ${data.objectAdressId}`);
+  }
+
   if (data.belongAbonent === true) {
     conditions.push(Prisma.sql`o.created_by = 'Client'`);
   }
@@ -610,6 +639,10 @@ ProductServices AS (
     o.segment_id AS "segmentId",
     o.neighborhood_id AS "neighborhoodId",
    CAST(COUNT(*) OVER() AS INTEGER) AS "totalCount",
+    CASE
+        WHEN o.staff_number = ${data.staffNumber} THEN true
+        ELSE false
+    END AS "operFrom",
         CASE
         WHEN city.id IS NOT NULL THEN
       JSONB_BUILD_OBJECT(
