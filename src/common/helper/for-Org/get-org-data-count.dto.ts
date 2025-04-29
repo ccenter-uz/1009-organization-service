@@ -137,10 +137,40 @@ export async function getOrgCount(
     conditions.push(Prisma.sql`o.main_organization_id = ${data.mainOrg}`);
   }
 
-  if (data.name) {
-    conditions.push(Prisma.sql`o.name ILIKE ${`%${data.name}%`}`);
-  }
+if (data.name) {
+  const queryName = data.name.replace('-', ' ').toLowerCase();
 
+  const orConditions = [
+    Prisma.sql`o.name ILIKE ${`%${data.name}%`}`,
+    Prisma.sql`o.legal_name ILIKE ${`%${data.name}%`}`,
+    Prisma.sql`o.inn ILIKE ${`%${data.name}%`}`,
+    Prisma.sql`
+      EXISTS (
+        SELECT 1
+        FROM product_service_category psc
+        LEFT JOIN product_service_category_translations psct 
+          ON psc.id = psct.product_service_category_id
+        LEFT JOIN product_services ps 
+          ON ps.product_service_category_id = psc.id
+        WHERE COALESCE(psct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${queryName})
+        AND ps.organization_id = o.id
+      )`,
+    Prisma.sql`
+      EXISTS (
+        SELECT 1
+        FROM product_service_sub_category pssc
+        LEFT JOIN product_service_sub_category_translations pssct 
+          ON pssc.id = pssct.product_service_sub_category_id
+        LEFT JOIN product_services ps 
+          ON ps.product_service_sub_category_id = pssc.id
+        WHERE COALESCE(pssct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${queryName})
+        AND ps.organization_id = o.id
+      )`,
+  ];
+
+  // OR bilan bitta guruhga qo‘shamiz
+  conditions.push(Prisma.sql`(${Prisma.join(orConditions, ' OR ')})`);
+}
   if (data.nearbyId) {
     conditions.push(Prisma.sql`nb."nearby_id" = ${data.nearbyId}`);
   }
