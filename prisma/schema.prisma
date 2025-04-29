@@ -149,6 +149,7 @@ model ProductServiceCategoryTranslations {
   productServiceCategoryId Int       @map("product_service_category_id")
   languageCode             String    @map("language_code")
   name                     String
+  searchVector Unsupported("tsvector")? @map("search_vector")
   createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                DateTime? @updatedAt @map("updated_at")
   ProductServiceCategory ProductServiceCategory @relation(fields: [productServiceCategoryId], references: [id])
@@ -182,6 +183,7 @@ model ProductServiceSubCategoryTranslations {
   productServicSubCategoryId Int       @map("product_service_sub_category_id")
   languageCode               String    @map("language_code")
   name                       String
+  searchVector Unsupported("tsvector")? @map("search_vector")
   createdAt                  DateTime  @default(now()) @map("created_at") @db.Timestamp
   updatedAt                  DateTime? @updatedAt @map("updated_at")
 

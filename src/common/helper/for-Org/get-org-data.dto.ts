@@ -1,5 +1,6 @@
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { CreatedByEnum } from 'types/global';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 
 export async function getOrg(
@@ -139,6 +140,28 @@ export async function getOrg(
 
   if (data.name) {
     conditions.push(Prisma.sql`o.name ILIKE ${`%${data.name}%`}`);
+    conditions.push(Prisma.sql`o.legal_name ILIKE ${`%${data.name}%`}`);
+    conditions.push(Prisma.sql`o.inn ILIKE ${`%${data.name}%`}`);
+    const queryName = data.name.replace('-', ' ').toLowerCase();
+    conditions.push(
+      Prisma.sql`
+      EXISTS (
+        SELECT 1
+        FROM product_service_category psc
+        LEFT JOIN product_service_category_translations psct 
+          ON psc.id = psct.product_service_category_id
+        LEFT JOIN product_service_sub_category pssc
+          ON psc.id = pssc.product_service_category_id
+        LEFT JOIN product_service_sub_category_translations pssct
+          ON pssc.id = pssct.product_service_sub_category_id
+        LEFT JOIN product_services ps
+          ON ps.product_service_sub_category_id = pssc.id
+        WHERE (COALESCE(psct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${queryName})
+          OR COALESCE(pssct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${queryName})
+)
+        AND ps.organization_id = o.id
+      )`
+    );
   }
 
   if (data.nearbyId) {
@@ -173,7 +196,7 @@ export async function getOrg(
 
   if (data.subCategoryId) {
     conditions.push(Prisma.sql`o.sub_category_id = ${data.subCategoryId}`);
-  } // qoldi
+  }
 
   if (data.subCategoryTuId) {
     conditions.push(
@@ -226,6 +249,10 @@ export async function getOrg(
   if (data.mine === true) {
     conditions.push(Prisma.sql`o.staff_number = ${data.staffNumber}`);
   }
+  const operFromFragment =
+    data.role === CreatedByEnum.Moderator
+      ? `TRUE AS "operFrom"`
+      : `CASE WHEN o.staff_number = ${data.staffNumber} THEN TRUE ELSE FALSE END AS "operFrom"`;
 
   const whereClauseFinal =
     conditions.length > 0
@@ -640,8 +667,9 @@ ProductServices AS (
     o.neighborhood_id AS "neighborhoodId",
    CAST(COUNT(*) OVER() AS INTEGER) AS "totalCount",
     CASE
-        WHEN o.staff_number = ${data.staffNumber} THEN true
-        ELSE false
+      WHEN ${data.role} = ${CreatedByEnum.Moderator} THEN TRUE
+      WHEN o.staff_number = ${data.staffNumber} THEN TRUE
+      ELSE FALSE
     END AS "operFrom",
         CASE
         WHEN city.id IS NOT NULL THEN
