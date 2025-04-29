@@ -249,10 +249,6 @@ export async function getOrg(
   if (data.mine === true) {
     conditions.push(Prisma.sql`o.staff_number = ${data.staffNumber}`);
   }
-  const operFromFragment =
-    data.role === CreatedByEnum.Moderator
-      ? `TRUE AS "operFrom"`
-      : `CASE WHEN o.staff_number = ${data.staffNumber} THEN TRUE ELSE FALSE END AS "operFrom"`;
 
   const whereClauseFinal =
     conditions.length > 0
