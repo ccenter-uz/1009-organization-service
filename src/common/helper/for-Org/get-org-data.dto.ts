@@ -140,28 +140,36 @@ export async function getOrg(
 
   if (data.name) {
     conditions.push(Prisma.sql`o.name ILIKE ${`%${data.name}%`}`);
-    conditions.push(Prisma.sql`o.legal_name ILIKE ${`%${data.name}%`}`);
-    conditions.push(Prisma.sql`o.inn ILIKE ${`%${data.name}%`}`);
+    // conditions.push(Prisma.sql`o.legal_name ILIKE ${`%${data.name}%`}`);
+    // conditions.push(Prisma.sql`o.inn ILIKE ${`%${data.name}%`}`);
     const queryName = data.name.replace('-', ' ').toLowerCase();
-    conditions.push(
-      Prisma.sql`
-      EXISTS (
-        SELECT 1
-        FROM product_service_category psc
-        LEFT JOIN product_service_category_translations psct 
-          ON psc.id = psct.product_service_category_id
-        LEFT JOIN product_service_sub_category pssc
-          ON psc.id = pssc.product_service_category_id
-        LEFT JOIN product_service_sub_category_translations pssct
-          ON pssc.id = pssct.product_service_sub_category_id
-        LEFT JOIN product_services ps
-          ON ps.product_service_sub_category_id = pssc.id
-        WHERE (COALESCE(psct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${queryName})
-          OR COALESCE(pssct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${queryName})
-)
-        AND ps.organization_id = o.id
-      )`
-    );
+  //   conditions.push(
+  //     Prisma.sql`
+  //    EXISTS (
+  //       SELECT 1
+  //       FROM product_service_category psc
+  //       LEFT JOIN product_service_category_translations psct 
+  //         ON psc.id = psct.product_service_category_id
+  //       LEFT JOIN product_services ps 
+  //         ON ps.product_service_category_id = psc.id
+  //       WHERE COALESCE(psct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${queryName})
+  //       AND ps.organization_id = o.id
+  //     )`
+  //   );
+
+  //   conditions.push(
+  //     Prisma.sql`
+  //  EXISTS (
+  //       SELECT 1
+  //       FROM product_service_sub_category pssc
+  //       LEFT JOIN product_service_sub_category_translations pssct 
+  //         ON pssc.id = pssct.product_service_sub_category_id
+  //       LEFT JOIN product_services ps 
+  //         ON ps.product_service_sub_category_id = pssc.id
+  //       WHERE COALESCE(pssct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${queryName})
+  //       AND ps.organization_id = o.id
+  //     )`
+  //   );
   }
 
   if (data.nearbyId) {
