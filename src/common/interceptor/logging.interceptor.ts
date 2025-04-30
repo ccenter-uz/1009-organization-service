@@ -21,7 +21,7 @@ export class LoggingInterceptor implements NestInterceptor {
         userNumericId: data.numericId || null,
         userFullName: data.fullName || null,
         userRole: data.role || null,
-        referenceId: data.referenceId || null,
+        // referenceId: data.referenceId || null,
         organizationId: data.organizationId || null,
         organizationName: data.organizationName || null,
         method: data.method,
@@ -43,15 +43,10 @@ export class LoggingInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-
     const { logData } = req;
     delete req?.logData;
 
- 
-
     const startTime = Date.now();
-
-
 
     const logDataComplete = {
       userId: logData.user?.id,
@@ -82,7 +77,7 @@ export class LoggingInterceptor implements NestInterceptor {
           if (response?.name) logDataComplete.organizationName = response?.name;
         }
 
-         if (response?.id) logDataComplete.referenceId = response?.id;
+        //  if (response?.id) logDataComplete.referenceId = response?.id;
         // if (typeof response?.name !== 'object') {
         //   this.saveLog(logDataComplete).catch((error) => {
         //     console.error('Error saving log:', error);
