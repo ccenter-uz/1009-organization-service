@@ -154,9 +154,9 @@ export class LaneService {
         const translations = laneData.LaneTranslations;
         const name = formatLanguageResponse(translations);
         const translationsNew = laneData.LaneNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew);
+        const nameNew = formatLanguageResponse(translationsNew || []);
         const translationsOld = laneData.LaneOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld);
+        const nameOld = formatLanguageResponse(translationsOld || []);
         delete laneData.LaneTranslations;
         delete laneData.LaneNewNameTranslations;
         delete laneData.LaneOldNameTranslations;
@@ -183,10 +183,14 @@ export class LaneService {
             districtName = formatLanguageResponse(districtTranslations);
             const districtTranslationsNew =
               districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            districtNameNew = formatLanguageResponse(
+              districtTranslationsNew || []
+            );
             const districtTranslationsOld =
               districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            districtNameOld = formatLanguageResponse(
+              districtTranslationsOld || []
+            );
             delete districtData.DistrictTranslations;
             delete districtData.DistrictNewNameTranslations;
             delete districtData.DistrictOldNameTranslations;
@@ -291,9 +295,9 @@ export class LaneService {
       const translations = laneData.LaneTranslations;
       const name = formatLanguageResponse(translations);
       const translationsNew = laneData.LaneNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
+      const nameNew = formatLanguageResponse(translationsNew || []);
       const translationsOld = laneData.LaneOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
+      const nameOld = formatLanguageResponse(translationsOld || []);
 
       delete laneData.LaneTranslations;
       delete laneData.LaneNewNameTranslations;
@@ -321,10 +325,14 @@ export class LaneService {
           districtName = formatLanguageResponse(districtTranslations);
           const districtTranslationsNew =
             districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(districtTranslationsNew);
+          districtNameNew = formatLanguageResponse(
+            districtTranslationsNew || []
+          );
           const districtTranslationsOld =
             districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(districtTranslationsOld);
+          districtNameOld = formatLanguageResponse(
+            districtTranslationsOld || []
+          );
           delete districtData.DistrictTranslations;
           delete districtData.DistrictNewNameTranslations;
           delete districtData.DistrictOldNameTranslations;
@@ -476,8 +484,8 @@ export class LaneService {
       throw new NotFoundException('Lane is not found');
     }
     const name = formatLanguageResponse(lane.LaneTranslations);
-    const nameNew = formatLanguageResponse(lane.LaneNewNameTranslations);
-    const nameOld = formatLanguageResponse(lane.LaneOldNameTranslations);
+    const nameNew = formatLanguageResponse(lane.LaneNewNameTranslations || []);
+    const nameOld = formatLanguageResponse(lane.LaneOldNameTranslations || []);
     delete lane.LaneNewNameTranslations;
     delete lane.LaneOldNameTranslations;
     delete lane.LaneTranslations;
@@ -503,9 +511,9 @@ export class LaneService {
       const districtTranslations = districtData.DistrictTranslations;
       districtName = formatLanguageResponse(districtTranslations);
       const districtTranslationsNew = districtData.DistrictNewNameTranslations;
-      districtNameNew = formatLanguageResponse(districtTranslationsNew);
+      districtNameNew = formatLanguageResponse(districtTranslationsNew || []);
       const districtTranslationsOld = districtData.DistrictOldNameTranslations;
-      districtNameOld = formatLanguageResponse(districtTranslationsOld);
+      districtNameOld = formatLanguageResponse(districtTranslationsOld || []);
       delete districtData.DistrictTranslations;
       delete districtData.DistrictNewNameTranslations;
       delete districtData.DistrictOldNameTranslations;

@@ -152,9 +152,9 @@ export class ImpasseService {
         const translations = impasseData.ImpasseTranslations;
         const name = formatLanguageResponse(translations);
         const translationsNew = impasseData.ImpasseNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew);
+        const nameNew = formatLanguageResponse(translationsNew || []);
         const translationsOld = impasseData.ImpasseOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld);
+        const nameOld = formatLanguageResponse(translationsOld || []);
         delete impasseData.ImpasseTranslations;
         delete impasseData.ImpasseNewNameTranslations;
         delete impasseData.ImpasseOldNameTranslations;
@@ -182,10 +182,14 @@ export class ImpasseService {
             districtName = formatLanguageResponse(districtTranslations);
             const districtTranslationsNew =
               districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            districtNameNew = formatLanguageResponse(
+              districtTranslationsNew || []
+            );
             const districtTranslationsOld =
               districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            districtNameOld = formatLanguageResponse(
+              districtTranslationsOld || []
+            );
             delete districtData.DistrictTranslations;
             delete districtData.DistrictNewNameTranslations;
             delete districtData.DistrictOldNameTranslations;
@@ -286,9 +290,9 @@ export class ImpasseService {
       const translations = impasseData.ImpasseTranslations;
       const name = formatLanguageResponse(translations);
       const translationsNew = impasseData.ImpasseNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
+      const nameNew = formatLanguageResponse(translationsNew || []);
       const translationsOld = impasseData.ImpasseOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
+      const nameOld = formatLanguageResponse(translationsOld || []);
 
       delete impasseData.ImpasseTranslations;
       delete impasseData.ImpasseNewNameTranslations;
@@ -316,10 +320,14 @@ export class ImpasseService {
           districtName = formatLanguageResponse(districtTranslations);
           const districtTranslationsNew =
             districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(districtTranslationsNew);
+          districtNameNew = formatLanguageResponse(
+            districtTranslationsNew || []
+          );
           const districtTranslationsOld =
             districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(districtTranslationsOld);
+          districtNameOld = formatLanguageResponse(
+            districtTranslationsOld || []
+          );
           delete districtData.DistrictTranslations;
           delete districtData.DistrictNewNameTranslations;
           delete districtData.DistrictOldNameTranslations;

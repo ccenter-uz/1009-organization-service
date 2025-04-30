@@ -159,9 +159,9 @@ export class VillageService {
         const translations = villageData.VillageTranslations;
         const name = formatLanguageResponse(translations);
         const translationsNew = villageData.VillageNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew);
+        const nameNew = formatLanguageResponse(translationsNew || []);
         const translationsOld = villageData.VillageOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld);
+        const nameOld = formatLanguageResponse(translationsOld || []);
         delete villageData.VillageTranslations;
         delete villageData.VillageNewNameTranslations;
         delete villageData.VillageOldNameTranslations;
@@ -188,10 +188,14 @@ export class VillageService {
             districtName = formatLanguageResponse(districtTranslations);
             const districtTranslationsNew =
               districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            districtNameNew = formatLanguageResponse(
+              districtTranslationsNew || []
+            );
             const districtTranslationsOld =
               districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            districtNameOld = formatLanguageResponse(
+              districtTranslationsOld || []
+            );
             delete districtData.DistrictTranslations;
             delete districtData.DistrictNewNameTranslations;
             delete districtData.DistrictOldNameTranslations;
@@ -293,9 +297,9 @@ export class VillageService {
       const translations = villageData.VillageTranslations;
       const name = formatLanguageResponse(translations);
       const translationsNew = villageData.VillageNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
+      const nameNew = formatLanguageResponse(translationsNew || []);
       const translationsOld = villageData.VillageOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
+      const nameOld = formatLanguageResponse(translationsOld || []);
 
       delete villageData.VillageTranslations;
       delete villageData.VillageNewNameTranslations;
@@ -323,10 +327,14 @@ export class VillageService {
           districtName = formatLanguageResponse(districtTranslations);
           const districtTranslationsNew =
             districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(districtTranslationsNew);
+          districtNameNew = formatLanguageResponse(
+            districtTranslationsNew || []
+          );
           const districtTranslationsOld =
             districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(districtTranslationsOld);
+          districtNameOld = formatLanguageResponse(
+            districtTranslationsOld || []
+          );
           delete districtData.DistrictTranslations;
           delete districtData.DistrictNewNameTranslations;
           delete districtData.DistrictOldNameTranslations;
@@ -474,8 +482,12 @@ export class VillageService {
       throw new NotFoundException('Village is not found');
     }
     const name = formatLanguageResponse(village.VillageTranslations);
-    const nameNew = formatLanguageResponse(village.VillageNewNameTranslations);
-    const nameOld = formatLanguageResponse(village.VillageOldNameTranslations);
+    const nameNew = formatLanguageResponse(
+      village.VillageNewNameTranslations || []
+    );
+    const nameOld = formatLanguageResponse(
+      village.VillageOldNameTranslations || []
+    );
     delete village.VillageNewNameTranslations;
     delete village.VillageOldNameTranslations;
     delete village.VillageTranslations;
@@ -501,9 +513,9 @@ export class VillageService {
       const districtTranslations = districtData.DistrictTranslations;
       districtName = formatLanguageResponse(districtTranslations);
       const districtTranslationsNew = districtData.DistrictNewNameTranslations;
-      districtNameNew = formatLanguageResponse(districtTranslationsNew);
+      districtNameNew = formatLanguageResponse(districtTranslationsNew || []);
       const districtTranslationsOld = districtData.DistrictOldNameTranslations;
-      districtNameOld = formatLanguageResponse(districtTranslationsOld);
+      districtNameOld = formatLanguageResponse(districtTranslationsOld || []);
       delete districtData.DistrictTranslations;
       delete districtData.DistrictNewNameTranslations;
       delete districtData.DistrictOldNameTranslations;
