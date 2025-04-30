@@ -55,7 +55,7 @@ export class LoggingInterceptor implements NestInterceptor {
       role: logData.user?.role,
       organizationId: null,
       organizationName: null,
-      referenceId: null,
+      // referenceId: null,
       method: logData.method,
       path: logData.path,
       request: req,
