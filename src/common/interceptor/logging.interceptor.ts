@@ -25,7 +25,7 @@ export class LoggingInterceptor implements NestInterceptor {
         organizationId: data.organizationId || null,
         organizationName: data.organizationName || null,
         method: data.method,
-        module: data.path?.split('/')[1],
+        // module: data.path?.split('/')[1],
         path: data.path,
         request: JSON.stringify(data.request, null, 2),
         response: JSON.stringify(data.response, null, 2),
