@@ -15,6 +15,8 @@ export class LoggingInterceptor implements NestInterceptor {
   async saveLog(data: any) {
     console.log('Saving Log:', data);
 
+    console.log(data, 'DATA TO INSERT');
+
     await this.prisma.apiLogs.create({
       data: {
         userId: data.userId || null,
