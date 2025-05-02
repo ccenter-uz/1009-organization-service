@@ -72,8 +72,12 @@ export class ProductServiceSubCategoryService {
     });
 
     this.logger.debug(`Method: ${methodName} - Response: `, subCategory);
-
-    return subCategory;
+    await this.prisma.$executeRawUnsafe(`
+        UPDATE product_service_sub_category_translations 
+        SET search_vector = to_tsvector('simple', name) 
+        WHERE product_service_sub_category_id = ${subCategory.id}
+      `);
+    return subCategory; 
   }
 
   async findAll(

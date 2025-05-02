@@ -74,6 +74,12 @@ export class ProductServiceCategoryService {
       productServiceCategory
     );
 
+    await this.prisma.$executeRawUnsafe(`
+        UPDATE product_service_category_translations 
+        SET search_vector = to_tsvector('simple', name) 
+        WHERE product_service_category_id = ${productServiceCategory.id}
+      `);
+
     return productServiceCategory;
   }
 
