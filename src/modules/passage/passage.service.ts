@@ -153,9 +153,9 @@ export class PassageService {
         const translations = passageData.PassageTranslations;
         const name = formatLanguageResponse(translations);
         const translationsNew = passageData.PassageNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew);
+        const nameNew = formatLanguageResponse(translationsNew || []);
         const translationsOld = passageData.PassageOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld);
+        const nameOld = formatLanguageResponse(translationsOld || []);
         delete passageData.PassageTranslations;
         delete passageData.PassageNewNameTranslations;
         delete passageData.PassageOldNameTranslations;
@@ -182,10 +182,14 @@ export class PassageService {
             districtName = formatLanguageResponse(districtTranslations);
             const districtTranslationsNew =
               districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            districtNameNew = formatLanguageResponse(
+              districtTranslationsNew || []
+            );
             const districtTranslationsOld =
               districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            districtNameOld = formatLanguageResponse(
+              districtTranslationsOld || []
+            );
             delete districtData.DistrictTranslations;
             delete districtData.DistrictNewNameTranslations;
             delete districtData.DistrictOldNameTranslations;
@@ -287,9 +291,9 @@ export class PassageService {
       const translations = passageData.PassageTranslations;
       const name = formatLanguageResponse(translations);
       const translationsNew = passageData.PassageNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
+      const nameNew = formatLanguageResponse(translationsNew || []);
       const translationsOld = passageData.PassageOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
+      const nameOld = formatLanguageResponse(translationsOld || []);
 
       delete passageData.PassageTranslations;
       delete passageData.PassageNewNameTranslations;
@@ -317,10 +321,14 @@ export class PassageService {
           districtName = formatLanguageResponse(districtTranslations);
           const districtTranslationsNew =
             districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(districtTranslationsNew);
+          districtNameNew = formatLanguageResponse(
+            districtTranslationsNew || []
+          );
           const districtTranslationsOld =
             districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(districtTranslationsOld);
+          districtNameOld = formatLanguageResponse(
+            districtTranslationsOld || []
+          );
           delete districtData.DistrictTranslations;
           delete districtData.DistrictNewNameTranslations;
           delete districtData.DistrictOldNameTranslations;
@@ -467,8 +475,12 @@ export class PassageService {
       throw new NotFoundException('Passage is not found');
     }
     const name = formatLanguageResponse(passage.PassageTranslations);
-    const nameNew = formatLanguageResponse(passage.PassageNewNameTranslations);
-    const nameOld = formatLanguageResponse(passage.PassageOldNameTranslations);
+    const nameNew = formatLanguageResponse(
+      passage.PassageNewNameTranslations || []
+    );
+    const nameOld = formatLanguageResponse(
+      passage.PassageOldNameTranslations || []
+    );
     delete passage.PassageNewNameTranslations;
     delete passage.PassageOldNameTranslations;
     delete passage.PassageTranslations;
@@ -494,9 +506,9 @@ export class PassageService {
       const districtTranslations = districtData.DistrictTranslations;
       districtName = formatLanguageResponse(districtTranslations);
       const districtTranslationsNew = districtData.DistrictNewNameTranslations;
-      districtNameNew = formatLanguageResponse(districtTranslationsNew);
+      districtNameNew = formatLanguageResponse(districtTranslationsNew || []);
       const districtTranslationsOld = districtData.DistrictOldNameTranslations;
-      districtNameOld = formatLanguageResponse(districtTranslationsOld);
+      districtNameOld = formatLanguageResponse(districtTranslationsOld || []);
       delete districtData.DistrictTranslations;
       delete districtData.DistrictNewNameTranslations;
       delete districtData.DistrictOldNameTranslations;

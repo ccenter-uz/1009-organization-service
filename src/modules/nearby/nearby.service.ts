@@ -35,7 +35,7 @@ export class NearbyService {
   async create(data: NearbyCreateDto): Promise<NearbyInterfaces.Response> {
     const methodName: string = this.create.name;
 
-    console.log(data);
+    console.log(data, 'DATA');
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
@@ -114,6 +114,7 @@ export class NearbyService {
         },
       },
     });
+
     this.logger.debug(`Method: ${methodName} - Response: `, nearby);
 
     await this.prisma.$executeRawUnsafe(`
@@ -148,7 +149,7 @@ export class NearbyService {
       for (let i = 0; i < nearby.length; i++) {
         let nearbyData = nearby[i];
         const translations = nearbyData.NearbyTranslations;
-        const name = formatLanguageResponse(translations);
+        const name = formatLanguageResponse(translations || []);
         delete nearbyData.NearbyTranslations;
 
         const regionTranslations = nearbyData.region.RegionTranslations;
@@ -251,7 +252,7 @@ export class NearbyService {
     for (let i = 0; i < nearby.length; i++) {
       let nearbyData = nearby[i];
       const translations = nearbyData.NearbyTranslations;
-      const name = formatLanguageResponse(translations);
+      const name = formatLanguageResponse(translations || []);
 
       delete nearbyData.NearbyTranslations;
 

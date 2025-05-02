@@ -92,14 +92,12 @@ export class MainOrganizationService {
         conditions
       );
 
-      console.log(mainOrganization, 'mainOrganization');
-
       const formattedCategories = [];
 
       for (let i = 0; i < mainOrganization.length; i++) {
         const mainOrg = mainOrganization[i];
         const translations = mainOrg?.MainOrganizationTranslations;
-        const name = formatLanguageResponse(translations);
+        const name = formatLanguageResponse(translations || []);
 
         delete mainOrg.MainOrganizationTranslations;
 
@@ -154,8 +152,7 @@ export class MainOrganizationService {
     for (let i = 0; i < mainOrganization.length; i++) {
       const mainOrg = mainOrganization[i];
       const translations = mainOrg?.MainOrganizationTranslations;
-      const name = formatLanguageResponse(translations);
-      console.log(name, 'name', translations, 'translations');
+      const name = formatLanguageResponse(translations || []);
 
       delete mainOrg.MainOrganizationTranslations;
 

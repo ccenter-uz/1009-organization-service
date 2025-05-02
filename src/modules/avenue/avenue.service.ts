@@ -155,9 +155,9 @@ export class AvenueService {
         const translations = avenueData.AvenueTranslations;
         const name = formatLanguageResponse(translations);
         const translationsNew = avenueData.AvenueNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew);
+        const nameNew = formatLanguageResponse(translationsNew || []);
         const translationsOld = avenueData.AvenueOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld);
+        const nameOld = formatLanguageResponse(translationsOld || []);
         delete avenueData.AvenueTranslations;
         delete avenueData.AvenueNewNameTranslations;
         delete avenueData.AvenueOldNameTranslations;
@@ -184,10 +184,14 @@ export class AvenueService {
             districtName = formatLanguageResponse(districtTranslations);
             const districtTranslationsNew =
               districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(districtTranslationsNew);
+            districtNameNew = formatLanguageResponse(
+              districtTranslationsNew || []
+            );
             const districtTranslationsOld =
               districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(districtTranslationsOld);
+            districtNameOld = formatLanguageResponse(
+              districtTranslationsOld || []
+            );
             delete districtData.DistrictTranslations;
             delete districtData.DistrictNewNameTranslations;
             delete districtData.DistrictOldNameTranslations;
@@ -293,9 +297,9 @@ export class AvenueService {
       const translations = avenueData.AvenueTranslations;
       const name = formatLanguageResponse(translations);
       const translationsNew = avenueData.AvenueNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
+      const nameNew = formatLanguageResponse(translationsNew || []);
       const translationsOld = avenueData.AvenueOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
+      const nameOld = formatLanguageResponse(translationsOld || []);
 
       delete avenueData.AvenueTranslations;
       delete avenueData.AvenueNewNameTranslations;
@@ -323,10 +327,14 @@ export class AvenueService {
           districtName = formatLanguageResponse(districtTranslations);
           const districtTranslationsNew =
             districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(districtTranslationsNew);
+          districtNameNew = formatLanguageResponse(
+            districtTranslationsNew || []
+          );
           const districtTranslationsOld =
             districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(districtTranslationsOld);
+          districtNameOld = formatLanguageResponse(
+            districtTranslationsOld || []
+          );
           delete districtData.DistrictTranslations;
           delete districtData.DistrictNewNameTranslations;
           delete districtData.DistrictOldNameTranslations;
@@ -624,7 +632,7 @@ export class AvenueService {
         regionId: data.regionId || avenue.regionId,
         cityId: data.cityId || avenue.cityId,
         districtId: data.districtId || null,
-           editedStaffNumber: data.staffNumber ,
+        editedStaffNumber: data.staffNumber,
         index: data.index || avenue.index,
         orderNumber: data.orderNumber,
         AvenueTranslations: {

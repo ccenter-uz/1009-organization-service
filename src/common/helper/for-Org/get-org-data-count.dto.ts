@@ -7,8 +7,6 @@ export async function getOrgCount(
   prisma: PrismaService,
   pagination?: { take: number; skip: number }
 ) {
-  console.log(data, 'lllllll');
-
   const conditions: Prisma.Sql[] = [];
   const whereClause = Prisma.empty;
   if (data.status === 0 || data.status === 1 || data.status === -1)

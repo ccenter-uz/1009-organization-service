@@ -14,25 +14,26 @@ export class LoggingInterceptor implements NestInterceptor {
 
   async saveLog(data: any) {
     console.log('Saving Log:', data);
-
-    await this.prisma.apiLogs.create({
-      data: {
-        userId: data.userId || null,
-        userNumericId: data.numericId || null,
-        userFullName: data.fullName || null,
-        userRole: data.role || null,
-        referenceId: data.referenceId || null,
-        organizationId: data.organizationId || null,
-        organizationName: data.organizationName || null,
-        method: data.method,
-        module: data.path?.split('/')[1],
-        path: data.path,
-        request: JSON.stringify(data.request, null, 2),
-        response: JSON.stringify(data.response, null, 2),
-        status: data.status,
-        duration: data.duration,
-      },
-    });
+    if (data.method != 'GET') {
+      await this.prisma.apiLogs.create({
+        data: {
+          userId: data.userId || null,
+          userNumericId: data.numericId || null,
+          userFullName: data.fullName || null,
+          userRole: data.role || null,
+          referenceId: data.referenceId || null,
+          organizationId: data.organizationId || null,
+          organizationName: data.organizationName || null,
+          method: data.method,
+          module: data.path?.split('/')[1],
+          path: data.path,
+          request: JSON.stringify(data.request, null, 2),
+          response: JSON.stringify(data.response, null, 2),
+          status: data.status,
+          duration: data.duration,
+        },
+      });
+    }
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
@@ -43,15 +44,10 @@ export class LoggingInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-
     const { logData } = req;
     delete req?.logData;
 
- 
-
     const startTime = Date.now();
-
-
 
     const logDataComplete = {
       userId: logData.user?.id,
@@ -71,7 +67,6 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((response) => {
-        
         const duration = Date.now() - startTime;
 
         // Add response details to log data
@@ -84,7 +79,7 @@ export class LoggingInterceptor implements NestInterceptor {
         }
 
         if (response?.id) logDataComplete.referenceId = response?.id;
-        if(response?.status  ) logDataComplete.status = response?.status;
+        if (response?.status) logDataComplete.status = response?.status;
         // if (typeof response?.name !== 'object') {
         //   this.saveLog(logDataComplete).catch((error) => {
         //     console.error('Error saving log:', error);
