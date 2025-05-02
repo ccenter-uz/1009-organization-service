@@ -154,7 +154,7 @@ export class AreaService {
       for (let i = 0; i < areas.length; i++) {
         let areaData = areas[i];
         const translations = areaData.AreaTranslations;
-        const name = formatLanguageResponse(translations);
+        const name = formatLanguageResponse(translations || []);
         const translationsNew = areaData.AreaNewNameTranslations;
         const nameNew = formatLanguageResponse(translationsNew || []);
         const translationsOld = areaData.AreaOldNameTranslations;
@@ -288,14 +288,12 @@ export class AreaService {
       pagination
     );
 
-    console.log(areas, 'AREAS');
-
     const formattedArea = [];
 
     for (let i = 0; i < areas.length; i++) {
       let areaData = areas[i];
       const translations = areaData.AreaTranslations;
-      const name = formatLanguageResponse(translations);
+      const name = formatLanguageResponse(translations || []);
       const translationsNew = areaData.AreaNewNameTranslations;
       const nameNew = formatLanguageResponse(translationsNew || []);
       const translationsOld = areaData.AreaOldNameTranslations;
