@@ -355,10 +355,8 @@ export class OrganizationService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
-    console.log(include, 'LOG 1');
     const where: any = {};
     const CacheKey = formatCacheKey(data);
-    console.log(CacheKey, 'LOG 2');
     const findOrganization = await this.cacheService.get(
       'organization',
       CacheKey
@@ -368,7 +366,6 @@ export class OrganizationService {
       return findOrganization;
     } else {
       if (data.all) {
-        console.log('Data All', 'LOG 11');
         const organizations = await this.prisma.organization.findMany({
           where,
           orderBy: { name: 'asc' },
@@ -395,7 +392,6 @@ export class OrganizationService {
           totalDocs: organizations.length,
           totalPage: organizations.length > 0 ? 1 : 0,
         });
-        console.log(result, 'Data All', 'LOG 12');
 
         return {
           data: result,
@@ -405,23 +401,23 @@ export class OrganizationService {
       }
 
       const count = await getOrgCount(data, this.prisma);
-
+      
       const pagination = createPagination({
         count: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
         page: data.page,
         perPage: data.limit,
       });
-
+      
       const organization: any = await getOrg(data, this.prisma, {
         take: pagination.take,
         skip: pagination.skip,
       });
-
+      
       this.logger.debug(`Method: ${methodName} - Response: `, organization);
       await this.cacheService.setAll('organization', CacheKey, {
         data: organization,
         totalPage: pagination.totalPage,
-        totalDocs: count,
+        totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
       });
       return {
         data: organization,
