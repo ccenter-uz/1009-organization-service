@@ -200,7 +200,7 @@ if (data.name) {
 
   if (data.subCategoryId) {
     conditions.push(Prisma.sql`o.sub_category_id = ${data.subCategoryId}`);
-  } // qoldi
+  } 
 
   if (data.subCategoryTuId) {
     conditions.push(
