@@ -131,79 +131,21 @@ export class CategoryService {
       return findCategores;
     } else {
       if (data.all) {
-        const categories: any = await getOrderedData(
+        const categories: any = await getCategoryData(
           'Category',
           'category',
           this.prisma,
           data
         );
 
-        const formattedCategories = [];
-
-        for (let i = 0; i < categories.length; i++) {
-          let category = categories[i];
-          const translations = category.CategoryTranslations;
-          const name = formatLanguageResponse(translations);
-          category = { ...category, name };
-          delete category.CategoryTranslations;
-
-          if (category.city) {
-            const cityTranslations = category.city.CityTranslations;
-            const cityName = formatLanguageResponse(cityTranslations);
-
-            delete category.city.CityTranslations;
-
-            const city = { ...category.city, name: cityName };
-
-            delete category.CityTranslations;
-
-            category = { ...category, city };
-          }
-          if (category.region) {
-            const regionTranslations = category.region.RegionTranslations;
-            const regionName = formatLanguageResponse(regionTranslations);
-
-            const region = { ...category.region, name: regionName };
-
-            category = { ...category, region };
-            delete category.region.RegionTranslations;
-          }
-          if (category.district) {
-            const districtName = formatLanguageResponse(
-              category.district.DistrictTranslations
-            );
-            const districtNewName = formatLanguageResponse(
-              category.district.DistrictNewNameTranslations
-            );
-            const districtOldName = formatLanguageResponse(
-              category.district.DistrictOldNameTranslations
-            );
-
-            const district = {
-              ...category.district,
-              name: districtName,
-              newName: districtNewName,
-              oldName: districtOldName,
-            };
-            category = { ...category, district };
-            delete category.district.DistrictTranslations;
-            delete category.district.DistrictNewNameTranslations;
-            delete category.district.DistrictOldNameTranslations;
-          }
-          formattedCategories.push(category);
-        }
-
-        this.logger.debug(
-          `Method: ${methodName} -  Response: `,
-          formattedCategories
-        );
+        this.logger.debug(`Method: ${methodName} -  Response: `, categories);
         await this.cacheService.setAll('category', CacheKey, {
-          data: formattedCategories,
+          data: categories,
           totalDocs: categories.length,
           totalPage: categories.length > 0 ? 1 : 0,
         });
         return {
-          data: formattedCategories,
+          data: categories,
           totalDocs: categories.length,
           totalPage: categories.length > 0 ? 1 : 0,
         };
@@ -237,7 +179,7 @@ export class CategoryService {
         perPage: data.limit,
       });
 
-      const categories: any = await getOrderedData(
+      const categories: any = await getCategoryData(
         'Category',
         'category',
         this.prisma,
@@ -245,71 +187,15 @@ export class CategoryService {
         pagination
       );
 
-      const formattedCategories = [];
-      for (let i = 0; i < categories.length; i++) {
-        let category = categories[i];
-        const translations = category.CategoryTranslations;
-        const name = formatLanguageResponse(translations);
-        category = { ...category, name };
-        delete category.CategoryTranslations;
-
-        if (category.city) {
-          const cityTranslations = category.city.CityTranslations;
-          const cityName = formatLanguageResponse(cityTranslations);
-
-          delete category.city.CityTranslations;
-
-          const city = { ...category.city, name: cityName };
-
-          delete category.CityTranslations;
-
-          category = { ...category, city };
-        }
-        if (category.region) {
-          const regionTranslations = category.region.RegionTranslations;
-          const regionName = formatLanguageResponse(regionTranslations);
-
-          const region = { ...category.region, name: regionName };
-
-          category = { ...category, region };
-          delete category.region.RegionTranslations;
-        }
-        if (category.district) {
-          const districtName = formatLanguageResponse(
-            category.district.DistrictTranslations
-          );
-          const districtNewName = formatLanguageResponse(
-            category.district.DistrictNewNameTranslations
-          );
-          const districtOldName = formatLanguageResponse(
-            category.district.DistrictOldNameTranslations
-          );
-
-          const district = {
-            ...category.district,
-            name: districtName,
-            newName: districtNewName,
-            oldName: districtOldName,
-          };
-          category = { ...category, district };
-          delete category.district.DistrictTranslations;
-          delete category.district.DistrictNewNameTranslations;
-          delete category.district.DistrictOldNameTranslations;
-        }
-        formattedCategories.push(category);
-      }
-      this.logger.debug(`Method: ${methodName} - Response: `, categories[0]);
-
-      console.log(pagination.totalPage, 'TOTAL PAGE');
-      console.log(count, 'COUNT');
+      this.logger.debug(`Method: ${methodName} - Response: `, categories);
 
       await this.cacheService.setAll('category', CacheKey, {
-        data: formattedCategories,
+        data: categories,
         totalPage: pagination.totalPage,
         totalDocs: count,
       });
       return {
-        data: formattedCategories,
+        data: categories,
         totalPage: pagination.totalPage,
         totalDocs: count,
       };
