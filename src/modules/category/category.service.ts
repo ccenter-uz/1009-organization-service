@@ -127,79 +127,79 @@ export class CategoryService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const CacheKey = formatCacheKey(data);
     const findCategores = await this.cacheService.get('category', CacheKey);
-    if (findCategores) {
-      return findCategores;
-    } else {
-      if (data.all) {
-        const categories: any = await getCategoryData(
-          'Category',
-          'category',
-          this.prisma,
-          data
-        );
-
-        this.logger.debug(`Method: ${methodName} -  Response: `, categories);
-        await this.cacheService.setAll('category', CacheKey, {
-          data: categories,
-          totalDocs: categories.length,
-          totalPage: categories.length > 0 ? 1 : 0,
-        });
-        return {
-          data: categories,
-          totalDocs: categories.length,
-          totalPage: categories.length > 0 ? 1 : 0,
-        };
-      }
-
-      const where: any = {
-        ...(data.status == 2
-          ? {}
-          : {
-              status: data.status,
-            }),
-        cityId: data.cityId,
-        regionId: data.regionId,
-        districtId: data.districtId,
-      };
-      if (data.search) {
-        where.CategoryTranslations = {
-          some: {
-            name: {
-              contains: data.search,
-              mode: 'insensitive',
-            },
-          },
-        };
-      }
-      const count = await this.prisma.category.count({ where });
-
-      const pagination = createPagination({
-        count,
-        page: data.page,
-        perPage: data.limit,
-      });
-
+    // if (findCategores) {
+    //   return findCategores;
+    // } else {
+    if (data.all) {
       const categories: any = await getCategoryData(
         'Category',
         'category',
         this.prisma,
-        data,
-        pagination
+        data
       );
 
-      this.logger.debug(`Method: ${methodName} - Response: `, categories);
-
+      this.logger.debug(`Method: ${methodName} -  Response: `, categories);
       await this.cacheService.setAll('category', CacheKey, {
         data: categories,
-        totalPage: pagination.totalPage,
-        totalDocs: count,
+        totalDocs: categories.length,
+        totalPage: categories.length > 0 ? 1 : 0,
       });
       return {
         data: categories,
-        totalPage: pagination.totalPage,
-        totalDocs: count,
+        totalDocs: categories.length,
+        totalPage: categories.length > 0 ? 1 : 0,
       };
     }
+
+    const where: any = {
+      ...(data.status == 2
+        ? {}
+        : {
+            status: data.status,
+          }),
+      cityId: data.cityId,
+      regionId: data.regionId,
+      districtId: data.districtId,
+    };
+    if (data.search) {
+      where.CategoryTranslations = {
+        some: {
+          name: {
+            contains: data.search,
+            mode: 'insensitive',
+          },
+        },
+      };
+    }
+    const count = await this.prisma.category.count({ where });
+
+    const pagination = createPagination({
+      count,
+      page: data.page,
+      perPage: data.limit,
+    });
+
+    const categories: any = await getCategoryData(
+      'Category',
+      'category',
+      this.prisma,
+      data,
+      pagination
+    );
+
+    this.logger.debug(`Method: ${methodName} - Response: `, categories);
+
+    // await this.cacheService.setAll('category', CacheKey, {
+    //   data: categories,
+    //   totalPage: pagination.totalPage,
+    //   totalDocs: count,
+    // });
+    return {
+      data: categories,
+      totalPage: pagination.totalPage,
+      totalDocs: count,
+    };
+    // }
   }
 
   async findOne(data: GetOneDto): Promise<CategoryInterfaces.Response> {
