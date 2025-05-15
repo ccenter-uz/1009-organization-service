@@ -77,7 +77,7 @@ export class ProductServiceSubCategoryService {
         SET search_vector = to_tsvector('simple', name) 
         WHERE product_service_sub_category_id = ${subCategory.id}
       `);
-    return subCategory; 
+    return subCategory;
   }
 
   async findAll(
@@ -116,58 +116,13 @@ export class ProductServiceSubCategoryService {
         conditions
       );
 
-      const formattedSubCategories = [];
-
-      for (let i = 0; i < ProductServiceSubCategories.length; i++) {
-        const subCategory = ProductServiceSubCategories[i];
-        const translations = subCategory.ProductServiceSubCategoryTranslations;
-        const name = formatLanguageResponse(translations);
-
-        const category = ProductServiceSubCategories[i].ProductServiceCategory;
-        const categoryTranslations =
-          category.ProductServiceCategoryTranslations;
-        const categoryName = formatLanguageResponse(categoryTranslations);
-        delete ProductServiceSubCategories[i].ProductServiceCategory
-          .ProductServiceCategoryTranslations;
-        delete subCategory.ProductServiceSubCategoryTranslations;
-        const count = await this.prisma.organization.count({
-          where: {
-            ProductServices: {
-              some: {
-                ProductServiceSubCategoryId: ProductServiceSubCategories[i].id,
-              },
-            },
-          },
-        });
-
-        const orgCountCategory = await this.prisma.organization.count({
-          where: {
-            ProductServices: {
-              some: {
-                ProductServiceCategoryId: category.id,
-              },
-            },
-          },
-        });
-
-        formattedSubCategories.push({
-          ...subCategory,
-          name,
-          orgCount: count,
-          ProductServiceCategory: {
-            ...category,
-            name: { ...categoryName },
-            orgCount: orgCountCategory,
-          },
-        });
-      }
       this.logger.debug(
         `Method: ${methodName} - Response: `,
-        formattedSubCategories
+        ProductServiceSubCategories
       );
 
       return {
-        data: formattedSubCategories,
+        data: ProductServiceSubCategories,
         totalDocs: ProductServiceSubCategories.length,
         totalPage: ProductServiceSubCategories.length > 0 ? 1 : 0,
       };
@@ -212,57 +167,13 @@ export class ProductServiceSubCategoryService {
       pagination
     );
 
-    const formattedSubCategories = [];
-
-    for (let i = 0; i < ProductServiceSubCategories.length; i++) {
-      const subCategory = ProductServiceSubCategories[i];
-      const translations = subCategory.ProductServiceSubCategoryTranslations;
-      const name = formatLanguageResponse(translations);
-
-      const category = ProductServiceSubCategories[i].ProductServiceCategory;
-      const categoryTranslations = category.ProductServiceCategoryTranslations;
-      const categoryName = formatLanguageResponse(categoryTranslations);
-      delete ProductServiceSubCategories[i].ProductServiceCategory
-        .ProductServiceCategoryTranslations;
-      delete subCategory.ProductServiceSubCategoryTranslations;
-
-      const count = await this.prisma.organization.count({
-        where: {
-          ProductServices: {
-            some: {
-              ProductServiceSubCategoryId: ProductServiceSubCategories[i].id,
-            },
-          },
-        },
-      });
-
-      const orgCountCategory = await this.prisma.organization.count({
-        where: {
-          ProductServices: {
-            some: {
-              ProductServiceCategoryId: category.id,
-            },
-          },
-        },
-      });
-      formattedSubCategories.push({
-        ...subCategory,
-        name,
-        orgCount: count,
-        ProductServiceCategory: {
-          ...category,
-          name: { ...categoryName },
-          orgCount: orgCountCategory,
-        },
-      });
-    }
     this.logger.debug(
       `Method: ${methodName} -  Response: `,
-      formattedSubCategories
+      ProductServiceSubCategories
     );
 
     return {
-      data: formattedSubCategories,
+      data: ProductServiceSubCategories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
