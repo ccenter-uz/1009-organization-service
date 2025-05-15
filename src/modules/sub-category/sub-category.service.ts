@@ -181,31 +181,10 @@ export class SubCategoryService {
       pagination
     );
 
-    const formattedSubCategories = [];
 
-    for (let i = 0; i < subCategories.length; i++) {
-      const subCategory = subCategories[i];
-      const translations = subCategory.SubCategoryTranslations;
-      const name = formatLanguageResponse(translations);
-
-      const category: any = subCategories[i].Category;
-      const categoryTranslations = category.CategoryTranslations;
-      const categoryName = formatLanguageResponse(categoryTranslations);
-
-      category.name = categoryName;
-
-      delete category.CategoryTranslations;
-      delete subCategory.SubCategoryTranslations;
-      delete subCategory.SubCategoryTranslations;
-
-      formattedSubCategories.push({ ...subCategory, name, category });
-    }
-    this.logger.debug(
-      `Method: ${methodName} - Response: `,
-      formattedSubCategories
-    );
+    this.logger.debug(`Method: ${methodName} - Response: `, subCategories);
     return {
-      data: formattedSubCategories,
+      data: subCategories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
