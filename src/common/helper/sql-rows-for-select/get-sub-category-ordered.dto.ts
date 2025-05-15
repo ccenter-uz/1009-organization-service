@@ -16,7 +16,7 @@ export async function getSubCategoryOrderedData(
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
       : Prisma.empty;
 
-  try {
+
     const result: any = await prisma.$queryRaw(
       Prisma.sql`WITH
     ${Prisma.raw(CapitalizeName)}Translations AS (
@@ -80,7 +80,5 @@ ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : 
 `
     );
     return result;
-  } catch (error) {
-    console.log(error);
-  }
+
 }
