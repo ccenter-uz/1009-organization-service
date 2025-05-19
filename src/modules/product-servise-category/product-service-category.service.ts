@@ -26,6 +26,7 @@ import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dt
 import { ProductServiceCategoryDeleteDto } from 'types/organization/product-service-category/dto/delete-product-service-category.dto';
 import { ProductServiceSubCategoryService } from '../product-service-sub-category/product-service-sub-category.service';
 import { async } from 'rxjs';
+import { getProductServiceCategoryData } from '@/common/helper/sql-rows-for-select/get-product-service-category';
 
 @Injectable()
 export class ProductServiceCategoryService {
@@ -179,7 +180,7 @@ export class ProductServiceCategoryService {
       perPage: data.limit,
     });
 
-    const productServiceCategories = await getSingleOrderedData(
+    const productServiceCategories = await getProductServiceCategoryData(
       'ProductServiceCategory',
       'product_service_category',
       this.prisma,
@@ -187,38 +188,41 @@ export class ProductServiceCategoryService {
       conditions,
       pagination
     );
+    console.log(productServiceCategories, 'productServiceCategories');
+    
 
-    const formattedCategories = [];
+    // const formattedCategories = [];
 
-    for (const productServiceCategory of productServiceCategories) {
-      const translations =
-        productServiceCategory.ProductServiceCategoryTranslations;
-      const name = formatLanguageResponse(translations);
-      delete productServiceCategory.ProductServiceCategoryTranslations;
+    // for (const productServiceCategory of productServiceCategories) {
+    //   const translations =
+    //     productServiceCategory.ProductServiceCategoryTranslations;
+    //   const name = formatLanguageResponse(translations);
+    //   delete productServiceCategory.ProductServiceCategoryTranslations;
 
-      const count = await this.prisma.organization.count({
-        where: {
-          ProductServices: {
-            some: {
-              ProductServiceCategoryId: productServiceCategory.id,
-            },
-          },
-        },
-      });
+    //   // const count = await this.prisma.organization.count({
+    //   //   where: {
+    //   //     ProductServices: {
+    //   //       some: {
+    //   //         ProductServiceCategoryId: productServiceCategory.id,
+    //   //       },
+    //   //     },
+    //   //   },
+    //   // });
 
-      formattedCategories.push({
-        ...productServiceCategory,
-        name,
-        orgCount: count,
-      });
-    }
-    this.logger.debug(
-      `Method: ${methodName} - Response: `,
-      formattedCategories
-    );
+    //   formattedCategories.push({
+    //     ...productServiceCategory,
+    //     name,
+    //     orgCount: count,
+    //   });
+    // }
+
+    // this.logger.debug(
+    //   `Method: ${methodName} - Response: `,
+    //   formattedCategories
+    // );
 
     return {
-      data: formattedCategories,
+      data: productServiceCategories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
