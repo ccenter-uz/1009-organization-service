@@ -136,12 +136,12 @@ export async function getOrgCount(
   }
 
   if (data.search) {
-    const queryName = data.name.replace('-', ' ').toLowerCase();
+    const queryName = data.search.replace('-', ' ').toLowerCase();
 
     const orConditions = [
-      Prisma.sql`o.name ILIKE ${`%${data.name}%`}`,
-      Prisma.sql`o.legal_name ILIKE ${`%${data.name}%`}`,
-      Prisma.sql`o.inn ILIKE ${`%${data.name}%`}`,
+      Prisma.sql`o.name ILIKE ${`%${data.search}%`}`,
+      Prisma.sql`o.legal_name ILIKE ${`%${data.search}%`}`,
+      Prisma.sql`o.inn ILIKE ${`%${data.search}%`}`,
       Prisma.sql`
       EXISTS (
         SELECT 1
