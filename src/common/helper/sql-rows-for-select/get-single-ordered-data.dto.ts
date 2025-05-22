@@ -31,7 +31,8 @@ export async function getSingleOrderedData(
             )
         SELECT
             c.*,  
-            (SELECT Translations FROM ${Prisma.raw(CapitalizaName)}Translations WHERE ${Prisma.raw(`${name}_id`)} = c.id) AS "${Prisma.raw(CapitalizaName)}Translations"
+            (SELECT Translations FROM ${Prisma.raw(CapitalizaName)}Translations 
+            WHERE ${Prisma.raw(`${name}_id`)} = c.id) AS "${Prisma.raw(CapitalizaName)}Translations"
         FROM
             ${Prisma.raw(name)} c
         ${whereClause}

@@ -26,6 +26,7 @@ import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dt
 import { ProductServiceCategoryDeleteDto } from 'types/organization/product-service-category/dto/delete-product-service-category.dto';
 import { ProductServiceSubCategoryService } from '../product-service-sub-category/product-service-sub-category.service';
 import { async } from 'rxjs';
+import { getProductServiceCategoryData } from '@/common/helper/sql-rows-for-select/get-product-service-category';
 
 @Injectable()
 export class ProductServiceCategoryService {
@@ -107,7 +108,7 @@ export class ProductServiceCategoryService {
     }
 
     if (data.all) {
-      const productServiceCategories = await getSingleOrderedData(
+      const productServiceCategories = await getProductServiceCategoryData(
         'ProductServiceCategory',
         'product_service_category',
         this.prisma,
@@ -115,37 +116,13 @@ export class ProductServiceCategoryService {
         conditions
       );
 
-      const formattedCategories = [];
-
-      for (const productServiceCategory of productServiceCategories) {
-        const translations =
-          productServiceCategory.ProductServiceCategoryTranslations;
-        const name = formatLanguageResponse(translations);
-        delete productServiceCategory.ProductServiceCategoryTranslations;
-
-        const count = await this.prisma.organization.count({
-          where: {
-            ProductServices: {
-              some: {
-                ProductServiceCategoryId: productServiceCategory.id,
-              },
-            },
-          },
-        });
-
-        formattedCategories.push({
-          ...productServiceCategory,
-          name,
-          orgCount: count,
-        });
-      }
       this.logger.debug(
         `Method: ${methodName} - Response: `,
-        formattedCategories
+        productServiceCategories
       );
 
       return {
-        data: formattedCategories,
+        data: productServiceCategories,
         totalDocs: productServiceCategories.length,
         totalPage: productServiceCategories.length > 0 ? 1 : 0,
       };
@@ -179,7 +156,7 @@ export class ProductServiceCategoryService {
       perPage: data.limit,
     });
 
-    const productServiceCategories = await getSingleOrderedData(
+    const productServiceCategories = await getProductServiceCategoryData(
       'ProductServiceCategory',
       'product_service_category',
       this.prisma,
@@ -188,37 +165,13 @@ export class ProductServiceCategoryService {
       pagination
     );
 
-    const formattedCategories = [];
-
-    for (const productServiceCategory of productServiceCategories) {
-      const translations =
-        productServiceCategory.ProductServiceCategoryTranslations;
-      const name = formatLanguageResponse(translations);
-      delete productServiceCategory.ProductServiceCategoryTranslations;
-
-      const count = await this.prisma.organization.count({
-        where: {
-          ProductServices: {
-            some: {
-              ProductServiceCategoryId: productServiceCategory.id,
-            },
-          },
-        },
-      });
-
-      formattedCategories.push({
-        ...productServiceCategory,
-        name,
-        orgCount: count,
-      });
-    }
     this.logger.debug(
       `Method: ${methodName} - Response: `,
-      formattedCategories
+      productServiceCategories
     );
 
     return {
-      data: formattedCategories,
+      data: productServiceCategories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
@@ -299,12 +252,16 @@ export class ProductServiceCategoryService {
         },
       },
       include: {
-        ProductServiceCategoryTranslations: true, // Include translations in the response
+        ProductServiceCategoryTranslations: true,
       },
     });
 
     this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
-
+    await this.prisma.$executeRawUnsafe(`
+        UPDATE product_service_category_translations 
+        SET search_vector = to_tsvector('simple', name) 
+        WHERE product_service_category_id = ${productServiceCategory.id}
+      `);
     return updatedCategory;
   }
 
