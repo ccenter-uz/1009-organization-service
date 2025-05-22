@@ -33,6 +33,10 @@ model Category {
   region   Region?   @relation(fields: [regionId], references: [id])
   district District? @relation(fields: [districtId], references: [id])
 
+  @@index([status], name: "idx_category_status")
+  @@index([cityId], name: "idx_category_city_id")
+  @@index([regionId], name: "idx_category_region_id")
+  @@index([districtId], name: "idx_category_district_id")
   @@map("category")
 }
 
@@ -46,6 +50,7 @@ model CategoryTranslations {
 
   category Category @relation(fields: [categoryId], references: [id])
 
+  @@index([name], name: "idx_category_translations_name")
   @@map("category_translations")
 }
 
@@ -145,14 +150,14 @@ model ProductServiceCategory {
 }
 
 model ProductServiceCategoryTranslations {
-  id                       Int       @id @default(autoincrement())
-  productServiceCategoryId Int       @map("product_service_category_id")
-  languageCode             String    @map("language_code")
+  id                       Int                      @id @default(autoincrement())
+  productServiceCategoryId Int                      @map("product_service_category_id")
+  languageCode             String                   @map("language_code")
   name                     String
-  searchVector Unsupported("tsvector")? @map("search_vector")
-  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                DateTime? @updatedAt @map("updated_at")
-  ProductServiceCategory ProductServiceCategory @relation(fields: [productServiceCategoryId], references: [id])
+  searchVector             Unsupported("tsvector")? @map("search_vector")
+  createdAt                DateTime                 @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                DateTime?                @updatedAt @map("updated_at")
+  ProductServiceCategory   ProductServiceCategory   @relation(fields: [productServiceCategoryId], references: [id])
 
   @@map("product_service_category_translations")
 }
@@ -179,13 +184,13 @@ model ProductServiceSubCategory {
 }
 
 model ProductServiceSubCategoryTranslations {
-  id                         Int       @id @default(autoincrement())
-  productServicSubCategoryId Int       @map("product_service_sub_category_id")
-  languageCode               String    @map("language_code")
+  id                         Int                      @id @default(autoincrement())
+  productServicSubCategoryId Int                      @map("product_service_sub_category_id")
+  languageCode               String                   @map("language_code")
   name                       String
-  searchVector Unsupported("tsvector")? @map("search_vector")
-  createdAt                  DateTime  @default(now()) @map("created_at") @db.Timestamp
-  updatedAt                  DateTime? @updatedAt @map("updated_at")
+  searchVector               Unsupported("tsvector")? @map("search_vector")
+  createdAt                  DateTime                 @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                  DateTime?                @updatedAt @map("updated_at")
 
   ProductServiceSubCategory ProductServiceSubCategory @relation(fields: [productServicSubCategoryId], references: [id])
 
@@ -961,6 +966,11 @@ model Street {
   Organization              Organization[]
   OrganizationVersion       OrganizationVersion[]
 
+  @@index([regionId], name: "idx_street_region_id")
+  @@index([cityId], name: "idx_street_city_id")
+  @@index([districtId], name: "idx_street_district_id")
+  @@index([status], name: "idx_street_status")
+  @@index([orderNumber], name: "idx_street_order_number")
   @@map("street")
 }
 
@@ -976,6 +986,10 @@ model StreetTranslations {
   Street Street @relation(fields: [streetId], references: [id])
 
   @@index([searchVector], type: Gin)
+  @@index([searchVector], type: Gin, name: "idx_street_translations_search_vector")
+  @@index([streetId], name: "idx_street_translations_street_id")
+  @@index([languageCode], name: "idx_street_translations_lang")
+  @@index([name], name: "idx_street_translations_name")
   @@map("street_translations")
 }
 
@@ -989,6 +1003,9 @@ model StreetOldNameTranslations {
 
   Street Street @relation(fields: [streetId], references: [id])
 
+  @@index([streetId], name: "idx_street_old_name_street_id") // for old name
+  @@index([languageCode], name: "idx_street_old_name_lang")
+  @@index([name], name: "idx_street_old_name_name")
   @@map("street_old_name_translations")
 }
 
@@ -1002,6 +1019,9 @@ model StreetNewNameTranslations {
 
   Street Street @relation(fields: [streetId], references: [id])
 
+  @@index([streetId], name: "idx_street_new_name_street_id") // for new name
+  @@index([languageCode], name: "idx_street_new_name_lang")
+  @@index([name], name: "idx_street_new_name_name")
   @@map("street_new_name_translations")
 }
 
