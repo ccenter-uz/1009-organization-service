@@ -24,6 +24,7 @@ import { getSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/g
 import { Prisma } from '@prisma/client';
 import { ProductServiceSubCategoryDeleteDto } from 'types/organization/product-service-sub-category/dto/delete-product-service-sub-category.dto';
 import { ProductServiceSubCategoryFilterDto } from './../../../types/organization/product-service-sub-category/dto/filter-product-service-sub-category.dto';
+import { getProductServiceSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/get-sub-category-product-service';
 @Injectable()
 export class ProductServiceSubCategoryService {
   private logger = new Logger(ProductServiceSubCategoryService.name);
@@ -106,15 +107,16 @@ export class ProductServiceSubCategoryService {
       );
     }
     if (data.all) {
-      const ProductServiceSubCategories = await getSubCategoryOrderedData(
-        'ProductServiceSubCategory',
-        'product_service_sub_category',
-        'ProductServiceCategory',
-        'product_service_category',
-        this.prisma,
-        data,
-        conditions
-      );
+      const ProductServiceSubCategories =
+        await getProductServiceSubCategoryOrderedData(
+          'ProductServiceSubCategory',
+          'product_service_sub_category',
+          'ProductServiceCategory',
+          'product_service_category',
+          this.prisma,
+          data,
+          conditions
+        );
 
       this.logger.debug(
         `Method: ${methodName} - Response: `,
@@ -156,16 +158,17 @@ export class ProductServiceSubCategoryService {
       perPage: data.limit,
     });
 
-    const ProductServiceSubCategories = await getSubCategoryOrderedData(
-      'ProductServiceSubCategory',
-      'product_service_sub_category',
-      'ProductServiceCategory',
-      'product_service_category',
-      this.prisma,
-      data,
-      conditions,
-      pagination
-    );
+    const ProductServiceSubCategories =
+      await getProductServiceSubCategoryOrderedData(
+        'ProductServiceSubCategory',
+        'product_service_sub_category',
+        'ProductServiceCategory',
+        'product_service_category',
+        this.prisma,
+        data,
+        conditions,
+        pagination
+      );
 
     this.logger.debug(
       `Method: ${methodName} -  Response: `,

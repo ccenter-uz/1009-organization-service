@@ -25,7 +25,6 @@ import { getSingleOrderedData } from '@/common/helper/sql-rows-for-select/get-si
 import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 import { ProductServiceCategoryDeleteDto } from 'types/organization/product-service-category/dto/delete-product-service-category.dto';
 import { ProductServiceSubCategoryService } from '../product-service-sub-category/product-service-sub-category.service';
-import { async } from 'rxjs';
 import { getProductServiceCategoryData } from '@/common/helper/sql-rows-for-select/get-product-service-category';
 
 @Injectable()

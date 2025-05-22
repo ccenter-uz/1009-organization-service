@@ -401,18 +401,18 @@ export class OrganizationService {
       }
 
       const count = await getOrgCount(data, this.prisma);
-      
+
       const pagination = createPagination({
         count: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
         page: data.page,
         perPage: data.limit,
       });
-      
+
       const organization: any = await getOrg(data, this.prisma, {
         take: pagination.take,
         skip: pagination.skip,
       });
-      
+
       this.logger.debug(`Method: ${methodName} - Response: `, organization);
       await this.cacheService.setAll('organization', CacheKey, {
         data: organization,
@@ -876,7 +876,7 @@ export class OrganizationService {
     const methodName: string = this.findOne.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
-    const findCategory = await this.cacheService.get(
+    const findOrganization = await this.cacheService.get(
       'organizationOne',
       data.id?.toString()
     );
@@ -911,10 +911,8 @@ export class OrganizationService {
       `Method: ${methodName} - Response: `,
       formattedOrganization
     );
-    if (findCategory) {
-      console.log(findCategory, 'findCategory');
-
-      return findCategory;
+    if (findOrganization) {
+      return findOrganization;
     } else {
       const organization = await this.prisma.organization.findFirst({
         where: {
@@ -944,11 +942,107 @@ export class OrganizationService {
         `Method: ${methodName} - Response: `,
         formattedOrganization
       );
+
+      formattedOrganization.kvartal = {
+        value: formattedOrganization.kvartal || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.home = {
+        value: formattedOrganization.home || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.apartment = {
+        value: formattedOrganization.apartment || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.inn = {
+        value: formattedOrganization.inn || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.description = {
+        value: formattedOrganization.description || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.bankNumber = {
+        value: formattedOrganization.bankNumber || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.mail = {
+        value: formattedOrganization.mail || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.manager = {
+        value: formattedOrganization.manager || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.index = {
+        value: formattedOrganization.index || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.region = {
+        value: formattedOrganization.region || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.city = {
+        value: formattedOrganization.city || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.district = {
+        value: formattedOrganization.district || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.mainOrganization = {
+        value: formattedOrganization.mainOrganization || null,
+        requiredPlan: 'standard',
+      };
+      // formattedOrganization.certificate = {
+      //   value: formattedOrganization.certificate || null,
+      //   requiredPlan: 'standard',
+      // };
+      formattedOrganization.village = {
+        value: formattedOrganization.village || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.avenue = {
+        value: formattedOrganization.avenue || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.residentialArea = {
+        value: formattedOrganization.residentialArea || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.neighborhood = {
+        value: formattedOrganization.neighborhood || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.street = {
+        value: formattedOrganization.street || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.segment = {
+        value: formattedOrganization.segment || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.Nearbees = {
+        value: formattedOrganization.Nearbees || null,
+        requiredPlan: 'standard',
+      };
+      for (let i of formattedOrganization.Phone) {
+        i.phone = {
+          value: i.phone || null,
+          requiredPlan: 'standard',
+        };
+      }
       await this.cacheService.set(
         'organizationOne',
         data.id?.toString(),
         formattedOrganization
       );
+
       return formattedOrganization;
     }
   }
