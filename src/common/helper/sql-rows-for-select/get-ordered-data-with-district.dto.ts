@@ -9,7 +9,7 @@ export async function getOrderedDataWithDistrict(
   pagination?: { take: number; skip: number }
 ) {
   const conditions: Prisma.Sql[] = [];
- 
+
   if (data.status === 0 || data.status === 1) {
     conditions.push(Prisma.sql`c.status = ${data.status}`);
   }
