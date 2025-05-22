@@ -147,80 +147,9 @@ export class LaneService {
         data
       );
 
-      const formattedLane = [];
-
-      for (let i = 0; i < lanes.length; i++) {
-        let laneData = lanes[i];
-        const translations = laneData.LaneTranslations;
-        const name = formatLanguageResponse(translations);
-        const translationsNew = laneData.LaneNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew || []);
-        const translationsOld = laneData.LaneOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld || []);
-        delete laneData.LaneTranslations;
-        delete laneData.LaneNewNameTranslations;
-        delete laneData.LaneOldNameTranslations;
-
-        const regionTranslations = laneData.region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
-        delete laneData.region.RegionTranslations;
-        const region = { ...laneData.region, name: regionName };
-        delete laneData.region;
-
-        const cityTranslations = laneData.city.CityTranslations;
-        const cityName = formatLanguageResponse(cityTranslations);
-        delete laneData.city.CityTranslations;
-        const city = { ...laneData.city, name: cityName };
-        delete laneData.city;
-        if (laneData?.district) {
-          const districtData = laneData?.district;
-          let districtName: string | object;
-          let districtNameNew: string | object;
-          let districtNameOld: string | object;
-
-          if (districtData) {
-            const districtTranslations = districtData.DistrictTranslations;
-            districtName = formatLanguageResponse(districtTranslations);
-            const districtTranslationsNew =
-              districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(
-              districtTranslationsNew || []
-            );
-            const districtTranslationsOld =
-              districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(
-              districtTranslationsOld || []
-            );
-            delete districtData.DistrictTranslations;
-            delete districtData.DistrictNewNameTranslations;
-            delete districtData.DistrictOldNameTranslations;
-          }
-
-          const district = {
-            ...districtData,
-            name: districtName,
-            newName: districtNameNew,
-            oldName: districtNameOld,
-          };
-          laneData = {
-            ...laneData,
-            district,
-          };
-        }
-        this.logger.debug(`Method: ${methodName} -  Response: `, laneData);
-
-        formattedLane.push({
-          ...laneData,
-          name,
-          newName: nameNew,
-          oldName: nameOld,
-          region,
-          city,
-        });
-      }
-
+      this.logger.debug(`Method: ${methodName} -  Response: `, lanes);
       return {
-        data: formattedLane,
+        data: lanes,
         totalDocs: lanes.length,
         totalPage: lanes.length > 0 ? 1 : 0,
       };
@@ -288,81 +217,9 @@ export class LaneService {
       pagination
     );
 
-    const formattedLane = [];
-
-    for (let i = 0; i < lanes.length; i++) {
-      let laneData = lanes[i];
-      const translations = laneData.LaneTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = laneData.LaneNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew || []);
-      const translationsOld = laneData.LaneOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld || []);
-
-      delete laneData.LaneTranslations;
-      delete laneData.LaneNewNameTranslations;
-      delete laneData.LaneOldNameTranslations;
-
-      const regionTranslations = laneData.region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
-      delete laneData.region.RegionTranslations;
-      const region = { ...laneData.region, name: regionName };
-      delete laneData.region;
-
-      const cityTranslations = laneData.city.CityTranslations;
-      const cityName = formatLanguageResponse(cityTranslations);
-      delete laneData.city.CityTranslations;
-      const city = { ...laneData.city, name: cityName };
-      delete laneData.city;
-      if (laneData?.district) {
-        const districtData = laneData?.district;
-        let districtName: string | object;
-        let districtNameNew: string | object;
-        let districtNameOld: string | object;
-
-        if (districtData) {
-          const districtTranslations = districtData.DistrictTranslations;
-          districtName = formatLanguageResponse(districtTranslations);
-          const districtTranslationsNew =
-            districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(
-            districtTranslationsNew || []
-          );
-          const districtTranslationsOld =
-            districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(
-            districtTranslationsOld || []
-          );
-          delete districtData.DistrictTranslations;
-          delete districtData.DistrictNewNameTranslations;
-          delete districtData.DistrictOldNameTranslations;
-        }
-
-        const district = {
-          ...districtData,
-          name: districtName,
-          newName: districtNameNew,
-          oldName: districtNameOld,
-        };
-        laneData = {
-          ...laneData,
-          district,
-        };
-      }
-      this.logger.debug(`Method: ${methodName} - Response: `, laneData);
-
-      formattedLane.push({
-        ...laneData,
-        name,
-        newName: nameNew,
-        oldName: nameOld,
-        region,
-        city,
-      });
-    }
-
+    this.logger.debug(`Method: ${methodName} - Response: `, lanes);
     return {
-      data: formattedLane,
+      data: lanes,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };

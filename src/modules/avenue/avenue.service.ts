@@ -148,80 +148,13 @@ export class AvenueService {
         this.prisma,
         data
       );
-      const formattedAvenue = [];
+   
 
-      for (let i = 0; i < avenues.length; i++) {
-        let avenueData = avenues[i];
-        const translations = avenueData.AvenueTranslations;
-        const name = formatLanguageResponse(translations);
-        const translationsNew = avenueData.AvenueNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew || []);
-        const translationsOld = avenueData.AvenueOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld || []);
-        delete avenueData.AvenueTranslations;
-        delete avenueData.AvenueNewNameTranslations;
-        delete avenueData.AvenueOldNameTranslations;
 
-        const regionTranslations = avenueData.region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
-        delete avenueData.region.RegionTranslations;
-        const region = { ...avenueData.region, name: regionName };
-        delete avenueData.region;
-
-        const cityTranslations = avenueData.city.CityTranslations;
-        const cityName = formatLanguageResponse(cityTranslations);
-        delete avenueData.city.CityTranslations;
-        const city = { ...avenueData.city, name: cityName };
-        delete avenueData.city;
-        if (avenueData?.district) {
-          const districtData = avenueData?.district;
-          let districtName: string | object;
-          let districtNameNew: string | object;
-          let districtNameOld: string | object;
-
-          if (districtData) {
-            const districtTranslations = districtData.DistrictTranslations;
-            districtName = formatLanguageResponse(districtTranslations);
-            const districtTranslationsNew =
-              districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(
-              districtTranslationsNew || []
-            );
-            const districtTranslationsOld =
-              districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(
-              districtTranslationsOld || []
-            );
-            delete districtData.DistrictTranslations;
-            delete districtData.DistrictNewNameTranslations;
-            delete districtData.DistrictOldNameTranslations;
-          }
-
-          const district = {
-            ...avenueData.district,
-            name: districtName,
-            districtNameNew,
-            districtNameOld,
-          };
-          avenueData = {
-            ...avenueData,
-            district,
-          };
-        }
-        formattedAvenue.push({
-          ...avenueData,
-          name,
-          newName: nameNew,
-          oldName: nameOld,
-          region,
-          city,
-        });
-      }
-
-      this.logger.debug(`Method: ${methodName} - Response: `, formattedAvenue);
+      this.logger.debug(`Method: ${methodName} - Response: `, avenues);
 
       return {
-        data: formattedAvenue,
+        data: avenues,
         totalDocs: avenues.length,
         totalPage: avenues.length > 0 ? 1 : 0,
       };
@@ -289,82 +222,10 @@ export class AvenueService {
       data,
       pagination
     );
-
-    const formattedAvenue = [];
-
-    for (let i = 0; i < avenues.length; i++) {
-      let avenueData = avenues[i];
-      const translations = avenueData.AvenueTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = avenueData.AvenueNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew || []);
-      const translationsOld = avenueData.AvenueOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld || []);
-
-      delete avenueData.AvenueTranslations;
-      delete avenueData.AvenueNewNameTranslations;
-      delete avenueData.AvenueOldNameTranslations;
-
-      const regionTranslations = avenueData.region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
-      delete avenueData.region.RegionTranslations;
-      const region = { ...avenueData.region, name: regionName };
-      delete avenueData.region;
-
-      const cityTranslations = avenueData.city.CityTranslations;
-      const cityName = formatLanguageResponse(cityTranslations);
-      delete avenueData.city.CityTranslations;
-      const city = { ...avenueData.city, name: cityName };
-      delete avenueData.city;
-      if (avenueData?.district) {
-        const districtData = avenueData?.district;
-        let districtName: string | object;
-        let districtNameNew: string | object;
-        let districtNameOld: string | object;
-
-        if (districtData) {
-          const districtTranslations = districtData.DistrictTranslations;
-          districtName = formatLanguageResponse(districtTranslations);
-          const districtTranslationsNew =
-            districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(
-            districtTranslationsNew || []
-          );
-          const districtTranslationsOld =
-            districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(
-            districtTranslationsOld || []
-          );
-          delete districtData.DistrictTranslations;
-          delete districtData.DistrictNewNameTranslations;
-          delete districtData.DistrictOldNameTranslations;
-        }
-
-        const district = {
-          ...avenueData.district,
-          name: districtName,
-          districtNameNew,
-          districtNameOld,
-        };
-
-        avenueData = {
-          ...avenueData,
-          district,
-        };
-      }
-      formattedAvenue.push({
-        ...avenueData,
-        name,
-        newName: nameNew,
-        oldName: nameOld,
-        region,
-        city,
-      });
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, formattedAvenue);
+    this.logger.debug(`Method: ${methodName} - Response: `, avenues);
 
     return {
-      data: formattedAvenue,
+      data: avenues,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
