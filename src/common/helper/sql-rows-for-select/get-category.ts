@@ -126,17 +126,7 @@ export async function getCategoryData(
         LEFT JOIN DistrictNewNameTranslations dnnt ON dnnt.district_id = district.id
         LEFT JOIN DistrictOldNameTranslations dont ON dont.district_id = district.id
         ${whereClause}
-        ORDER BY
-        ${
-          data.order === 'orderNumber'
-            ? Prisma.sql`
-            c.order_number ASC NULLS LAST,
-            (SELECT name ->> ${data.langCode} FROM CategoryTranslations WHERE category_id = c.id) ASC
-          `
-            : Prisma.sql`
-            (SELECT name ->> ${data.langCode} FROM CategoryTranslations WHERE  category_id = c.id) ASC
-          `
-        }
+       
         ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}
     `
     );
