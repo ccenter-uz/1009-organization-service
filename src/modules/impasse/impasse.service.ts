@@ -145,78 +145,10 @@ export class ImpasseService {
         data
       );
 
-      const formattedImpasse = [];
-
-      for (let i = 0; i < impasses.length; i++) {
-        let impasseData = impasses[i];
-        const translations = impasseData.ImpasseTranslations;
-        const name = formatLanguageResponse(translations);
-        const translationsNew = impasseData.ImpasseNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew || []);
-        const translationsOld = impasseData.ImpasseOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld || []);
-        delete impasseData.ImpasseTranslations;
-        delete impasseData.ImpasseNewNameTranslations;
-        delete impasseData.ImpasseOldNameTranslations;
-
-        const regionTranslations = impasseData.region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
-        delete impasseData.region.RegionTranslations;
-        const region = { ...impasseData.region, name: regionName };
-        delete impasseData.region;
-
-        const cityTranslations = impasseData.city.CityTranslations;
-        const cityName = formatLanguageResponse(cityTranslations);
-        delete impasseData.city.CityTranslations;
-        const city = { ...impasseData.city, name: cityName };
-        delete impasseData.city;
-
-        if (impasseData?.district) {
-          const districtData = impasseData?.district;
-          let districtName: string | object;
-          let districtNameNew: string | object;
-          let districtNameOld: string | object;
-
-          if (districtData) {
-            const districtTranslations = districtData.DistrictTranslations;
-            districtName = formatLanguageResponse(districtTranslations);
-            const districtTranslationsNew =
-              districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(
-              districtTranslationsNew || []
-            );
-            const districtTranslationsOld =
-              districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(
-              districtTranslationsOld || []
-            );
-            delete districtData.DistrictTranslations;
-            delete districtData.DistrictNewNameTranslations;
-            delete districtData.DistrictOldNameTranslations;
-          }
-
-          const district = {
-            ...impasseData.district,
-            name: districtName,
-            districtNameNew,
-            districtNameOld,
-          };
-          impasseData = { ...impasseData, district };
-        }
-        this.logger.debug(`Method: ${methodName} -  Response: `, impasseData);
-
-        formattedImpasse.push({
-          ...impasseData,
-          name,
-          newName: nameNew,
-          oldName: nameOld,
-          region,
-          city,
-        });
-      }
+      this.logger.debug(`Method: ${methodName} -  Response: `, impasses);
 
       return {
-        data: formattedImpasse,
+        data: impasses,
         totalDocs: impasses.length,
         totalPage: impasses.length > 0 ? 1 : 0,
       };
@@ -283,78 +215,11 @@ export class ImpasseService {
       data,
       pagination
     );
-    const formattedImpasse = [];
 
-    for (let i = 0; i < impasses.length; i++) {
-      let impasseData = impasses[i];
-      const translations = impasseData.ImpasseTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = impasseData.ImpasseNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew || []);
-      const translationsOld = impasseData.ImpasseOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld || []);
-
-      delete impasseData.ImpasseTranslations;
-      delete impasseData.ImpasseNewNameTranslations;
-      delete impasseData.ImpasseOldNameTranslations;
-
-      const regionTranslations = impasseData.region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
-      delete impasseData.region.RegionTranslations;
-      const region = { ...impasseData.region, name: regionName };
-      delete impasseData.region;
-
-      const cityTranslations = impasseData.city.CityTranslations;
-      const cityName = formatLanguageResponse(cityTranslations);
-      delete impasseData.city.CityTranslations;
-      const city = { ...impasseData.city, name: cityName };
-      delete impasseData.city;
-      if (impasseData?.district) {
-        const districtData = impasseData?.district;
-        let districtName: string | object;
-        let districtNameNew: string | object;
-        let districtNameOld: string | object;
-
-        if (districtData) {
-          const districtTranslations = districtData.DistrictTranslations;
-          districtName = formatLanguageResponse(districtTranslations);
-          const districtTranslationsNew =
-            districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(
-            districtTranslationsNew || []
-          );
-          const districtTranslationsOld =
-            districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(
-            districtTranslationsOld || []
-          );
-          delete districtData.DistrictTranslations;
-          delete districtData.DistrictNewNameTranslations;
-          delete districtData.DistrictOldNameTranslations;
-        }
-
-        const district = {
-          ...impasseData.district,
-          name: districtName,
-          districtNameNew,
-          districtNameOld,
-        };
-        impasseData = { ...impasseData, district };
-      }
-
-      formattedImpasse.push({
-        ...impasseData,
-        name,
-        newName: nameNew,
-        oldName: nameOld,
-        region,
-        city,
-      });
-    }
-    this.logger.debug(`Method: ${methodName} -  Response: `, formattedImpasse);
+    this.logger.debug(`Method: ${methodName} -  Response: `, impasses);
 
     return {
-      data: formattedImpasse,
+      data: impasses,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };

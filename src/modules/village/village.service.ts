@@ -152,76 +152,10 @@ export class VillageService {
         data
       );
 
-      const formattedVillage = [];
-
-      for (let i = 0; i < villages.length; i++) {
-        let villageData = villages[i];
-        const translations = villageData.VillageTranslations;
-        const name = formatLanguageResponse(translations);
-        const translationsNew = villageData.VillageNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew || []);
-        const translationsOld = villageData.VillageOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld || []);
-        delete villageData.VillageTranslations;
-        delete villageData.VillageNewNameTranslations;
-        delete villageData.VillageOldNameTranslations;
-
-        const regionTranslations = villageData.region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
-        delete villageData.region.RegionTranslations;
-        const region = { ...villageData.region, name: regionName };
-        delete villageData.region;
-
-        const cityTranslations = villageData.city.CityTranslations;
-        const cityName = formatLanguageResponse(cityTranslations);
-        delete villageData.city.CityTranslations;
-        const city = { ...villageData.city, name: cityName };
-        delete villageData.city;
-        if (villageData?.district) {
-          const districtData = villageData?.district;
-          let districtName: string | object;
-          let districtNameNew: string | object;
-          let districtNameOld: string | object;
-
-          if (districtData) {
-            const districtTranslations = districtData.DistrictTranslations;
-            districtName = formatLanguageResponse(districtTranslations);
-            const districtTranslationsNew =
-              districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(
-              districtTranslationsNew || []
-            );
-            const districtTranslationsOld =
-              districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(
-              districtTranslationsOld || []
-            );
-            delete districtData.DistrictTranslations;
-            delete districtData.DistrictNewNameTranslations;
-            delete districtData.DistrictOldNameTranslations;
-          }
-
-          const district = {
-            ...villageData.district,
-            name: districtName,
-            districtNameNew,
-            districtNameOld,
-          };
-          villageData = { ...villageData, district };
-        }
-        formattedVillage.push({
-          ...villageData,
-          name,
-          newName: nameNew,
-          oldName: nameOld,
-          region,
-          city,
-        });
-      }
-      this.logger.debug(`Method: ${methodName} - Response: `, formattedVillage);
+      this.logger.debug(`Method: ${methodName} - Response: `, villages);
 
       return {
-        data: formattedVillage,
+        data: villages,
         totalDocs: villages.length,
         totalPage: villages.length > 0 ? 1 : 0,
       };
@@ -290,77 +224,10 @@ export class VillageService {
       pagination
     );
 
-    const formattedVillage = [];
-
-    for (let i = 0; i < villages.length; i++) {
-      let villageData = villages[i];
-      const translations = villageData.VillageTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = villageData.VillageNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew || []);
-      const translationsOld = villageData.VillageOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld || []);
-
-      delete villageData.VillageTranslations;
-      delete villageData.VillageNewNameTranslations;
-      delete villageData.VillageOldNameTranslations;
-
-      const regionTranslations = villageData.region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
-      delete villageData.region.RegionTranslations;
-      const region = { ...villageData.region, name: regionName };
-      delete villageData.region;
-
-      const cityTranslations = villageData.city.CityTranslations;
-      const cityName = formatLanguageResponse(cityTranslations);
-      delete villageData.city.CityTranslations;
-      const city = { ...villageData.city, name: cityName };
-      delete villageData.city;
-      if (villageData?.district) {
-        const districtData = villageData?.district;
-        let districtName: string | object;
-        let districtNameNew: string | object;
-        let districtNameOld: string | object;
-
-        if (districtData) {
-          const districtTranslations = districtData.DistrictTranslations;
-          districtName = formatLanguageResponse(districtTranslations);
-          const districtTranslationsNew =
-            districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(
-            districtTranslationsNew || []
-          );
-          const districtTranslationsOld =
-            districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(
-            districtTranslationsOld || []
-          );
-          delete districtData.DistrictTranslations;
-          delete districtData.DistrictNewNameTranslations;
-          delete districtData.DistrictOldNameTranslations;
-        }
-
-        const district = {
-          ...villageData.district,
-          name: districtName,
-          districtNameNew,
-          districtNameOld,
-        };
-        villageData = { ...villageData, district };
-      }
-      formattedVillage.push({
-        ...villageData,
-        name,
-        newName: nameNew,
-        oldName: nameOld,
-        region,
-        city,
-      });
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, formattedVillage);
+    this.logger.debug(`Method: ${methodName} - Response: `, villages);
 
     return {
-      data: formattedVillage,
+      data: villages,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };

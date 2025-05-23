@@ -9,87 +9,81 @@ export async function getCityData(
   pagination?: { take: number; skip: number }
 ) {
   const conditions: Prisma.Sql[] = [];
-  if (data.status === 0 || data.status === 1)
+
+  if (data.status === 0 || data.status === 1) {
     conditions.push(Prisma.sql`c.status = ${data.status}`);
+  }
+
   if (data.search) {
     conditions.push(Prisma.sql`
-          EXISTS (
-            SELECT 1
-            FROM city_translations ct
-            WHERE ct.city_id = c.id
-              AND ct.name ILIKE ${`%${data.search}%`}
-            ORDER BY ct.language_code   
-            LIMIT 1
-          )
-        `);
+      EXISTS (
+        SELECT 1
+        FROM city_translations ct
+        WHERE ct.city_id = c.id
+          AND ct.name ILIKE ${`%${data.search}%`}
+        LIMIT 1
+      )
+    `);
   }
+
   if (data.regionId) {
     conditions.push(Prisma.sql`c.region_id = ${data.regionId}`);
   }
 
   const whereClause =
-    conditions && conditions.length > 0
+    conditions.length > 0
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
       : Prisma.empty;
 
-  const result: any = await prisma.$queryRaw(
-    Prisma.sql`
-          WITH
-              ${Prisma.raw(CapitalizaName)}Translations AS (
-                  SELECT
-                      ct.${Prisma.raw(`${name}_id`)},
-                      JSON_AGG(
-                          JSONB_BUILD_OBJECT(
-                              'languageCode', ct.language_code,
-                              'name', ct.name
-                          )
-                      )::JSONB AS Translations  
-                  FROM ${Prisma.raw(name + (name === 'phone_types' ? '_id_translations' : '_translations'))} ct
-                   GROUP BY ct.${Prisma.raw(`${name}_id`)}
-              ),
-              RegionTranslations AS (
-                  SELECT
-                      rt.region_id,
-                      JSON_AGG(
-                          JSONB_BUILD_OBJECT(
-                              'languageCode', rt.language_code,
-                              'name', rt.name
-                          )
-                      )::JSONB AS Translations  
-                  FROM region_translations rt
-                 GROUP BY rt.region_id
-              )
+  try {
+    const result: any = await prisma.$queryRaw(
+      Prisma.sql`
+      WITH
+        CityTranslations AS (
           SELECT
-              c.*,  
-              (SELECT Translations FROM ${Prisma.raw(CapitalizaName)}Translations WHERE ${Prisma.raw(`${name}_id`)} = c.id) AS "${Prisma.raw(CapitalizaName)}Translations",
-              JSONB_SET(
-                  COALESCE(ROW_TO_JSON(region)::JSONB, '{}'::JSONB),  
-                  '{RegionTranslations}', 
-                  COALESCE(
-                      (SELECT Translations FROM RegionTranslations WHERE region_id = region.id), 
-                      '[]'::JSONB
-                  )
-              ) AS "Region"
-          FROM
-              ${Prisma.raw(name)} c
-          LEFT JOIN region ON c.region_id = region.id
-          ${whereClause}
-          GROUP BY 
-              c.id, region.id
-          ORDER BY
-              (
-                  SELECT jsonb_extract_path_text(
-                      jsonb_path_query_first(
-                          Translations, 
-                          '$[*] ? (@.languageCode == $langCode)',
-                          jsonb_build_object('langCode', ${Prisma.raw(`'${data.langCode ? data.langCode : 'ru'}'`)})
-                      )::jsonb, 'name'
-                  )
-                  FROM ${Prisma.raw(CapitalizaName)}Translations
-                  WHERE ${Prisma.raw(`${name}_id`)} = c.id
-              ) ASC
-          ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}
-      `
-  );
-  return result;
+            ct.city_id,
+            jsonb_object_agg(ct.language_code, ct.name) AS name
+          FROM city_translations ct
+          GROUP BY ct.city_id
+        ),
+        RegionTranslations AS (
+          SELECT
+            rt.region_id,
+            jsonb_object_agg(rt.language_code, rt.name) AS name
+          FROM region_translations rt
+          GROUP BY rt.region_id
+        )
+      SELECT
+        c.*,
+
+        -- CityTranslations as multilingual JSON
+        ct.name AS name,
+
+        -- Region JSON obyekt
+        JSONB_BUILD_OBJECT(
+          'id', region.id,
+          'name', COALESCE(rt.name, '{}'::JSONB),
+          'status', region.status,
+          'createdAt', region.created_at,
+          'updatedAt', region.updated_at,
+          'deletedAt', region.deleted_at
+        ) AS region
+
+      FROM city c
+      LEFT JOIN region ON c.region_id = region.id
+      LEFT JOIN RegionTranslations rt ON rt.region_id = region.id
+      LEFT JOIN CityTranslations ct ON ct.city_id = c.id
+
+      ${whereClause}
+      ORDER BY
+        ct.name ->> ${data.langCode} ASC
+      ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}
+    `
+    );
+
+    return result;
+  } catch (error) {
+    console.error('Query error:', error);
+    return [];
+  }
 }

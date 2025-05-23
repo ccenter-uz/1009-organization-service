@@ -154,80 +154,10 @@ export class NeighborhoodService {
         data
       );
 
-      const formattedNeighborhood = [];
-
-      for (let i = 0; i < neighborhoods.length; i++) {
-        let neighborhoodData = neighborhoods[i];
-        const translations = neighborhoodData.NeighborhoodTranslations;
-        const name = formatLanguageResponse(translations);
-        const translationsNew =
-          neighborhoodData.NeighborhoodNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew);
-        const translationsOld =
-          neighborhoodData.NeighborhoodOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld);
-        delete neighborhoodData.NeighborhoodTranslations;
-        delete neighborhoodData.NeighborhoodNewNameTranslations;
-        delete neighborhoodData.NeighborhoodOldNameTranslations;
-
-        const regionTranslations = neighborhoodData.region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
-        delete neighborhoodData.region.RegionTranslations;
-        const region = { ...neighborhoodData.region, name: regionName };
-        delete neighborhoodData.region;
-
-        const cityTranslations = neighborhoodData.city.CityTranslations;
-        const cityName = formatLanguageResponse(cityTranslations);
-        delete neighborhoodData.city.CityTranslations;
-        const city = { ...neighborhoodData.city, name: cityName };
-        delete neighborhoodData.city;
-        if (neighborhoodData?.district) {
-          const districtData = neighborhoodData?.district;
-          let districtName: string | object;
-          let districtNameNew: string | object;
-          let districtNameOld: string | object;
-
-          if (districtData) {
-            const districtTranslations = districtData.DistrictTranslations;
-            districtName = formatLanguageResponse(districtTranslations);
-            const districtTranslationsNew =
-              districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(districtTranslationsNew);
-            const districtTranslationsOld =
-              districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(districtTranslationsOld);
-            delete districtData.DistrictTranslations;
-            delete districtData.DistrictNewNameTranslations;
-            delete districtData.DistrictOldNameTranslations;
-          }
-
-          const district = {
-            ...districtData,
-            name: districtName,
-            newName: districtNameNew,
-            oldName: districtNameOld,
-          };
-          neighborhoodData = {
-            ...neighborhoodData,
-            district,
-          };
-        }
-        formattedNeighborhood.push({
-          ...neighborhoodData,
-          name,
-          newName: nameNew,
-          oldName: nameOld,
-          region,
-          city,
-        });
-      }
-      this.logger.debug(
-        `Method: ${methodName} - Response: `,
-        formattedNeighborhood
-      );
+      this.logger.debug(`Method: ${methodName} - Response: `, neighborhoods);
 
       return {
-        data: formattedNeighborhood,
+        data: neighborhoods,
         totalDocs: neighborhoods.length,
         totalPage: neighborhoods.length > 0 ? 1 : 0,
       };
@@ -293,78 +223,10 @@ export class NeighborhoodService {
       data,
       pagination
     );
-    const formattedNeighborhood = [];
 
-    for (let i = 0; i < neighborhoods.length; i++) {
-      let neighborhoodData = neighborhoods[i];
-      const translations = neighborhoodData.NeighborhoodTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = neighborhoodData.NeighborhoodNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = neighborhoodData.NeighborhoodOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-
-      delete neighborhoodData.NeighborhoodTranslations;
-      delete neighborhoodData.NeighborhoodNewNameTranslations;
-      delete neighborhoodData.NeighborhoodOldNameTranslations;
-
-      const regionTranslations = neighborhoodData.region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
-      delete neighborhoodData.region.RegionTranslations;
-      const region = { ...neighborhoodData.region, name: regionName };
-      delete neighborhoodData.region;
-
-      const cityTranslations = neighborhoodData.city.CityTranslations;
-      const cityName = formatLanguageResponse(cityTranslations);
-      delete neighborhoodData.city.CityTranslations;
-      const city = { ...neighborhoodData.city, name: cityName };
-      delete neighborhoodData.city;
-      if (neighborhoodData?.district) {
-        const districtData = neighborhoodData?.district;
-        let districtName: string | object;
-        let districtNameNew: string | object;
-        let districtNameOld: string | object;
-
-        if (districtData) {
-          const districtTranslations = districtData.DistrictTranslations;
-          districtName = formatLanguageResponse(districtTranslations);
-          const districtTranslationsNew =
-            districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(districtTranslationsNew);
-          const districtTranslationsOld =
-            districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(districtTranslationsOld);
-          delete districtData.DistrictTranslations;
-          delete districtData.DistrictNewNameTranslations;
-          delete districtData.DistrictOldNameTranslations;
-        }
-
-        const district = {
-          ...districtData,
-          name: districtName,
-          newName: districtNameNew,
-          oldName: districtNameOld,
-        };
-        neighborhoodData = {
-          ...neighborhoodData,
-          district,
-        };
-      }
-      formattedNeighborhood.push({
-        ...neighborhoodData,
-        name,
-        newName: nameNew,
-        oldName: nameOld,
-        region,
-        city,
-      });
-    }
-    this.logger.debug(
-      `Method: ${methodName} - Response: `,
-      formattedNeighborhood
-    );
+    this.logger.debug(`Method: ${methodName} - Response: `, neighborhoods);
     return {
-      data: formattedNeighborhood,
+      data: neighborhoods,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };

@@ -146,77 +146,10 @@ export class PassageService {
         data
       );
 
-      const formattedPassage = [];
-
-      for (let i = 0; i < passages.length; i++) {
-        let passageData = passages[i];
-        const translations = passageData.PassageTranslations;
-        const name = formatLanguageResponse(translations);
-        const translationsNew = passageData.PassageNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew || []);
-        const translationsOld = passageData.PassageOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld || []);
-        delete passageData.PassageTranslations;
-        delete passageData.PassageNewNameTranslations;
-        delete passageData.PassageOldNameTranslations;
-
-        const regionTranslations = passageData.region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
-        delete passageData.region.RegionTranslations;
-        const region = { ...passageData.region, name: regionName };
-        delete passageData.region;
-
-        const cityTranslations = passageData.city.CityTranslations;
-        const cityName = formatLanguageResponse(cityTranslations);
-        delete passageData.city.CityTranslations;
-        const city = { ...passageData.city, name: cityName };
-        delete passageData.city;
-        if (passageData?.district) {
-          const districtData = passageData?.district;
-          let districtName: string | object;
-          let districtNameNew: string | object;
-          let districtNameOld: string | object;
-
-          if (districtData) {
-            const districtTranslations = districtData.DistrictTranslations;
-            districtName = formatLanguageResponse(districtTranslations);
-            const districtTranslationsNew =
-              districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(
-              districtTranslationsNew || []
-            );
-            const districtTranslationsOld =
-              districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(
-              districtTranslationsOld || []
-            );
-            delete districtData.DistrictTranslations;
-            delete districtData.DistrictNewNameTranslations;
-            delete districtData.DistrictOldNameTranslations;
-          }
-
-          const district = {
-            ...passageData.district,
-            name: districtName,
-            districtNameNew,
-            districtNameOld,
-          };
-          passageData = { ...passageData, district };
-        }
-
-        formattedPassage.push({
-          ...passageData,
-          name,
-          newName: nameNew,
-          oldName: nameOld,
-          region,
-          city,
-        });
-      }
-      this.logger.debug(`Method: ${methodName} - Response: `, formattedPassage);
+      this.logger.debug(`Method: ${methodName} - Response: `, passages);
 
       return {
-        data: formattedPassage,
+        data: passages,
         totalDocs: passages.length,
         totalPage: passages.length > 0 ? 1 : 0,
       };
@@ -284,77 +217,10 @@ export class PassageService {
       pagination
     );
 
-    const formattedPassage = [];
-
-    for (let i = 0; i < passages.length; i++) {
-      let passageData = passages[i];
-      const translations = passageData.PassageTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = passageData.PassageNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew || []);
-      const translationsOld = passageData.PassageOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld || []);
-
-      delete passageData.PassageTranslations;
-      delete passageData.PassageNewNameTranslations;
-      delete passageData.PassageOldNameTranslations;
-
-      const regionTranslations = passageData.region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
-      delete passageData.region.RegionTranslations;
-      const region = { ...passageData.region, name: regionName };
-      delete passageData.region;
-
-      const cityTranslations = passageData.city.CityTranslations;
-      const cityName = formatLanguageResponse(cityTranslations);
-      delete passageData.city.CityTranslations;
-      const city = { ...passageData.city, name: cityName };
-      delete passageData.city;
-      if (passageData?.district) {
-        const districtData = passageData?.district;
-        let districtName: string | object;
-        let districtNameNew: string | object;
-        let districtNameOld: string | object;
-
-        if (districtData) {
-          const districtTranslations = districtData.DistrictTranslations;
-          districtName = formatLanguageResponse(districtTranslations);
-          const districtTranslationsNew =
-            districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(
-            districtTranslationsNew || []
-          );
-          const districtTranslationsOld =
-            districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(
-            districtTranslationsOld || []
-          );
-          delete districtData.DistrictTranslations;
-          delete districtData.DistrictNewNameTranslations;
-          delete districtData.DistrictOldNameTranslations;
-        }
-
-        const district = {
-          ...passageData.district,
-          name: districtName,
-          districtNameNew,
-          districtNameOld,
-        };
-        passageData = { ...passageData, district };
-      }
-      formattedPassage.push({
-        ...passageData,
-        name,
-        newName: nameNew,
-        oldName: nameOld,
-        region,
-        city,
-      });
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, formattedPassage);
+    this.logger.debug(`Method: ${methodName} - Response: `, passages);
 
     return {
-      data: formattedPassage,
+      data: passages,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };

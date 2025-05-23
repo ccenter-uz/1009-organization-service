@@ -61,8 +61,6 @@ import { CacheService } from '../cache/cache.service';
 import { formatCacheKey } from '@/common/helper/format-cache-maneger';
 import { getOrg } from '@/common/helper/for-Org/get-org-data.dto';
 import { ObjectAdressFilterDto } from 'types/organization/organization/dto/filter-object-adress-organization.dto';
-import { formatLanguageResponse } from '@/common/helper/format-language.helper';
-import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 import { getOrgCount } from '@/common/helper/for-Org/get-org-data-count.dto';
 
 @Injectable()
