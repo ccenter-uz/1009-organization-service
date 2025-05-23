@@ -130,12 +130,12 @@ export async function getCategoryData(
         ${
           data.order === 'orderNumber'
             ? Prisma.sql`
-            c.order_number ASC NULLS LAST,
-            (SELECT name ->> ${data.langCode} FROM CategoryTranslations WHERE category_id = c.id) ASC
-          `
+                c.order_number ASC NULLS LAST,
+                ct.name ->> ${data.langCode} ASC
+              `
             : Prisma.sql`
-            (SELECT name ->> ${data.langCode} FROM CategoryTranslations WHERE  category_id = c.id) ASC
-          `
+                ct.name ->> ${data.langCode} ASC
+              `
         }
         ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}
     `
