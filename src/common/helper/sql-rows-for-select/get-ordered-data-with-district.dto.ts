@@ -159,10 +159,10 @@ END AS district
       data.order === 'orderNumber'
         ? Prisma.sql`
         c.order_number ASC NULLS LAST,
-        (SELECT name ->> ${data.langCode} FROM ${Prisma.raw(CapitalizaName)}Translations WHERE ${Prisma.raw(`${name}_id`)} = c.id) ASC
+        ct.name ->> ${data.langCode} ASC
       `
         : Prisma.sql`
-        (SELECT name ->> ${data.langCode} FROM ${Prisma.raw(CapitalizaName)}Translations WHERE ${Prisma.raw(`${name}_id`)} = c.id) ASC
+        ct.name ->> ${data.langCode} ASC
       `
     }
     ${limitOffset}
