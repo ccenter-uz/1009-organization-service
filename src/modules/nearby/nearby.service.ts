@@ -143,64 +143,10 @@ export class NearbyService {
         this.prisma,
         data
       );
-
-      const formattedNearby = [];
-
-      for (let i = 0; i < nearby.length; i++) {
-        let nearbyData = nearby[i];
-        const translations = nearbyData.NearbyTranslations;
-        const name = formatLanguageResponse(translations || []);
-        delete nearbyData.NearbyTranslations;
-
-        const regionTranslations = nearbyData.region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
-        delete nearbyData.region.RegionTranslations;
-        const region = { ...nearbyData.region, name: regionName };
-        delete nearbyData.region;
-
-        const cityTranslations = nearbyData.city.CityTranslations;
-        const cityName = formatLanguageResponse(cityTranslations);
-        delete nearbyData.city.CityTranslations;
-        const city = { ...nearbyData.city, name: cityName };
-        delete nearbyData.city;
-
-        nearbyData.category = nearbyData.nearbycategory;
-        delete nearbyData.nearbycategory;
-
-        if (nearbyData.district) {
-          const districtName = formatLanguageResponse(
-            nearbyData.district.DistrictTranslations
-          );
-          const districtNewName = formatLanguageResponse(
-            nearbyData.district.DistrictNewNameTranslations
-          );
-          const districtOldName = formatLanguageResponse(
-            nearbyData.district.DistrictOldNameTranslations
-          );
-
-          const district = {
-            ...nearbyData.district,
-            name: districtName,
-            newName: districtNewName,
-            oldName: districtOldName,
-          };
-          nearbyData = { ...nearbyData, district };
-          delete nearbyData.district.DistrictTranslations;
-          delete nearbyData.district.DistrictNewNameTranslations;
-          delete nearbyData.district.DistrictOldNameTranslations;
-        }
-
-        formattedNearby.push({
-          ...nearbyData,
-          name,
-          region,
-          city,
-        });
-      }
-      this.logger.debug(`Method: ${methodName} - Response: `, formattedNearby);
+      this.logger.debug(`Method: ${methodName} - Response: `, nearby);
 
       return {
-        data: formattedNearby,
+        data: nearby,
         totalDocs: nearby.length,
         totalPage: nearby.length > 0 ? 1 : 0,
       };
@@ -246,64 +192,12 @@ export class NearbyService {
       data,
       pagination
     );
+    console.log(nearby, 'nearby');
+    
 
-    const formattedNearby = [];
-
-    for (let i = 0; i < nearby.length; i++) {
-      let nearbyData = nearby[i];
-      const translations = nearbyData.NearbyTranslations;
-      const name = formatLanguageResponse(translations || []);
-
-      delete nearbyData.NearbyTranslations;
-
-      const regionTranslations = nearbyData.region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
-      delete nearbyData.region.RegionTranslations;
-      const region = { ...nearbyData.region, name: regionName };
-      delete nearbyData.region;
-
-      const cityTranslations = nearbyData.city.CityTranslations;
-      const cityName = formatLanguageResponse(cityTranslations);
-      delete nearbyData.city.CityTranslations;
-      const city = { ...nearbyData.city, name: cityName };
-      delete nearbyData.city;
-
-      nearbyData.category = nearbyData.nearbycategory;
-      delete nearbyData.nearbycategory;
-
-      if (nearbyData.district) {
-        const districtName = formatLanguageResponse(
-          nearbyData.district.DistrictTranslations
-        );
-        const districtNewName = formatLanguageResponse(
-          nearbyData.district.DistrictNewNameTranslations
-        );
-        const districtOldName = formatLanguageResponse(
-          nearbyData.district.DistrictOldNameTranslations
-        );
-
-        const district = {
-          ...nearbyData.district,
-          name: districtName,
-          newName: districtNewName,
-          oldName: districtOldName,
-        };
-        nearbyData = { ...nearbyData, district };
-        delete nearbyData.district.DistrictTranslations;
-        delete nearbyData.district.DistrictNewNameTranslations;
-        delete nearbyData.district.DistrictOldNameTranslations;
-      }
-
-      formattedNearby.push({
-        ...nearbyData,
-        name,
-        region,
-        city,
-      });
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, formattedNearby);
+    this.logger.debug(`Method: ${methodName} - Response: `, nearby);
     return {
-      data: formattedNearby,
+      data: nearby,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
