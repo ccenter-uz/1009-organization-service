@@ -128,33 +128,10 @@ export class AdditionalService {
     if (data.all) {
       const additionals = await getAllAdditional(this.prisma, data);
 
-      const formattedCategories = [];
-
-      for (let i = 0; i < additionals.length; i++) {
-        const additional = additionals[i];
-
-        const translations = additional.AdditionalTranslations;
-        const name = formatLanguageResponse(translations);
-        delete additional.AdditionalTranslations;
-
-        const translationsWarning = additional.AdditionalWarningTranslations;
-        const warning = formatLanguageResponse(translationsWarning);
-        delete additional.AdditionalWarningTranslations;
-
-        const translationsMention = additional.AdditionalMentionTranslations;
-        const mention = formatLanguageResponse(translationsMention);
-        delete additional.AdditionalMentionTranslations;
-
-        formattedCategories.push({ ...additional, name, warning, mention });
-      }
-
-      this.logger.debug(
-        `Method: ${methodName} -  Response: `,
-        formattedCategories
-      );
+      this.logger.debug(`Method: ${methodName} -  Response: `, additionals);
 
       return {
-        data: formattedCategories,
+        data: additionals,
         totalDocs: additionals.length,
         totalPage: additionals.length > 0 ? 1 : 0,
       };
@@ -188,54 +165,10 @@ export class AdditionalService {
 
     const additionals = await getAllAdditional(this.prisma, data, pagination);
 
-    const formattedCategories = [];
-
-    for (let i = 0; i < additionals.length; i++) {
-      const additional = additionals[i];
-
-      const translations = additional.AdditionalTranslations;
-      const name = formatLanguageResponse(translations);
-      delete additional.AdditionalTranslations;
-
-      const translationsWarning = additional.AdditionalWarningTranslations;
-      const warning = formatLanguageResponse(translationsWarning);
-      delete additional.AdditionalWarningTranslations;
-
-      const translationsMention = additional.AdditionalMentionTranslations;
-      const mention = formatLanguageResponse(translationsMention);
-      delete additional.AdditionalMentionTranslations;
-
-      if (data.langCode && !data.allLang) {
-        for (let z = 0; z < additional?.content?.length; z++) {
-          const element = additional.content[z];
-          if (element.name) {
-            element.name = element.name[data.langCode];
-          }
-          if (element.content) {
-            element.content = element.content[data.langCode];
-          }
-        }
-
-        for (let z = 0; z < additional?.table?.length; z++) {
-          const element = additional.table[z];
-          if (element.name) {
-            element.name = element.name[data.langCode];
-          }
-          if (element.content) {
-            element.content = element.content[data.langCode];
-          }
-        }
-      }
-
-      formattedCategories.push({ ...additional, name, warning, mention });
-    }
-    this.logger.debug(
-      `Method: ${methodName} - Response: `,
-      formattedCategories
-    );
+    this.logger.debug(`Method: ${methodName} - Response: `, additionals);
 
     return {
-      data: formattedCategories,
+      data: additionals,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
