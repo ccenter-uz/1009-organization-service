@@ -108,33 +108,11 @@ export class SubCategoryService {
         data,
         conditions
       );
-      const formattedSubCategories = [];
-
-      for (let i = 0; i < subCategories.length; i++) {
-        const subCategory = subCategories[i];
-        const translations = subCategory.SubCategoryTranslations;
-        const name = formatLanguageResponse(translations);
-
-        delete subCategory.SubCategoryTranslations;
-
-        const category: any = subCategories[i].Category;
-        const categoryTranslations = category.CategoryTranslations;
-        const categoryName = formatLanguageResponse(categoryTranslations);
-
-        category.name = categoryName;
-        delete category.CategoryTranslations;
-
-        delete subCategory.SubCategoryTranslations;
-
-        formattedSubCategories.push({ ...subCategory, name, category });
-      }
-      this.logger.debug(
-        `Method: ${methodName} - Response: `,
-        formattedSubCategories
-      );
+   
+      this.logger.debug(`Method: ${methodName} - Response: `, subCategories);
 
       return {
-        data: formattedSubCategories,
+        data: subCategories,
         totalDocs: subCategories.length,
         totalPage: subCategories.length > 0 ? 1 : 0,
       };
