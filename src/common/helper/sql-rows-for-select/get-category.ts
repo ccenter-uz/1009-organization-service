@@ -98,7 +98,9 @@ export async function getCategoryData(
         ) AS region,
 
         -- District object with translation
-        JSONB_BUILD_OBJECT(
+        CASE 
+  WHEN c.district_id IS NULL THEN NULL
+      ELSE  JSONB_BUILD_OBJECT(
         'id', district.id,
         'name', COALESCE(dt.name, '{}'::JSONB),
         'newName', COALESCE(dnnt.name, '{}'::JSONB),
@@ -113,7 +115,7 @@ export async function getCategoryData(
         'createdAt', district.created_at,
         -- 'updatedAt', district.upd ated_at,
         'deletedAt', district.deleted_at
-        ) AS district
+        ) END AS district
         FROM category c
         -- Joins
         LEFT JOIN CategoryTranslations ct ON ct.category_id = c.id
