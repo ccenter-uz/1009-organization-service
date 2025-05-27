@@ -93,25 +93,15 @@ export class AdditionalCategoryService {
         conditions
       );
 
-      const formattedCategories = [];
 
-      for (let i = 0; i < additionalCategories.length; i++) {
-        const additionalCategory = additionalCategories[i];
-        const translations = additionalCategory.AdditionalCategoryTranslations;
-        const name = formatLanguageResponse(translations);
-
-        delete additionalCategory.AdditionalCategoryTranslations;
-
-        formattedCategories.push({ ...additionalCategory, name });
-      }
 
       this.logger.debug(
         `Method: ${methodName} -  Response: `,
-        formattedCategories
+        additionalCategories
       );
 
       return {
-        data: formattedCategories,
+        data: additionalCategories,
         totalDocs: additionalCategories.length,
         totalPage: additionalCategories.length > 0 ? 1 : 0,
       };
@@ -152,24 +142,13 @@ export class AdditionalCategoryService {
       pagination
     );
 
-    const formattedCategories = [];
-
-    for (let i = 0; i < additionalCategories.length; i++) {
-      const additionalCategory = additionalCategories[i];
-      const translations = additionalCategory.AdditionalCategoryTranslations;
-      const name = formatLanguageResponse(translations);
-
-      delete additionalCategory.AdditionalCategoryTranslations;
-
-      formattedCategories.push({ ...additionalCategory, name });
-    }
     this.logger.debug(
       `Method: ${methodName} - Response: `,
-      formattedCategories
+      additionalCategories
     );
 
     return {
-      data: formattedCategories,
+      data: additionalCategories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
