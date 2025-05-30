@@ -21,7 +21,6 @@ import {
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
 import { Prisma } from '@prisma/client';
-import { getOrderedData } from '@/common/helper/sql-rows-for-select/get-ordered-data.dto';
 import { CacheService } from '../cache/cache.service';
 import { formatCacheKey } from '@/common/helper/format-cache-maneger';
 import { getCategoryData } from '@/common/helper/sql-rows-for-select/get-category';
