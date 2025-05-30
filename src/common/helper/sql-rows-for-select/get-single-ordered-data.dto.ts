@@ -24,20 +24,13 @@ export async function getSingleOrderedData(
           FROM ${Prisma.raw(name + '_translations')} ct
           GROUP BY ct.${Prisma.raw(`${name}_id`)}
         )
-
-
       SELECT
         c.*,
-
         -- Translated name
         ct.name AS name
-
-
       FROM ${Prisma.raw(name)} c
       LEFT JOIN ${Prisma.raw(CapitalizaName)}Translations ct ON ct.${Prisma.raw(`${name}_id`)} = c.id
-
       ${whereClause}
-
       ORDER BY
         ${
           data.order === 'orderNumber'
