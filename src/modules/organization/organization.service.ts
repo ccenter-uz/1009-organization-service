@@ -1,3 +1,4 @@
+import { PhoneType } from './../../../types/organization/organization-version/dto/create-phone-version.dto';
 import {
   Inject,
   Injectable,
@@ -1034,6 +1035,10 @@ export class OrganizationService {
           value: i.phone || null,
           requiredPlan: 'standard',
         };
+        i.PhoneTypes = {
+          value: i.PhoneTypes || null,
+          requiredPlan: 'standard',
+        }
       }
       await this.cacheService.set(
         'organizationOne',
