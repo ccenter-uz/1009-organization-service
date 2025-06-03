@@ -355,15 +355,15 @@ export class OrganizationService {
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
     const where: any = {};
-    const CacheKey = formatCacheKey(data);
-    const findOrganization = await this.cacheService.get(
-      'organization',
-      CacheKey
-    );
+    // const CacheKey = formatCacheKey(data);
+    // const findOrganization = await this.cacheService.get(
+    //   'organization',
+    //   CacheKey
+    // );
 
-    if (findOrganization) {
-      return findOrganization;
-    } else {
+    // if (findOrganization) {
+    //   return findOrganization;
+    // } else {
       if (data.all) {
         const organizations = await this.prisma.organization.findMany({
           where,
@@ -386,11 +386,11 @@ export class OrganizationService {
           result.push(formattedOrganization);
         }
         this.logger.debug(`Method: ${methodName} - Response: `, result);
-        await this.cacheService.setAll('organization', CacheKey, {
-          data: result,
-          totalDocs: organizations.length,
-          totalPage: organizations.length > 0 ? 1 : 0,
-        });
+        // await this.cacheService.setAll('organization', CacheKey, {
+        //   data: result,
+        //   totalDocs: organizations.length,
+        //   totalPage: organizations.length > 0 ? 1 : 0,
+        // });
 
         return {
           data: result,
@@ -413,17 +413,17 @@ export class OrganizationService {
       });
 
       this.logger.debug(`Method: ${methodName} - Response: `, organization);
-      await this.cacheService.setAll('organization', CacheKey, {
-        data: organization,
-        totalPage: pagination.totalPage,
-        totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
-      });
+      // await this.cacheService.setAll('organization', CacheKey, {
+      //   data: organization,
+      //   totalPage: pagination.totalPage,
+      //   totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
+      // });
       return {
         data: organization,
         totalPage: pagination.totalPage,
         totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
       };
-    }
+    // }
   }
 
   async findMy(
