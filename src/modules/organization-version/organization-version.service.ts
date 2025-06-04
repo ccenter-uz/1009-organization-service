@@ -87,7 +87,6 @@ export class OrganizationVersionService {
     }
     const createdPicturesVersion = [];
     let pictures = data.Picture;
-
     for (let i = 0; i < pictures?.length; i++) {
       createdPicturesVersion.push({
         link: pictures[i].link,
@@ -97,7 +96,6 @@ export class OrganizationVersionService {
     let nearbeesCreateVersionArray = [];
     let nearbees = data['Nearbees'];
     for (let i = 0; i < nearbees?.length; i++) {
-
       nearbeesCreateVersionArray.push({
         description: nearbees[i]?.description,
         NearbyId: nearbees[i].NearbyId,
@@ -517,20 +515,19 @@ export class OrganizationVersionService {
         },
       });
       for (let i = 0; i < phones?.length; i++) {
-
         PhoneCreateVersionArray.push({
           phone: phones[i].phone,
           PhoneTypeId: phones[i].phoneTypeId,
           isSecret: phones[i].isSecret,
         });
       }
-    } else if(phones.length == 0){
+    } else if (phones.length == 0) {
       await this.prisma.phoneVersion.deleteMany({
         where: {
-          OrganizationVersionId: organizationVersion.id ,
+          OrganizationVersionId: organizationVersion.id,
         },
       });
-      }
+    }
 
     let nearbeesCreateVersionArray = [];
     let nearbees = data?.nearby['nearbees'];
@@ -552,13 +549,13 @@ export class OrganizationVersionService {
           NearbyId: nearby.id,
         });
       }
-    } else if(nearbees.length == 0){
+    } else if (nearbees.length == 0) {
       await this.prisma.nearbeesVersion.deleteMany({
         where: {
           OrganizationVersionId: organizationVersion.id,
         },
       });
-      }
+    }
 
     let productServiceCreateArray = [];
     let productServices = data?.productService['productServices'];
@@ -618,7 +615,11 @@ export class OrganizationVersionService {
           OrganizationVersionId: organizationVersion.id,
         },
       });
-      PhotoLinkCreateVersionArray.push(...PhotoLinks);
+      for (let e of PhotoLinks) {
+        if (e.link) {
+          PhotoLinkCreateVersionArray.push({ link: e.link });
+        }
+      }
     } else if (PhotoLinks.length == 0) {
       await this.prisma.pictureVersion.deleteMany({
         where: {
@@ -626,6 +627,7 @@ export class OrganizationVersionService {
         },
       });
     }
+
     let status =
       data.role == CreatedByEnum.Moderator
         ? OrganizationStatusEnum.Accepted
