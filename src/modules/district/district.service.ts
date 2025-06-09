@@ -151,77 +151,38 @@ export class DistrictService {
         this.prisma,
         data
       );
-      
 
-      const formattedDistrict = [];
-
-      for (let i = 0; i < district.length; i++) {
-        const districtData = district[i];
-        const translations = districtData.DistrictTranslations;
-        const name = formatLanguageResponse(translations);
-        const translationsNew = districtData.DistrictNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew);
-        const translationsOld = districtData.DistrictOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld);
-        delete districtData.DistrictTranslations;
-        delete districtData.DistrictNewNameTranslations;
-        delete districtData.DistrictOldNameTranslations;
-
-        const regionTranslations = districtData.Region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
-        delete districtData.Region.RegionTranslations;
-        const region = { ...districtData.Region, name: regionName };
-        delete districtData.Region;
-
-        const cityTranslations = districtData.City.CityTranslations;
-        const cityName = formatLanguageResponse(cityTranslations);
-        delete districtData.City.CityTranslations;
-        const city = { ...districtData.City, name: cityName };
-        delete districtData.City;
-
-        formattedDistrict.push({
-          ...districtData,
-          name,
-          newName: nameNew,
-          oldName: nameOld,
-          region,
-          city,
-        });
-      }
-      this.logger.debug(
-        `Method: ${methodName} -  Response: `,
-        formattedDistrict
-      );
+      this.logger.debug(`Method: ${methodName} -  Response: `, district);
 
       return {
-        data: formattedDistrict,
+        data: district,
         totalDocs: district.length,
         totalPage: district.length > 0 ? 1 : 0,
       };
     }
-    
+
     const where: any = {
       ...(data.status == 2
         ? {}
         : {
-          status: data.status,
-        }),
-        regionId: data.regionId,
-        cityId: data.cityId,
-      };
-      if (data.search) {
-        where.OR = [
-          {
-            DistrictTranslations: {
-              some: {
-                name: {
-                  contains: data.search,
-                  mode: 'insensitive',
-                },
+            status: data.status,
+          }),
+      regionId: data.regionId,
+      cityId: data.cityId,
+    };
+    if (data.search) {
+      where.OR = [
+        {
+          DistrictTranslations: {
+            some: {
+              name: {
+                contains: data.search,
+                mode: 'insensitive',
               },
             },
           },
-          {
+        },
+        {
           DistrictNewNameTranslations: {
             some: {
               name: {
@@ -246,13 +207,13 @@ export class DistrictService {
     const count = await this.prisma.district.count({
       where,
     });
-    
+
     const pagination = createPagination({
       count,
       page: data.page,
       perPage: data.limit,
     });
-    
+
     console.log('data in district', data);
     const district = await getDistrictData(
       'District',
@@ -262,48 +223,11 @@ export class DistrictService {
       pagination
     );
     console.log(district, 'district');
-    
 
-    const formattedDistrict = [];
-
-    for (let i = 0; i < district.length; i++) {
-      const districtData = district[i];
-      const translations = districtData.DistrictTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = districtData.DistrictNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = districtData.DistrictOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-
-      delete districtData.DistrictTranslations;
-      delete districtData.DistrictNewNameTranslations;
-      delete districtData.DistrictOldNameTranslations;
-
-      const regionTranslations = districtData.Region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
-      delete districtData.Region.RegionTranslations;
-      const region = { ...districtData.Region, name: regionName };
-      delete districtData.Region;
-
-      const cityTranslations = districtData.City.CityTranslations;
-      const cityName = formatLanguageResponse(cityTranslations);
-      delete districtData.City.CityTranslations;
-      const city = { ...districtData.City, name: cityName };
-      delete districtData.City;
-
-      formattedDistrict.push({
-        ...districtData,
-        name,
-        newName: nameNew,
-        oldName: nameOld,
-        region,
-        city,
-      });
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, formattedDistrict);
+    this.logger.debug(`Method: ${methodName} - Response: `, district);
 
     return {
-      data: formattedDistrict,
+      data: district,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };

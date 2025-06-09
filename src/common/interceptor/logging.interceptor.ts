@@ -14,6 +14,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
   async saveLog(data: any) {
     console.log('Saving Log:', data);
+<<<<<<< HEAD
 
     console.log(data, 'DATA TO INSERT');
 
@@ -35,6 +36,28 @@ export class LoggingInterceptor implements NestInterceptor {
         duration: data.duration,
       },
     });
+=======
+    if (data.method != 'GET') {
+      await this.prisma.apiLogs.create({
+        data: {
+          userId: data.userId || null,
+          userNumericId: data.numericId || null,
+          userFullName: data.fullName || null,
+          userRole: data.role || null,
+          referenceId: data.referenceId || null,
+          organizationId: data.organizationId || null,
+          organizationName: data.organizationName || null,
+          method: data.method,
+          module: data.path?.split('/')[1],
+          path: data.path,
+          request: JSON.stringify(data.request, null, 2),
+          response: JSON.stringify(data.response, null, 2),
+          status: data.status,
+          duration: data.duration,
+        },
+      });
+    }
+>>>>>>> 044cf67fb1cdbc24dfa5262be216c1c28043b7b6
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
@@ -79,7 +102,12 @@ export class LoggingInterceptor implements NestInterceptor {
           if (response?.name) logDataComplete.organizationName = response?.name;
         }
 
+<<<<<<< HEAD
         //  if (response?.id) logDataComplete.referenceId = response?.id;
+=======
+        if (response?.id) logDataComplete.referenceId = response?.id;
+        if (response?.status) logDataComplete.status = response?.status;
+>>>>>>> 044cf67fb1cdbc24dfa5262be216c1c28043b7b6
         // if (typeof response?.name !== 'object') {
         //   this.saveLog(logDataComplete).catch((error) => {
         //     console.error('Error saving log:', error);

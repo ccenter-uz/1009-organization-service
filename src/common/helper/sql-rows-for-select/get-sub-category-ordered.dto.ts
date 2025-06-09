@@ -12,84 +12,73 @@ export async function getSubCategoryOrderedData(
   pagination?: { take: number; skip: number }
 ) {
   const whereClause =
-    conditions.length > 0
+    conditions && conditions.length > 0
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
       : Prisma.empty;
 
   const result: any = await prisma.$queryRaw(
     Prisma.sql`
-        WITH
-            ${Prisma.raw(CapitalizeName)}Translations AS (
-                SELECT
-                    ct.${Prisma.raw(`${name}_id`)},
-                    JSON_AGG(
-                        JSONB_BUILD_OBJECT(
-                            'languageCode', ct.language_code,
-                            'name', ct.name
-                        )
-                    )::JSONB AS Translations  
-                FROM ${Prisma.raw(name + '_translations')} ct
-                GROUP BY ct.${Prisma.raw(`${name}_id`)}
-            ),
-            ${Prisma.raw(CapitalizeCategoryName)}Translations AS (
-                SELECT
-                    dt.${Prisma.raw(categoryName)}_id,
-                    JSON_AGG(
-                        JSONB_BUILD_OBJECT(
-                            'languageCode', dt.language_code,
-                            'name', dt.name
-                        )
-                    )::JSONB AS Translations
-                FROM ${Prisma.raw(categoryName)}_translations dt
-                GROUP BY dt.${Prisma.raw(categoryName)}_id
-            )
-        SELECT
-            c.*,  
-            (SELECT Translations FROM ${Prisma.raw(CapitalizeName)}Translations WHERE ${Prisma.raw(`${name}_id`)} = c.id) AS "${Prisma.raw(CapitalizeName)}Translations", 
-            JSONB_SET(
-            ROW_TO_JSON(${Prisma.raw(categoryName)})::JSONB,  
-            ${Prisma.raw("'{" + CapitalizeCategoryName + "Translations}'")}, 
-            COALESCE(
-                (SELECT Translations FROM ${Prisma.raw(CapitalizeCategoryName)}Translations WHERE ${Prisma.raw(categoryName)}_id = ${Prisma.raw(categoryName)}.id), 
-                '[]'::JSONB
-            )
+      WITH
+        ${Prisma.raw(CapitalizeName)}Translations AS (
+          SELECT
+            ct.${Prisma.raw(`${name}_id`)},
+            jsonb_object_agg(ct.language_code, ct.name) AS name
+          FROM ${Prisma.raw(name + '_translations')} ct
+          GROUP BY ct.${Prisma.raw(`${name}_id`)}
+        ),
+        ${Prisma.raw(CapitalizeCategoryName)}Translations AS (
+          SELECT
+            ct.${Prisma.raw(`${categoryName}_id`)},
+            jsonb_object_agg(ct.language_code, ct.name) AS name
+          FROM ${Prisma.raw(categoryName + '_translations')} ct
+          GROUP BY ct.${Prisma.raw(`${categoryName}_id`)}
+        )
+
+      SELECT
+        c.*,
+
+        -- SubCategory name (multilingual)
+        t.name AS name,
+
+        -- Related Category with multilingual name
+        JSONB_BUILD_OBJECT(
+          'id', cat.id,
+          'name', COALESCE(ct.name, '{}'::JSONB),
+          'order_number', cat.order_number,
+          'region_id', cat.region_id,
+          'city_id', cat.city_id,
+          'district_id', cat.district_id,
+          'status', cat.status,
+          'staff_number', cat.staff_number,
+          'delete_reason', cat.delete_reason,
+          'edited_staff_number', cat.edited_staff_number,
+          'created_at', cat.created_at,
+          'updated_at', cat.updated_at,
+          'deleted_at', cat.deleted_at
         ) AS ${Prisma.sql`"${Prisma.raw(CapitalizeCategoryName)}"`}
-        FROM
-            ${Prisma.raw(name)} c
-        LEFT JOIN ${Prisma.raw(categoryName)} ON c.${Prisma.raw(categoryName)}_id = ${Prisma.raw(categoryName)}.id
-        ${whereClause}
-        GROUP BY 
-            c.id, ${Prisma.raw(categoryName)}.id
+
+      FROM ${Prisma.raw(name)} c
+      LEFT JOIN ${Prisma.raw(CapitalizeName)}Translations t ON t.${Prisma.raw(`${name}_id`)} = c.id
+      LEFT JOIN ${Prisma.raw(categoryName)} cat ON c.${Prisma.raw(`${categoryName}_id`)} = cat.id
+      LEFT JOIN ${Prisma.raw(CapitalizeCategoryName)}Translations ct ON ct.${Prisma.raw(`${categoryName}_id`)} = cat.id
+
+      ${whereClause}
+
+      ORDER BY
         ${
-          data.order === 'name'
-            ? Prisma.raw(`ORDER BY
-            (
-                SELECT jsonb_extract_path_text(
-                    jsonb_path_query_first(
-                        Translations, 
-                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
-                    )::jsonb, 'name'
-                )
-                FROM ${CapitalizeName}Translations
-                WHERE ${`${name}_id`} = c.id
-            ) ASC, c.order_number ASC`)
-            : Prisma.raw(`
-                ORDER BY 
-                c.order_number ASC, 
-                (
-                    SELECT jsonb_extract_path_text(
-                    jsonb_path_query_first(
-                        Translations, 
-                        '$[*] ? (@.languageCode == "${data.langCode ? data.langCode : 'ru'}")'
-                    )::jsonb, 'name'
-                    )
-                    FROM ${CapitalizeName}Translations
-                    WHERE ${name}_id = c.id
-                ) ASC
-            `)
+          data.order === 'orderNumber'
+            ? Prisma.sql`
+                c.order_number ASC NULLS LAST,
+                t.name ->> ${data.langCode} ASC
+              `
+            : Prisma.sql`
+                t.name ->> ${data.langCode} ASC
+              `
         }
-        ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}
+
+      ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}
     `
   );
+
   return result;
 }

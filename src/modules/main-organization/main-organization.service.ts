@@ -92,27 +92,10 @@ export class MainOrganizationService {
         conditions
       );
 
-      console.log(mainOrganization, 'mainOrganization');
-
-      const formattedCategories = [];
-
-      for (let i = 0; i < mainOrganization.length; i++) {
-        const mainOrg = mainOrganization[i];
-        const translations = mainOrg?.MainOrganizationTranslations;
-        const name = formatLanguageResponse(translations);
-
-        delete mainOrg.MainOrganizationTranslations;
-
-        formattedCategories.push({ ...mainOrg, name });
-      }
-
-      this.logger.debug(
-        `Method: ${methodName} - Response: `,
-        formattedCategories
-      );
+      this.logger.debug(`Method: ${methodName} - Response: `, mainOrganization);
 
       return {
-        data: formattedCategories,
+        data: mainOrganization,
         totalDocs: mainOrganization.length,
         totalPage: mainOrganization.length > 0 ? 1 : 0,
       };
@@ -150,24 +133,10 @@ export class MainOrganizationService {
       conditions,
       pagination
     );
-    const formattedCategories = [];
-    for (let i = 0; i < mainOrganization.length; i++) {
-      const mainOrg = mainOrganization[i];
-      const translations = mainOrg?.MainOrganizationTranslations;
-      const name = formatLanguageResponse(translations);
-      console.log(name, 'name', translations, 'translations');
 
-      delete mainOrg.MainOrganizationTranslations;
-
-      formattedCategories.push({ ...mainOrg, name });
-    }
-
-    this.logger.debug(
-      `Method: ${methodName} -  Response: `,
-      formattedCategories
-    );
+    this.logger.debug(`Method: ${methodName} -  Response: `, mainOrganization);
     return {
-      data: formattedCategories,
+      data: mainOrganization,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };

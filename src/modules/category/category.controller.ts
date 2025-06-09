@@ -9,6 +9,7 @@ import {
 } from 'types/organization/category';
 import { DeleteDto, GetOneDto } from 'types/global';
 import { CityRegionFilterDto } from 'types/global/dto/city-region-filter.dto';
+import { CategoryDeleteDto } from 'types/organization/category/dto/delete-category.dto';
 
 @Controller('category')
 export class CategoryController {
@@ -46,7 +47,9 @@ export class CategoryController {
 
   @Delete()
   @MessagePattern({ cmd: Commands.DELETE })
-  remove(@Payload() data: DeleteDto): Promise<CategoryInterfaces.Response> {
+  remove(
+    @Payload() data: CategoryDeleteDto
+  ): Promise<CategoryInterfaces.Response> {
     return this.categoryService.remove(data);
   }
 

@@ -14,6 +14,7 @@ import {
   ProductServiceSubCategoryUpdateDto,
 } from 'types/organization/product-service-sub-category';
 import { ProductServiceSubCategoryFilterDto } from 'types/organization/product-service-sub-category/dto/filter-product-service-sub-category.dto';
+import { ProductServiceSubCategoryDeleteDto } from 'types/organization/product-service-sub-category/dto/delete-product-service-sub-category.dto';
 
 @Controller('product-service-sub-category')
 export class ProductServiceSubCategoryController {
@@ -37,7 +38,6 @@ export class ProductServiceSubCategoryController {
     return this.subCategoryService.findAll(data);
   }
 
-
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })
   findOne(
@@ -57,7 +57,7 @@ export class ProductServiceSubCategoryController {
   @Delete()
   @MessagePattern({ cmd: Commands.DELETE })
   remove(
-    @Payload() data: DeleteDto
+    @Payload() data: ProductServiceSubCategoryDeleteDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
     return this.subCategoryService.remove(data);
   }

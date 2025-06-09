@@ -81,31 +81,10 @@ export class CityService {
     if (data.all) {
       const cities = await getCityData('City', 'city', this.prisma, data);
 
-      const formattedCity = [];
-
-      for (let i = 0; i < cities.length; i++) {
-        const formatedCity = cities[i];
-        const translations = formatedCity.CityTranslations;
-        const name = formatLanguageResponse(translations);
-
-        delete formatedCity.CityTranslations;
-
-        const regionTranslations = formatedCity.Region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
-
-        delete formatedCity.Region.RegionTranslations;
-
-        const region = { ...formatedCity.Region, name: regionName };
-
-        delete formatedCity.Region;
-
-        formattedCity.push({ ...formatedCity, name, region });
-      }
-
-      this.logger.debug(`Method: ${methodName} -  Response: `, formattedCity);
+      this.logger.debug(`Method: ${methodName} -  Response: `, cities);
 
       return {
-        data: formattedCity,
+        data: cities,
         totalDocs: cities.length,
         totalPage: cities.length > 0 ? 1 : 0,
       };
@@ -147,31 +126,10 @@ export class CityService {
       pagination
     );
 
-    const formattedCity = [];
-
-    for (let i = 0; i < city.length; i++) {
-      const formatedCity = city[i];
-      const translations = formatedCity.CityTranslations;
-      const name = formatLanguageResponse(translations);
-
-      delete formatedCity.CityTranslations;
-
-      const regionTranslations = formatedCity.Region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
-
-      delete formatedCity.Region.RegionTranslations;
-
-      const region = { ...formatedCity.Region, name: regionName };
-
-      delete formatedCity.Region;
-
-      formattedCity.push({ ...formatedCity, name, region });
-    }
-
-    this.logger.debug(`Method: ${methodName} - Response: `, formattedCity);
+    this.logger.debug(`Method: ${methodName} - Response: `, city);
 
     return {
-      data: formattedCity,
+      data: city,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };

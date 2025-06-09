@@ -1,5 +1,10 @@
-import { ProductServiceSubCategoryFilterDto } from './../../../types/organization/product-service-sub-category/dto/filter-product-service-sub-category.dto';
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DefaultStatus,
@@ -17,12 +22,16 @@ import {
 } from 'types/organization/product-service-sub-category';
 import { getSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/get-sub-category-ordered.dto';
 import { Prisma } from '@prisma/client';
+import { ProductServiceSubCategoryDeleteDto } from 'types/organization/product-service-sub-category/dto/delete-product-service-sub-category.dto';
+import { ProductServiceSubCategoryFilterDto } from './../../../types/organization/product-service-sub-category/dto/filter-product-service-sub-category.dto';
+import { getProductServiceSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/get-sub-category-product-service';
 @Injectable()
 export class ProductServiceSubCategoryService {
   private logger = new Logger(ProductServiceSubCategoryService.name);
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly ProductServiceCategoryService: ProductServiceCategoryService
+    @Inject(forwardRef(() => ProductServiceCategoryService))
+    private readonly ProductServiceCategoryService: ProductServiceCategoryService,
+    private readonly prisma: PrismaService
   ) {}
 
   async create(
@@ -64,7 +73,11 @@ export class ProductServiceSubCategoryService {
     });
 
     this.logger.debug(`Method: ${methodName} - Response: `, subCategory);
-
+    await this.prisma.$executeRawUnsafe(`
+        UPDATE product_service_sub_category_translations 
+        SET search_vector = to_tsvector('simple', name) 
+        WHERE product_service_sub_category_id = ${subCategory.id}
+      `);
     return subCategory;
   }
 
@@ -94,43 +107,24 @@ export class ProductServiceSubCategoryService {
       );
     }
     if (data.all) {
-      const ProductServiceSubCategories = await getSubCategoryOrderedData(
-        'ProductServiceSubCategory',
-        'product_service_sub_category',
-        'ProductServiceCategory',
-        'product_service_category',
-        this.prisma,
-        data,
-        conditions
-      );
+      const ProductServiceSubCategories =
+        await getProductServiceSubCategoryOrderedData(
+          'ProductServiceSubCategory',
+          'product_service_sub_category',
+          'ProductServiceCategory',
+          'product_service_category',
+          this.prisma,
+          data,
+          conditions
+        );
 
-      const formattedSubCategories = [];
-
-      for (let i = 0; i < ProductServiceSubCategories.length; i++) {
-        const subCategory = ProductServiceSubCategories[i];
-        const translations = subCategory.ProductServiceSubCategoryTranslations;
-        const name = formatLanguageResponse(translations);
-
-        const category = ProductServiceSubCategories[i].ProductServiceCategory;
-        const categoryTranslations =
-          category.ProductServiceCategoryTranslations;
-        const categoryName = formatLanguageResponse(categoryTranslations);
-        delete ProductServiceSubCategories[i].ProductServiceCategory
-          .ProductServiceCategoryTranslations;
-        delete subCategory.ProductServiceSubCategoryTranslations;
-        formattedSubCategories.push({
-          ...subCategory,
-          name,
-          ProductServiceCategory: { ...category, name: { ...categoryName } },
-        });
-      }
       this.logger.debug(
         `Method: ${methodName} - Response: `,
-        formattedSubCategories
+        ProductServiceSubCategories
       );
 
       return {
-        data: formattedSubCategories,
+        data: ProductServiceSubCategories,
         totalDocs: ProductServiceSubCategories.length,
         totalPage: ProductServiceSubCategories.length > 0 ? 1 : 0,
       };
@@ -164,43 +158,25 @@ export class ProductServiceSubCategoryService {
       perPage: data.limit,
     });
 
-    const ProductServiceSubCategories = await getSubCategoryOrderedData(
-      'ProductServiceSubCategory',
-      'product_service_sub_category',
-      'ProductServiceCategory',
-      'product_service_category',
-      this.prisma,
-      data,
-      conditions,
-      pagination
-    );
+    const ProductServiceSubCategories =
+      await getProductServiceSubCategoryOrderedData(
+        'ProductServiceSubCategory',
+        'product_service_sub_category',
+        'ProductServiceCategory',
+        'product_service_category',
+        this.prisma,
+        data,
+        conditions,
+        pagination
+      );
 
-    const formattedSubCategories = [];
-
-    for (let i = 0; i < ProductServiceSubCategories.length; i++) {
-      const subCategory = ProductServiceSubCategories[i];
-      const translations = subCategory.ProductServiceSubCategoryTranslations;
-      const name = formatLanguageResponse(translations);
-
-      const category = ProductServiceSubCategories[i].ProductServiceCategory;
-      const categoryTranslations = category.ProductServiceCategoryTranslations;
-      const categoryName = formatLanguageResponse(categoryTranslations);
-      delete ProductServiceSubCategories[i].ProductServiceCategory
-        .ProductServiceCategoryTranslations;
-      delete subCategory.ProductServiceSubCategoryTranslations;
-      formattedSubCategories.push({
-        ...subCategory,
-        name,
-        ProductServiceCategory: { ...category, name: { ...categoryName } },
-      });
-    }
     this.logger.debug(
       `Method: ${methodName} -  Response: `,
-      formattedSubCategories
+      ProductServiceSubCategories
     );
 
     return {
-      data: formattedSubCategories,
+      data: ProductServiceSubCategories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
@@ -316,9 +292,10 @@ export class ProductServiceSubCategoryService {
   }
 
   async remove(
-    data: DeleteDto
+    data: ProductServiceSubCategoryDeleteDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
     const methodName: string = this.remove.name;
+    console.log(data, 'data');
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
@@ -347,7 +324,10 @@ export class ProductServiceSubCategoryService {
     const updatedProductCategory =
       await this.prisma.productServiceSubCategory.update({
         where: { id: data.id, status: DefaultStatus.ACTIVE },
-        data: { status: DefaultStatus.INACTIVE },
+        data: {
+          status: DefaultStatus.INACTIVE,
+          deleteReason: data.deleteReason,
+        },
         include: {
           ProductServiceCategory: true,
           ProductServiceSubCategoryTranslations: {

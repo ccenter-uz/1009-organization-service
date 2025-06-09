@@ -139,6 +139,7 @@ export class StreetService {
   ): Promise<StreetInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     if (data.all) {
       const streets = await getOrderedDataWithDistrict(
         'Street',
@@ -147,76 +148,10 @@ export class StreetService {
         data
       );
 
-      const formattedStreet = [];
-
-      for (let i = 0; i < streets.length; i++) {
-        let streetData = streets[i];
-        const translations = streetData.StreetTranslations;
-        const name = formatLanguageResponse(translations);
-        const translationsNew = streetData.StreetNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew);
-        const translationsOld = streetData.StreetOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld);
-
-        delete streetData.StreetTranslations;
-        delete streetData.StreetNewNameTranslations;
-        delete streetData.StreetOldNameTranslations;
-
-        const regionTranslations = streetData.region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
-        delete streetData.region.RegionTranslations;
-        const region = { ...streetData.region, name: regionName };
-        delete streetData.region;
-
-        const cityTranslations = streetData.city.CityTranslations;
-        const cityName = formatLanguageResponse(cityTranslations);
-        delete streetData.city.CityTranslations;
-        const city = { ...streetData.city, name: cityName };
-        delete streetData.city;
-        if (streetData?.district) {
-          const districtData = streetData?.district;
-          let districtName: string | object;
-          let districtNameNew: string | object;
-          let districtNameOld: string | object;
-
-          if (districtData) {
-            const districtTranslations = districtData.DistrictTranslations;
-            districtName = formatLanguageResponse(districtTranslations);
-            const districtTranslationsNew =
-              districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(districtTranslationsNew);
-            const districtTranslationsOld =
-              districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(districtTranslationsOld);
-            delete districtData.DistrictTranslations;
-            delete districtData.DistrictNewNameTranslations;
-            delete districtData.DistrictOldNameTranslations;
-          }
-
-          const district = {
-            ...districtData,
-            name: districtName,
-            newName: districtNameNew,
-            oldName: districtNameOld,
-          };
-          streetData = {
-            ...streetData,
-            district,
-          };
-        }
-        formattedStreet.push({
-          ...streetData,
-          name,
-          newName: nameNew,
-          oldName: nameOld,
-          region,
-          city,
-        });
-      }
-      this.logger.debug(`Method: ${methodName} - Response: `, formattedStreet);
+      this.logger.debug(`Method: ${methodName} - Response: `, streets);
 
       return {
-        data: formattedStreet,
+        data: streets,
         totalDocs: streets.length,
         totalPage: streets.length > 0 ? 1 : 0,
       };
@@ -231,6 +166,7 @@ export class StreetService {
       regionId: data.regionId,
       districtId: data.districtId,
     };
+
     if (data.search) {
       where.OR = [
         {
@@ -265,6 +201,7 @@ export class StreetService {
         },
       ];
     }
+
     const count = await this.prisma.street.count({
       where,
     });
@@ -283,78 +220,10 @@ export class StreetService {
       pagination
     );
 
-    const formattedStreet = [];
-
-    for (let i = 0; i < streets.length; i++) {
-      let streetData = streets[i];
-      const translations = streetData.StreetTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = streetData.StreetNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = streetData.StreetOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-
-      delete streetData.StreetTranslations;
-      delete streetData.StreetNewNameTranslations;
-      delete streetData.StreetOldNameTranslations;
-
-      const regionTranslations = streetData.region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
-      delete streetData.region.RegionTranslations;
-      const region = { ...streetData.region, name: regionName };
-      delete streetData.region;
-
-      const cityTranslations = streetData.city.CityTranslations;
-      const cityName = formatLanguageResponse(cityTranslations);
-      delete streetData.city.CityTranslations;
-      const city = { ...streetData.city, name: cityName };
-      delete streetData.city;
-
-      if (streetData?.district) {
-        const districtData = streetData?.district;
-        let districtName: string | object;
-        let districtNameNew: string | object;
-        let districtNameOld: string | object;
-
-        if (districtData) {
-          const districtTranslations = districtData.DistrictTranslations;
-          districtName = formatLanguageResponse(districtTranslations);
-          const districtTranslationsNew =
-            districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(districtTranslationsNew);
-          const districtTranslationsOld =
-            districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(districtTranslationsOld);
-          delete districtData.DistrictTranslations;
-          delete districtData.DistrictNewNameTranslations;
-          delete districtData.DistrictOldNameTranslations;
-        }
-
-        const district = {
-          ...districtData,
-          name: districtName,
-          newName: districtNameNew,
-          oldName: districtNameOld,
-        };
-
-        streetData = {
-          ...streetData,
-          district,
-        };
-      }
-      formattedStreet.push({
-        ...streetData,
-        name,
-        newName: nameNew,
-        oldName: nameOld,
-        region,
-        city,
-      });
-    }
-    this.logger.debug(`Method: ${methodName} - Response: `, formattedStreet);
+    this.logger.debug(`Method: ${methodName} - Response: `, streets);
 
     return {
-      data: formattedStreet,
+      data: streets,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };

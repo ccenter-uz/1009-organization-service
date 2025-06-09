@@ -149,78 +149,9 @@ export class AreaService {
         data
       );
 
-      const formattedArea = [];
-
-      for (let i = 0; i < areas.length; i++) {
-        let areaData = areas[i];
-        const translations = areaData.AreaTranslations;
-        const name = formatLanguageResponse(translations);
-        const translationsNew = areaData.AreaNewNameTranslations;
-        const nameNew = formatLanguageResponse(translationsNew);
-        const translationsOld = areaData.AreaOldNameTranslations;
-        const nameOld = formatLanguageResponse(translationsOld);
-        delete areaData.AreaTranslations;
-        delete areaData.AreaNewNameTranslations;
-        delete areaData.AreaOldNameTranslations;
-
-        const regionTranslations = areaData.region.RegionTranslations;
-        const regionName = formatLanguageResponse(regionTranslations);
-        delete areaData.region.RegionTranslations;
-        const region = { ...areaData.region, name: regionName };
-        delete areaData.region;
-
-        const cityTranslations = areaData.city.CityTranslations;
-        const cityName = formatLanguageResponse(cityTranslations);
-        delete areaData.city.CityTranslations;
-        const city = { ...areaData.city, name: cityName };
-        delete areaData.city;
-
-        if (areaData?.district) {
-          const districtData = areaData?.district;
-          let districtName: string | object;
-          let districtNameNew: string | object;
-          let districtNameOld: string | object;
-
-          if (districtData) {
-            const districtTranslations = districtData.DistrictTranslations;
-            districtName = formatLanguageResponse(districtTranslations);
-            const districtTranslationsNew =
-              districtData.DistrictNewNameTranslations;
-            districtNameNew = formatLanguageResponse(districtTranslationsNew);
-            const districtTranslationsOld =
-              districtData.DistrictOldNameTranslations;
-            districtNameOld = formatLanguageResponse(districtTranslationsOld);
-            delete districtData.DistrictTranslations;
-            delete districtData.DistrictNewNameTranslations;
-            delete districtData.DistrictOldNameTranslations;
-          }
-
-          const district = {
-            ...districtData,
-            name: districtName,
-            newName: districtNameNew,
-            oldName: districtNameOld,
-          };
-
-          areaData = {
-            ...areaData,
-            district,
-          };
-        }
-
-        formattedArea.push({
-          ...areaData,
-          name,
-          newName: nameNew,
-          oldName: nameOld,
-          region,
-          city,
-        });
-      }
-
-      this.logger.debug(`Method: ${methodName} -  Response: `, formattedArea);
+      this.logger.debug(`Method: ${methodName} -  Response: `, areas);
       return {
-        data: formattedArea,
+        data: areas,
         totalDocs: areas.length,
         totalPage: areas.length > 0 ? 1 : 0,
       };
@@ -288,80 +219,11 @@ export class AreaService {
       pagination
     );
 
-    const formattedArea = [];
 
-    for (let i = 0; i < areas.length; i++) {
-      let areaData = areas[i];
-      const translations = areaData.AreaTranslations;
-      const name = formatLanguageResponse(translations);
-      const translationsNew = areaData.AreaNewNameTranslations;
-      const nameNew = formatLanguageResponse(translationsNew);
-      const translationsOld = areaData.AreaOldNameTranslations;
-      const nameOld = formatLanguageResponse(translationsOld);
-
-      delete areaData.AreaTranslations;
-      delete areaData.AreaNewNameTranslations;
-      delete areaData.AreaOldNameTranslations;
-
-      const regionTranslations = areaData.region.RegionTranslations;
-      const regionName = formatLanguageResponse(regionTranslations);
-      delete areaData.region.RegionTranslations;
-      const region = { ...areaData.region, name: regionName };
-      delete areaData.region;
-
-      const cityTranslations = areaData.city.CityTranslations;
-      const cityName = formatLanguageResponse(cityTranslations);
-      delete areaData.city.CityTranslations;
-      const city = { ...areaData.city, name: cityName };
-      delete areaData.city;
-
-      if (areaData?.district) {
-        const districtData = areaData?.district;
-        let districtName: string | object;
-        let districtNameNew: string | object;
-        let districtNameOld: string | object;
-
-        if (districtData) {
-          const districtTranslations = districtData.DistrictTranslations;
-          districtName = formatLanguageResponse(districtTranslations);
-          const districtTranslationsNew =
-            districtData.DistrictNewNameTranslations;
-          districtNameNew = formatLanguageResponse(districtTranslationsNew);
-          const districtTranslationsOld =
-            districtData.DistrictOldNameTranslations;
-          districtNameOld = formatLanguageResponse(districtTranslationsOld);
-          delete districtData.DistrictTranslations;
-          delete districtData.DistrictNewNameTranslations;
-          delete districtData.DistrictOldNameTranslations;
-        }
-
-        const district = {
-          ...districtData,
-          name: districtName,
-          newName: districtNameNew,
-          oldName: districtNameOld,
-        };
-
-        areaData = {
-          ...areaData,
-          district,
-        };
-      }
-
-      formattedArea.push({
-        ...areaData,
-        name,
-        newName: nameNew,
-        oldName: nameOld,
-        region,
-        city,
-      });
-    }
-
-    this.logger.debug(`Method: ${methodName} - Response: `, formattedArea);
+    this.logger.debug(`Method: ${methodName} - Response: `, areas);
 
     return {
-      data: formattedArea,
+      data: areas,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
@@ -510,9 +372,9 @@ export class AreaService {
       const districtTranslations = districtData.DistrictTranslations;
       districtName = formatLanguageResponse(districtTranslations);
       const districtTranslationsNew = districtData.DistrictNewNameTranslations;
-      districtNameNew = formatLanguageResponse(districtTranslationsNew);
+      districtNameNew = formatLanguageResponse(districtTranslationsNew || []);
       const districtTranslationsOld = districtData.DistrictOldNameTranslations;
-      districtNameOld = formatLanguageResponse(districtTranslationsOld);
+      districtNameOld = formatLanguageResponse(districtTranslationsOld || []);
       delete districtData.DistrictTranslations;
       delete districtData.DistrictNewNameTranslations;
       delete districtData.DistrictOldNameTranslations;

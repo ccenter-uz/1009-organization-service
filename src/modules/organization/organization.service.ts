@@ -1,3 +1,4 @@
+import { PhoneType } from './../../../types/organization/organization-version/dto/create-phone-version.dto';
 import {
   Inject,
   Injectable,
@@ -60,9 +61,14 @@ import { NeighborhoodService } from '../neighborhood/neighborhood.service';
 import { CacheService } from '../cache/cache.service';
 import { formatCacheKey } from '@/common/helper/format-cache-maneger';
 import { getOrg } from '@/common/helper/for-Org/get-org-data.dto';
+<<<<<<< HEAD
 // import { ObjectAdressFilterDto } from 'types/organization/organization/dto/filter-object-adress-organization.dto';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
+=======
+import { ObjectAdressFilterDto } from 'types/organization/organization/dto/filter-object-adress-organization.dto';
+import { getOrgCount } from '@/common/helper/for-Org/get-org-data-count.dto';
+>>>>>>> 044cf67fb1cdbc24dfa5262be216c1c28043b7b6
 
 @Injectable()
 export class OrganizationService {
@@ -354,218 +360,17 @@ export class OrganizationService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
-    console.log(include, 'LOG 1');
     const where: any = {};
-    const CacheKey = formatCacheKey(data);
-    console.log(CacheKey, 'LOG 2');
-    const findOrganization = await this.cacheService.get(
-      'organization',
-      CacheKey
-    );
+    // const CacheKey = formatCacheKey(data);
+    // const findOrganization = await this.cacheService.get(
+    //   'organization',
+    //   CacheKey
+    // );
 
-    if (findOrganization) {
-      return findOrganization;
-    } else {
-      if (data.address) {
-        where.OR = [
-          { address: { contains: data.address, mode: 'insensitive' } },
-          {
-            District: {
-              DistrictTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Region: {
-              RegionTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Passage: {
-              PassageTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Street: {
-              StreetTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Area: {
-              AreaTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Avenue: {
-              AvenueTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            City: {
-              CityTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            ResidentialArea: {
-              ResidentialAreaTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Neighborhood: {
-              NeighborhoodTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Impasse: {
-              ImpasseTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Village: {
-              VillageTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Lane: {
-              LaneTranslations: {
-                some: { name: { contains: data.address, mode: 'insensitive' } },
-              },
-            },
-          },
-          {
-            Nearbees: {
-              some: {
-                Nearby: {
-                  NearbyTranslations: {
-                    some: {
-                      name: { contains: data.address, mode: 'insensitive' },
-                    },
-                  },
-                },
-                description: { contains: data.address, mode: 'insensitive' },
-              },
-            },
-          },
-        ];
-      }
-
-      if (data.apartment) {
-        where.apartment = { contains: data.apartment, mode: 'insensitive' };
-      }
-
-      if (data.categoryId) {
-        where.subCategoryId = data.categoryId;
-      }
-
-      if (data.cityId) {
-        where.cityId = data.cityId;
-      }
-
-      if (data.districtId) {
-        where.districtId = data.districtId;
-      }
-
-      if (data.home) {
-        where.home = { contains: data.home, mode: 'insensitive' };
-      }
-
-      if (data.kvartal) {
-        where.kvartal = { contains: data.kvartal, mode: 'insensitive' };
-      }
-
-      if (data.mainOrg) {
-        where.mainOrganizationId = data.mainOrg;
-      }
-
-      if (data.name) {
-        where.name = { contains: data.name, mode: 'insensitive' };
-      }
-
-      if (data.phone) {
-        where.Phone = {
-          some: { phone: { contains: data.phone, mode: 'insensitive' } },
-        };
-      }
-
-      if (data.phoneType) {
-        where.Phone = { some: { PhoneTypes: { id: data.phoneType } } };
-      }
-
-      if (data.regionId) {
-        where.regionId = data.regionId;
-      }
-
-      if (data.subCategoryId) {
-        where.subCategoryId = data.subCategoryId;
-      }
-
-      if (data.villageId) {
-        where.villageId = data.villageId;
-      }
-
-      if (data.streetId) {
-        where.streetId = data.streetId;
-      }
-
-      if (data.belongAbonent === true) {
-        where.createdBy = CreatedByEnum.Client;
-      }
-
-      if (data.bounded === true) {
-        where.createdBy = CreatedByEnum.Billing;
-      }
-
-      if (data.mine === true) {
-        where.staffNumber = data.staffNumber;
-      }
-
-      if (data.nearbyId) {
-        where.Nearbees = {
-          some: {
-            NearbyId: data.nearbyId,
-          },
-        };
-      }
-
-      if (data.categoryTuId) {
-        where.ProductServices = {
-          some: {
-            ProductServiceCategoryId: data.categoryTuId,
-          },
-        };
-      }
-
-      if (data.subCategoryTuId) {
-        where.ProductServices = {
-          some: {
-            ProductServiceSubCategoryId: data.subCategoryTuId,
-          },
-        };
-      }
-
+    // if (findOrganization) {
+    //   return findOrganization;
+    // } else {
       if (data.all) {
-        console.log('Data All', 'LOG 11');
         const organizations = await this.prisma.organization.findMany({
           where,
           orderBy: { name: 'asc' },
@@ -587,12 +392,11 @@ export class OrganizationService {
           result.push(formattedOrganization);
         }
         this.logger.debug(`Method: ${methodName} - Response: `, result);
-        await this.cacheService.setAll('organization', CacheKey, {
-          data: result,
-          totalDocs: organizations.length,
-          totalPage: organizations.length > 0 ? 1 : 0,
-        });
-        console.log(result, 'Data All', 'LOG 12');
+        // await this.cacheService.setAll('organization', CacheKey, {
+        //   data: result,
+        //   totalDocs: organizations.length,
+        //   totalPage: organizations.length > 0 ? 1 : 0,
+        // });
 
         return {
           data: result,
@@ -601,29 +405,10 @@ export class OrganizationService {
         };
       }
 
-      const whereWithLang: any = {
-        ...(data.status
-          ? {
-              status: data.status,
-            }
-          : {}),
-        ...where,
-      };
-
-      if (data.search) {
-        console.log(data.search, 'LOG 14');
-        whereWithLang.name = {
-          contains: data.search,
-          mode: 'insensitive',
-        };
-      }
-
-      const count = await this.prisma.organization.count({
-        where: whereWithLang,
-      });
+      const count = await getOrgCount(data, this.prisma);
 
       const pagination = createPagination({
-        count,
+        count: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
         page: data.page,
         perPage: data.limit,
       });
@@ -633,48 +418,18 @@ export class OrganizationService {
         skip: pagination.skip,
       });
 
-      // let organization1 = await this.prisma.organization.findMany({
-      //   where: whereWithLang,
-      //   orderBy: { name: 'asc' },
-      //   include,
-      //   take: pagination.take,
-      //   skip: pagination.skip,
-      // });
-
-      // const result = [];
-      // for (let [index, org] of Object.entries(organization1)) {
-
-      //   for (let [key, prop] of Object.entries(includeConfig)) {
-      //     // console.log( key, 'key');
-
-      //     let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-      //             //  console.log(org?.[idNameOfModules] , idNameOfModules, key, 'key');
-      //     delete org?.[idNameOfModules];
-      //   }
-      //   // console.log(org?.ProductServices, 'org');
-
-      //   const formattedOrganization = formatOrganizationResponse(
-      //     org,
-      //     modulesConfig
-      //   );
-
-      //   if (data.role !== 'moderator') {
-      //     delete formattedOrganization.secret;
-      //   }
-      //   result.push(formattedOrganization);
-      // }
-      // this.logger.debug(`Method: ${methodName} - Response: `, result);
+      this.logger.debug(`Method: ${methodName} - Response: `, organization);
       // await this.cacheService.setAll('organization', CacheKey, {
-      //   data: result,
+      //   data: organization,
       //   totalPage: pagination.totalPage,
-      //   totalDocs: count,
+      //   totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
       // });
       return {
         data: organization,
         totalPage: pagination.totalPage,
-        totalDocs: count,
+        totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
       };
-    }
+    // }
   }
 
   async findMy(
@@ -889,6 +644,7 @@ export class OrganizationService {
     }
   }
 
+<<<<<<< HEAD
   // async findObjectAdress(data: ObjectAdressFilterDto) {
   //   const methodName: string = this.findObjectAdress.name;
   //   this.logger.debug(`Method: ${methodName} - Request: `, data);
@@ -1706,12 +1462,246 @@ export class OrganizationService {
   //     };
   //   }
   // }
+=======
+  async findObjectAdress(data: ObjectAdressFilterDto) {
+    const methodName: string = this.findObjectAdress.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
+    if (data.module == 'street') {
+      const Street = await this.StreetService.findAll({
+        all: data.all,
+        search: data.search,
+        status: data.status,
+        page: data.page,
+        limit: data.limit,
+      });
+
+      for (let street of Street.data) {
+        street['module'] = 'street';
+      }
+
+      return Street;
+    }
+
+    if (data.module == 'area') {
+      const Area = await this.AreaService.findAll({
+        all: data.all,
+        search: data.search,
+        status: data.status,
+        page: data.page,
+        limit: data.limit,
+      });
+
+      for (let area of Area.data) {
+        area['module'] = 'area';
+      }
+
+      return Area;
+    }
+
+    if (data.module == 'lane') {
+      const Lane = await this.LaneService.findAll({
+        all: data.all,
+        search: data.search,
+        status: data.status,
+        page: data.page,
+        limit: data.limit,
+      });
+
+      for (let lane of Lane.data) {
+        lane['module'] = 'lane';
+      }
+
+      return Lane;
+    }
+
+    if (data.module == 'residential-area') {
+      const ResidentialArea = await this.ResidentialAreaService.findAll({
+        all: data.all,
+        search: data.search,
+        status: data.status,
+        page: data.page,
+        limit: data.limit,
+      });
+      for (let residentialArea of ResidentialArea.data) {
+        residentialArea['module'] = 'residential-area';
+      }
+
+      return ResidentialArea;
+    }
+
+    if (data.module == 'neighborhood') {
+      const Neighborhood = await this.ImpasseService.findAll({
+        all: data.all,
+        search: data.search,
+        status: data.status,
+        page: data.page,
+        limit: data.limit,
+      });
+      for (let neighborhood of Neighborhood.data) {
+        neighborhood['module'] = 'neighborhood';
+      }
+
+      return Neighborhood;
+    }
+
+    if (data.module == 'impasse') {
+      const Impasse = await this.ImpasseService.findAll({
+        all: data.all,
+        search: data.search,
+        status: data.status,
+        page: data.page,
+        limit: data.limit,
+      });
+      for (let impasse of Impasse.data) {
+        impasse['module'] = 'impasse';
+      }
+
+      return Impasse;
+    }
+
+    if (data.module == 'avenue') {
+      const Avenue = await this.AvenueService.findAll({
+        all: data.all,
+        search: data.search,
+        status: data.status,
+        page: data.page,
+        limit: data.limit,
+      });
+      for (let avenue of Avenue.data) {
+        avenue['module'] = 'avenue';
+      }
+
+      return Avenue;
+    }
+
+    if (data.module == 'passage') {
+      const Passage = await this.PassageService.findAll({
+        all: data.all,
+        search: data.search,
+        status: data.status,
+        page: data.page,
+        limit: data.limit,
+      });
+
+      for (let passage of Passage.data) {
+        passage['module'] = 'passage';
+      }
+
+      return Passage;
+    }
+
+    if (data.module === 'all') {
+      const [
+        streets,
+        areas,
+        lanes,
+        neighborhoods,
+        impasses,
+        avenues,
+        passages,
+        residentialAreas,
+      ] = await Promise.all([
+        this.StreetService.findAll({
+          all: true,
+          search: data.search,
+          status: data.status,
+          page: 1,
+          limit: 1000,
+        }),
+        this.AreaService.findAll({
+          all: true,
+          search: data.search,
+          status: 2,
+          page: 1,
+          limit: 1000,
+        }),
+        this.LaneService.findAll({
+          all: true,
+          search: data.search,
+          status: data.status,
+          page: 1,
+          limit: 1000,
+        }),
+        this.NearbyService.findAll({
+          all: true,
+          search: data.search,
+          status: data.status,
+          page: 1,
+          limit: 1000,
+        }),
+        this.ImpasseService.findAll({
+          all: true,
+          search: data.search,
+          status: data.status,
+          page: 1,
+          limit: 1000,
+        }),
+        this.AvenueService.findAll({
+          all: true,
+          search: data.search,
+          status: data.status,
+          page: 1,
+          limit: 1000,
+        }),
+        this.PassageService.findAll({
+          all: true,
+          search: data.search,
+          status: data.status,
+          page: 1,
+          limit: 1000,
+        }),
+        this.ResidentialAreaService.findAll({
+          all: true,
+          search: data.search,
+          status: data.status,
+          page: 1,
+          limit: 1000,
+        }),
+      ]);
+
+      const all = [
+        ...streets.data.map((item) => ({ ...item, module: 'street' })),
+        ...areas.data.map((item) => ({ ...item, module: 'area' })),
+        ...lanes.data.map((item) => ({ ...item, module: 'lane' })),
+        ...neighborhoods.data.map((item) => ({
+          ...item,
+          module: 'neighborhood',
+        })),
+        ...impasses.data.map((item) => ({ ...item, module: 'impasse' })),
+        ...avenues.data.map((item) => ({ ...item, module: 'avenue' })),
+        ...passages.data.map((item) => ({ ...item, module: 'passage' })),
+        ...residentialAreas.data.map((item) => ({
+          ...item,
+          module: 'residentialArea',
+        })),
+      ];
+      const count = all.length;
+      const pagination = createPagination({
+        count,
+        page: data.page,
+        perPage: data.limit,
+      });
+
+      const paginated = all.slice(
+        pagination.skip,
+        pagination.skip + pagination.take
+      );
+
+      return {
+        data: paginated,
+        totalPage: pagination.totalPage,
+        totalDocs: count,
+      };
+    }
+  }
+>>>>>>> 044cf67fb1cdbc24dfa5262be216c1c28043b7b6
 
   async findOne(data: GetOneDto): Promise<OrganizationInterfaces.Response> {
     const methodName: string = this.findOne.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const include = buildInclude(includeConfig, data);
-    const findCategory = await this.cacheService.get(
+    const findOrganization = await this.cacheService.get(
       'organizationOne',
       data.id?.toString()
     );
@@ -1746,10 +1736,8 @@ export class OrganizationService {
       `Method: ${methodName} - Response: `,
       formattedOrganization
     );
-    if (findCategory) {
-      console.log(findCategory, 'findCategory');
-
-      return findCategory;
+    if (findOrganization) {
+      return findOrganization;
     } else {
       const organization = await this.prisma.organization.findFirst({
         where: {
@@ -1779,11 +1767,111 @@ export class OrganizationService {
         `Method: ${methodName} - Response: `,
         formattedOrganization
       );
+
+      formattedOrganization.kvartal = {
+        value: formattedOrganization.kvartal || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.home = {
+        value: formattedOrganization.home || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.apartment = {
+        value: formattedOrganization.apartment || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.inn = {
+        value: formattedOrganization.inn || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.description = {
+        value: formattedOrganization.description || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.bankNumber = {
+        value: formattedOrganization.bankNumber || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.mail = {
+        value: formattedOrganization.mail || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.manager = {
+        value: formattedOrganization.manager || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.index = {
+        value: formattedOrganization.index || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.region = {
+        value: formattedOrganization.region || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.city = {
+        value: formattedOrganization.city || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.district = {
+        value: formattedOrganization.district || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.mainOrganization = {
+        value: formattedOrganization.mainOrganization || null,
+        requiredPlan: 'standard',
+      };
+      // formattedOrganization.certificate = {
+      //   value: formattedOrganization.certificate || null,
+      //   requiredPlan: 'standard',
+      // };
+      formattedOrganization.village = {
+        value: formattedOrganization.village || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.avenue = {
+        value: formattedOrganization.avenue || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.residentialArea = {
+        value: formattedOrganization.residentialArea || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.neighborhood = {
+        value: formattedOrganization.neighborhood || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.street = {
+        value: formattedOrganization.street || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.segment = {
+        value: formattedOrganization.segment || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.Nearbees = {
+        value: formattedOrganization.Nearbees || null,
+        requiredPlan: 'standard',
+      };
+      for (let i of formattedOrganization.Phone) {
+        i.phone = {
+          value: i.phone || null,
+          requiredPlan: 'standard',
+        };
+        i.PhoneTypes = {
+          value: i.PhoneTypes || null,
+          requiredPlan: 'standard',
+        }
+      }
       await this.cacheService.set(
         'organizationOne',
         data.id?.toString(),
         formattedOrganization
       );
+
       return formattedOrganization;
     }
   }

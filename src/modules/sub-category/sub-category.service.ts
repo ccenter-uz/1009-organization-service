@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   SubCategoryCreateDto,
@@ -17,13 +23,15 @@ import { createPagination } from '@/common/helper/pagination.helper';
 import { CategoryService } from '../category/category.service';
 import { Prisma } from '@prisma/client';
 import { getSubCategoryOrderedData } from '@/common/helper/sql-rows-for-select/get-sub-category-ordered.dto';
+import { SubCategoryDeleteDto } from 'types/organization/sub-category/dto/delete-sub-category.dto';
 @Injectable()
 export class SubCategoryService {
   private logger = new Logger(SubCategoryService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly categoryService: CategoryService
+    @Inject(forwardRef(() => CategoryService))
+    private readonly categoryService: CategoryService,
+    private readonly prisma: PrismaService
   ) {}
 
   async create(
@@ -100,33 +108,11 @@ export class SubCategoryService {
         data,
         conditions
       );
-      const formattedSubCategories = [];
-
-      for (let i = 0; i < subCategories.length; i++) {
-        const subCategory = subCategories[i];
-        const translations = subCategory.SubCategoryTranslations;
-        const name = formatLanguageResponse(translations);
-
-        delete subCategory.SubCategoryTranslations;
-
-        const category: any = subCategories[i].Category;
-        const categoryTranslations = category.CategoryTranslations;
-        const categoryName = formatLanguageResponse(categoryTranslations);
-
-        category.name = categoryName;
-        delete category.CategoryTranslations;
-
-        delete subCategory.SubCategoryTranslations;
-
-        formattedSubCategories.push({ ...subCategory, name, category });
-      }
-      this.logger.debug(
-        `Method: ${methodName} - Response: `,
-        formattedSubCategories
-      );
+   
+      this.logger.debug(`Method: ${methodName} - Response: `, subCategories);
 
       return {
-        data: formattedSubCategories,
+        data: subCategories,
         totalDocs: subCategories.length,
         totalPage: subCategories.length > 0 ? 1 : 0,
       };
@@ -173,31 +159,10 @@ export class SubCategoryService {
       pagination
     );
 
-    const formattedSubCategories = [];
 
-    for (let i = 0; i < subCategories.length; i++) {
-      const subCategory = subCategories[i];
-      const translations = subCategory.SubCategoryTranslations;
-      const name = formatLanguageResponse(translations);
-
-      const category: any = subCategories[i].Category;
-      const categoryTranslations = category.CategoryTranslations;
-      const categoryName = formatLanguageResponse(categoryTranslations);
-
-      category.name = categoryName;
-
-      delete category.CategoryTranslations;
-      delete subCategory.SubCategoryTranslations;
-      delete subCategory.SubCategoryTranslations;
-
-      formattedSubCategories.push({ ...subCategory, name, category });
-    }
-    this.logger.debug(
-      `Method: ${methodName} - Response: `,
-      formattedSubCategories
-    );
+    this.logger.debug(`Method: ${methodName} - Response: `, subCategories);
     return {
-      data: formattedSubCategories,
+      data: subCategories,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
@@ -319,8 +284,11 @@ export class SubCategoryService {
     return updatedSubCategory;
   }
 
-  async remove(data: DeleteDto): Promise<SubCategoryInterfaces.Response> {
+  async remove(
+    data: SubCategoryDeleteDto
+  ): Promise<SubCategoryInterfaces.Response> {
     const methodName: string = this.remove.name;
+    console.log(data, 'data');
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {
@@ -347,7 +315,7 @@ export class SubCategoryService {
 
     const updatedSubCategory = await this.prisma.subCategory.update({
       where: { id: data.id, status: DefaultStatus.ACTIVE },
-      data: { status: DefaultStatus.INACTIVE },
+      data: { status: DefaultStatus.INACTIVE, deleteReason: data.deleteReason },
       include: {
         category: true,
         SubCategoryTranslations: {

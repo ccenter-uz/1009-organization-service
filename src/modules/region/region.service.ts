@@ -95,24 +95,11 @@ export class RegionService {
         conditions
       );
 
-      const formattedCategories = [];
 
-      for (let i = 0; i < regions.length; i++) {
-        const region = regions[i];
-        const translations = region.RegionTranslations;
-        const name = formatLanguageResponse(translations);
-
-        delete region.RegionTranslations;
-
-        formattedCategories.push({ ...region, name });
-      }
-      this.logger.debug(
-        `Method: ${methodName} - Response: `,
-        formattedCategories
-      );
+      this.logger.debug(`Method: ${methodName} - Response: `, regions);
 
       return {
-        data: formattedCategories,
+        data: regions,
         totalDocs: regions.length,
         totalPage: regions.length > 0 ? 1 : 0,
       };
@@ -153,23 +140,13 @@ export class RegionService {
       pagination
     );
 
-    const formattedCategories = [];
 
-    for (let i = 0; i < regions.length; i++) {
-      const region = regions[i];
-      const translations = region.RegionTranslations;
-      const name = formatLanguageResponse(translations);
-
-      delete region.RegionTranslations;
-
-      formattedCategories.push({ ...region, name });
-    }
     this.logger.debug(
       `Method: ${methodName} - Response: `,
-      formattedCategories
+      regions
     );
     return {
-      data: formattedCategories,
+      data: regions,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };

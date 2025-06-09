@@ -1,5 +1,6 @@
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { CreatedByEnum } from 'types/global';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 
 export async function getOrg(
@@ -7,38 +8,102 @@ export async function getOrg(
   prisma: PrismaService,
   pagination?: { take: number; skip: number }
 ) {
-  console.log(data, 'lllllll');
-
   const conditions: Prisma.Sql[] = [];
   const whereClause = Prisma.empty;
-  if (data.status === 0 || data.status === 1)
+  if (data.status === 0 || data.status === 1 || data.status === -1)
     conditions.push(Prisma.sql`o.status = ${data.status}`);
-  // Build where conditions for the filters in data
-  //   if (data.address) {
-  //     conditions.push(
-  //       Prisma.sql`
-  //         OR
-  //         (
-  //           address ILIKE ${`%${data.address}%`}
-  //         )
-  //         OR EXISTS (
-  //           SELECT 1
-  //           FROM district_translations dt
-  //           WHERE dt.district_id = o.district_id
-  //           AND dt.name ILIKE ${`%${data.address}%`}
-  //           LIMIT 1
-  //         )
-  //         OR EXISTS (
-  //           SELECT 1
-  //           FROM region_translations rt
-  //           WHERE rt.region_id = o.region_id
-  //           AND rt.name ILIKE ${`%${data.address}%`}
-  //           LIMIT 1
-  //         )
-  //         -- Add other necessary checks for fields like 'Passage', 'Street', etc. similar to `address`
-  //       `
-  //     );
-  //   }
+
+  if (data.address) {
+    const query = data.address.replace('-', ' ').toLowerCase();
+
+    conditions.push(
+      Prisma.sql`
+      (
+        COALESCE(o.address_search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        OR EXISTS (
+          SELECT 1 FROM district_translations dt
+          WHERE dt.district_id = o.district_id
+          AND COALESCE(dt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM region_translations rt
+          WHERE rt.region_id = o.region_id
+          AND COALESCE(rt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM passage_translations pt
+          JOIN passage p ON pt.passage_id = p.id
+          WHERE p.id = o.passage_id
+          AND COALESCE(pt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM street_translations st
+          JOIN street s ON st.street_id = s.id
+          WHERE s.id = o.street_id
+          AND COALESCE(st.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM area_translations at
+          JOIN area a ON at.area_id = a.id
+          WHERE a.id = o.area_id
+          AND COALESCE(at.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM avenue_translations avtt
+          JOIN avenue av ON avtt.avenue_id = av.id
+          WHERE av.id = o.avenue_id
+          AND COALESCE(avtt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM city_translations ct
+          JOIN city c ON ct.city_id = c.id
+          WHERE c.id = o.city_id
+          AND COALESCE(ct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM residential_area_translations rat
+          JOIN residential_area ra ON rat.residential_area_id = ra.id
+          WHERE ra.id = o.residential_id
+          AND COALESCE(rat.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM neighborhood_translations nt
+          JOIN neighborhood n ON nt.neighborhood_id = n.id
+          WHERE n.id = o.neighborhood_id
+          AND COALESCE(nt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM impasse_translations it
+          JOIN impasse i ON it.impasse_id = i.id
+          WHERE i.id = o.impasse_id
+          AND COALESCE(it.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM village_translations vt
+          JOIN village v ON vt.village_id = v.id
+          WHERE v.id = o.village_id
+          AND COALESCE(vt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM lane_translations lt
+          JOIN lane l ON lt.lane_id = l.id
+          WHERE l.id = o.lane_id
+          AND COALESCE(lt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM nearbees no
+          JOIN nearby n ON no.nearby_id = n.id
+          JOIN nearby_translations nt ON nt.nearby_id = n.id
+          WHERE no.organization_version_id = o.id
+          AND (
+            COALESCE(nt.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+            OR COALESCE(no.description_search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+          )
+        )
+      )
+    `
+    );
+  }
 
   if (data.apartment) {
     conditions.push(Prisma.sql`o.apartment ILIKE ${`%${data.apartment}%`}`);
@@ -72,13 +137,47 @@ export async function getOrg(
   }
 
   if (data.search) {
-    conditions.push(Prisma.sql`o.name ILIKE ${`%${data.name}%`}`);
+    const queryName = data.search.replace('-', ' ').toLowerCase();
+
+    const orConditions = [
+      Prisma.sql`o.name ILIKE ${`%${data.search}%`}`,
+      Prisma.sql`o.legal_name ILIKE ${`%${data.search}%`}`,
+      Prisma.sql`o.inn ILIKE ${`%${data.search}%`}`,
+      Prisma.sql`
+      EXISTS (
+        SELECT 1
+        FROM product_service_category psc
+        LEFT JOIN product_service_category_translations psct 
+          ON psc.id = psct.product_service_category_id
+        LEFT JOIN product_services ps 
+          ON ps.product_service_category_id = psc.id
+        WHERE COALESCE(psct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${queryName})
+        AND ps.organization_id = o.id
+      )`,
+      Prisma.sql`
+      EXISTS (
+        SELECT 1
+        FROM product_service_sub_category pssc
+        LEFT JOIN product_service_sub_category_translations pssct 
+          ON pssc.id = pssct.product_service_sub_category_id
+        LEFT JOIN product_services ps 
+          ON ps.product_service_sub_category_id = pssc.id
+        WHERE COALESCE(pssct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${queryName})
+        AND ps.organization_id = o.id
+      )`,
+    ];
+
+    // OR bilan bitta guruhga qo‘shamiz
+    conditions.push(Prisma.sql`(${Prisma.join(orConditions, ' OR ')})`);
   }
 
-  if (data.nearbyId) { 
+  if (data.name) {
+     conditions.push(Prisma.sql`o.name ILIKE ${`%${data.name}%`}`);
+  }
+
+  if (data.nearbyId) {
     conditions.push(Prisma.sql`nb."nearby_id" = ${data.nearbyId}`);
   }
-
 
   if (data.phone) {
     conditions.push(Prisma.sql`
@@ -108,7 +207,7 @@ export async function getOrg(
 
   if (data.subCategoryId) {
     conditions.push(Prisma.sql`o.sub_category_id = ${data.subCategoryId}`);
-  } // qoldi
+  }
 
   if (data.subCategoryTuId) {
     conditions.push(
@@ -121,6 +220,35 @@ export async function getOrg(
   }
   if (data.streetId) {
     conditions.push(Prisma.sql`o.street_id = ${data.streetId}`);
+  }
+
+  if (data.module == 'street') {
+    conditions.push(Prisma.sql`o.street_id = ${data.objectAdressId}`);
+  }
+
+  if (data.module == 'area') {
+    conditions.push(Prisma.sql`o.area_id = ${data.objectAdressId}`);
+  }
+
+  if (data.module == 'lane') {
+    conditions.push(Prisma.sql`o.lane_id = ${data.objectAdressId}`);
+  }
+  if (data.module == 'residential-area') {
+    conditions.push(Prisma.sql`o.residential_id = ${data.objectAdressId}`);
+  }
+
+  if (data.module == 'neighborhood') {
+    conditions.push(Prisma.sql`o.neighborhood_id = ${data.objectAdressId}`);
+  }
+  if (data.module == 'impasse') {
+    conditions.push(Prisma.sql`o.impasse_id = ${data.objectAdressId}`);
+  }
+
+  if (data.module == 'avenue') {
+    conditions.push(Prisma.sql`o.avenue_id = ${data.objectAdressId}`);
+  }
+  if (data.module == 'passage') {
+    conditions.push(Prisma.sql`o.passage_id = ${data.objectAdressId}`);
   }
 
   if (data.belongAbonent === true) {
@@ -505,9 +633,6 @@ ProductServices AS (
       GROUP BY mot.main_organization_id
     )
 
-
-
-
     SELECT
     o.id,
     o.name,
@@ -547,6 +672,12 @@ ProductServices AS (
     o.impasse_id AS "impasseId",
     o.segment_id AS "segmentId",
     o.neighborhood_id AS "neighborhoodId",
+   CAST(COUNT(*) OVER() AS INTEGER) AS "totalCount",
+    CASE
+      WHEN ${data.role} = ${CreatedByEnum.Moderator} THEN TRUE
+      WHEN o.staff_number = ${data.staffNumber} THEN TRUE
+      ELSE FALSE
+    END AS "operFrom",
         CASE
         WHEN city.id IS NOT NULL THEN
       JSONB_BUILD_OBJECT(
@@ -862,8 +993,11 @@ ProductServices AS (
     (SELECT Phones FROM Phones WHERE "organization_id" = o.id),
     '[]'::JSONB
   ) AS "Phone",
-  (
-    SELECT JSON_AGG(
+  -- boshlanishi 
+(
+  SELECT CASE 
+    WHEN COUNT(nb.*) = 0 THEN '[]'::jsonb
+    ELSE JSONB_AGG(
       JSONB_BUILD_OBJECT(
         'id', nb."id",
         'description', nb."description",
@@ -871,8 +1005,9 @@ ProductServices AS (
         'createdAt', nb."created_at",
         'updatedAt', nb."updated_at",
         'deletedAt', nb."deleted_at",
-        'Nearby', COALESCE(
-          JSONB_BUILD_OBJECT(
+        'Nearby', CASE 
+          WHEN n."id" IS NULL THEN '{}'::jsonb
+          ELSE JSONB_BUILD_OBJECT(
             'id', n."id",
             'staffNumber', n."staff_number",
             'editedStaffNumber', n."edited_staff_number",
@@ -885,12 +1020,12 @@ ProductServices AS (
             'createdAt', n."created_at",
             'deletedAt', n."deleted_at",
             'updatedAt', n."updated_at",
-            'name', COALESCE(nt."name", '{}'::JSONB)
-          ),
-          '{}'::JSONB
-        ),
-        'NearbyCategory', COALESCE(
-          JSONB_BUILD_OBJECT(
+            'name', COALESCE(nt."name", '{}'::jsonb)
+          )
+        END,
+        'NearbyCategory', CASE
+          WHEN nc."id" IS NULL THEN '{}'::jsonb
+          ELSE JSONB_BUILD_OBJECT(
             'id', nc."id",
             'name', nc."name",
             'staffNumber', nc."staff_number",
@@ -900,17 +1035,17 @@ ProductServices AS (
             'createdAt', nc."created_at",
             'updatedAt', nc."updated_at",
             'deletedAt', nc."deleted_at"
-          ),
-          '{}'::JSONB
-        )
+          )
+        END
       )
-    )::JSONB
-    FROM nearbees nb
-    LEFT JOIN nearby n ON nb."nearby_id" = n."id"
-    LEFT JOIN NearbyTranslations nt ON n."id" = nt."nearby_id"
-    LEFT JOIN nearby_category nc ON n."nearby_category_id" = nc."id"
-    WHERE nb."organization_version_id" = o.id
-  ) AS "Nearbees" ,
+    )
+  END
+  FROM nearbees nb
+  LEFT JOIN nearby n ON nb."nearby_id" = n."id"
+  LEFT JOIN NearbyTranslations nt ON n."id" = nt."nearby_id"
+  LEFT JOIN nearby_category nc ON n."nearby_category_id" = nc."id"
+  WHERE nb."organization_version_id" = o.id
+) AS "Nearbees" ,
 
   COALESCE(
   (SELECT ProductServices FROM ProductServices WHERE "organization_id" = o.id),
@@ -947,7 +1082,6 @@ ProductServices AS (
     'deletedAt', segment.deleted_at
   ) ELSE NULL
     END  AS "segment"
-
     FROM
       organization o
     LEFT JOIN city ON o.city_id = city.id
@@ -962,15 +1096,22 @@ ProductServices AS (
     LEFT JOIN impasse ON o.impasse_id = impasse.id
     LEFT JOIN segment ON o.segment_id = segment.id
     LEFT JOIN sub_category  ON o.sub_category_id = sub_category.id 
-    LEFT JOIN Pictures pic ON pic."organization_id" = o.id
     LEFT JOIN category ON sub_category.category_id = category.id 
     LEFT JOIN main_organization  ON o.main_organization_id = main_organization.id 
-    LEFT JOIN product_services ps ON ps.organization_id = o.id
-     LEFT JOIN nearbees nb ON    o."id" =  nb."organization_version_id"
+    LEFT JOIN LATERAL (
+    SELECT * FROM Pictures pic WHERE pic.organization_id = o.id LIMIT 1
+) pic ON true
+LEFT JOIN LATERAL (
+    SELECT * FROM product_services ps WHERE ps.organization_id = o.id LIMIT 1
+) ps ON true
+LEFT JOIN LATERAL (
+    SELECT * FROM nearbees nb WHERE nb.organization_version_id = o.id LIMIT 1
+) nb ON true
     ${whereClauseFinal}
     ORDER BY o.name ASC
     ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}
-  `
+  
+    `
     )
     .catch((e) => {
       console.log(e, 'prisma Eror');
