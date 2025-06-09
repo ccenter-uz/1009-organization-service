@@ -1030,22 +1030,29 @@ export class OrganizationService {
         value: formattedOrganization.Nearbees || null,
         requiredPlan: 'standard',
       };
-      for (let i of formattedOrganization.Phone) {
-        i.phone = {
-          value: i.phone || null,
-          requiredPlan: 'standard',
-        };
-        i.PhoneTypes = {
-          value: i.PhoneTypes || null,
-          requiredPlan: 'standard',
-        }
-      }
+const newPhones = [];
+for (let i of formattedOrganization.Phone) {
+  if (!i.isSecret) {
+    newPhones.push({
+      ...i,
+      phone: {
+        value: i.phone || null,
+        requiredPlan: 'standard',
+      },
+      PhoneTypes: {
+        value: i.PhoneTypes || null,
+        requiredPlan: 'standard',
+      },
+    });
+  }
+}
+
+formattedOrganization.Phone = newPhones;
       await this.cacheService.set(
         'organizationOne',
         data.id?.toString(),
         formattedOrganization
       );
-
       return formattedOrganization;
     }
   }
