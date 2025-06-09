@@ -21,7 +21,7 @@ export async function getSingleOrderedData(
           SELECT
             ct.${Prisma.raw(`${name}_id`)},
             jsonb_object_agg(ct.language_code, ct.name) AS name
-          FROM ${Prisma.raw(name + '_translations')} ct
+          FROM ${Prisma.raw(name + (name === 'phone_types' ? '_id_translations' : '_translations'))} ct
           GROUP BY ct.${Prisma.raw(`${name}_id`)}
         )
       SELECT

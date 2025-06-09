@@ -92,21 +92,10 @@ export class PhoneTypeService {
         conditions
       );
 
-      const formattedPhoneTypes = phoneType.map((productServiceCategory) => {
-        const translations = productServiceCategory.PhoneTypesTranslations;
-
-        const name = formatLanguageResponse(translations);
-        delete productServiceCategory.PhoneTypesTranslations;
-
-        return { ...productServiceCategory, name };
-      });
-      this.logger.debug(
-        `Method: ${methodName} - Response: `,
-        formattedPhoneTypes
-      );
+      this.logger.debug(`Method: ${methodName} - Response: `, phoneType);
 
       return {
-        data: formattedPhoneTypes,
+        data: phoneType,
         totalDocs: phoneType.length,
         totalPage: phoneType.length > 0 ? 1 : 0,
       };
@@ -149,20 +138,9 @@ export class PhoneTypeService {
       pagination
     );
 
-    const formattedCategories = phoneType.map((productServiceCategory) => {
-      const translations = productServiceCategory.PhoneTypesTranslations;
-
-      const name = formatLanguageResponse(translations);
-      delete productServiceCategory.PhoneTypesTranslations;
-
-      return { ...productServiceCategory, name };
-    });
-    this.logger.debug(
-      `Method: ${methodName} - Response: `,
-      formattedCategories
-    );
+    this.logger.debug(`Method: ${methodName} - Response: `, phoneType);
     return {
-      data: formattedCategories,
+      data: phoneType,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
