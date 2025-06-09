@@ -61,14 +61,11 @@ import { NeighborhoodService } from '../neighborhood/neighborhood.service';
 import { CacheService } from '../cache/cache.service';
 import { formatCacheKey } from '@/common/helper/format-cache-maneger';
 import { getOrg } from '@/common/helper/for-Org/get-org-data.dto';
-<<<<<<< HEAD
 // import { ObjectAdressFilterDto } from 'types/organization/organization/dto/filter-object-adress-organization.dto';
 import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
-=======
 import { ObjectAdressFilterDto } from 'types/organization/organization/dto/filter-object-adress-organization.dto';
 import { getOrgCount } from '@/common/helper/for-Org/get-org-data-count.dto';
->>>>>>> 044cf67fb1cdbc24dfa5262be216c1c28043b7b6
 
 @Injectable()
 export class OrganizationService {
@@ -370,65 +367,65 @@ export class OrganizationService {
     // if (findOrganization) {
     //   return findOrganization;
     // } else {
-      if (data.all) {
-        const organizations = await this.prisma.organization.findMany({
-          where,
-          orderBy: { name: 'asc' },
-          include,
-        });
-        const result = [];
-        for (let [index, org] of Object.entries(organizations)) {
-          for (let [key, prop] of Object.entries(includeConfig)) {
-            let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-            delete org?.[idNameOfModules];
-          }
-          const formattedOrganization = formatOrganizationResponse(
-            org,
-            modulesConfig
-          );
-          if (data.role !== 'moderator') {
-            delete formattedOrganization.secret;
-          }
-          result.push(formattedOrganization);
+    if (data.all) {
+      const organizations = await this.prisma.organization.findMany({
+        where,
+        orderBy: { name: 'asc' },
+        include,
+      });
+      const result = [];
+      for (let [index, org] of Object.entries(organizations)) {
+        for (let [key, prop] of Object.entries(includeConfig)) {
+          let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+          delete org?.[idNameOfModules];
         }
-        this.logger.debug(`Method: ${methodName} - Response: `, result);
-        // await this.cacheService.setAll('organization', CacheKey, {
-        //   data: result,
-        //   totalDocs: organizations.length,
-        //   totalPage: organizations.length > 0 ? 1 : 0,
-        // });
-
-        return {
-          data: result,
-          totalDocs: organizations.length,
-          totalPage: organizations.length > 0 ? 1 : 0,
-        };
+        const formattedOrganization = formatOrganizationResponse(
+          org,
+          modulesConfig
+        );
+        if (data.role !== 'moderator') {
+          delete formattedOrganization.secret;
+        }
+        result.push(formattedOrganization);
       }
-
-      const count = await getOrgCount(data, this.prisma);
-
-      const pagination = createPagination({
-        count: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
-        page: data.page,
-        perPage: data.limit,
-      });
-
-      const organization: any = await getOrg(data, this.prisma, {
-        take: pagination.take,
-        skip: pagination.skip,
-      });
-
-      this.logger.debug(`Method: ${methodName} - Response: `, organization);
+      this.logger.debug(`Method: ${methodName} - Response: `, result);
       // await this.cacheService.setAll('organization', CacheKey, {
-      //   data: organization,
-      //   totalPage: pagination.totalPage,
-      //   totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
+      //   data: result,
+      //   totalDocs: organizations.length,
+      //   totalPage: organizations.length > 0 ? 1 : 0,
       // });
+
       return {
-        data: organization,
-        totalPage: pagination.totalPage,
-        totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
+        data: result,
+        totalDocs: organizations.length,
+        totalPage: organizations.length > 0 ? 1 : 0,
       };
+    }
+
+    const count = await getOrgCount(data, this.prisma);
+
+    const pagination = createPagination({
+      count: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
+      page: data.page,
+      perPage: data.limit,
+    });
+
+    const organization: any = await getOrg(data, this.prisma, {
+      take: pagination.take,
+      skip: pagination.skip,
+    });
+
+    this.logger.debug(`Method: ${methodName} - Response: `, organization);
+    // await this.cacheService.setAll('organization', CacheKey, {
+    //   data: organization,
+    //   totalPage: pagination.totalPage,
+    //   totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
+    // });
+    return {
+      data: organization,
+      totalPage: pagination.totalPage,
+      totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
+    };
     // }
   }
 
@@ -644,825 +641,6 @@ export class OrganizationService {
     }
   }
 
-<<<<<<< HEAD
-  // async findObjectAdress(data: ObjectAdressFilterDto) {
-  //   const methodName: string = this.findObjectAdress.name;
-  //   this.logger.debug(`Method: ${methodName} - Request: `, data);
-
-  //   if (data.module == 'street') {
-  //     const where: any = {
-  //       ...(data.status == 2
-  //         ? {}
-  //         : {
-  //             status: data.status,
-  //           }),
-  //     };
-
-  //     const count = await this.prisma.street.count({
-  //       where,
-  //     });
-
-  //     const pagination = createPagination({
-  //       count,
-  //       page: data.page,
-  //       perPage: data.limit,
-  //     });
-  //     const streets = await getOrderedDataWithDistrict(
-  //       'Street',
-  //       'street',
-  //       this.prisma,
-  //       data,
-  //       pagination
-  //     );
-
-  //     const formattedStreet = [];
-
-  //     for (let i = 0; i < streets.length; i++) {
-  //       let streetData = streets[i];
-  //       const translations = streetData.StreetTranslations;
-  //       const name = formatLanguageResponse(translations);
-  //       const translationsNew = streetData.StreetNewNameTranslations;
-  //       const nameNew = formatLanguageResponse(translationsNew);
-  //       const translationsOld = streetData.StreetOldNameTranslations;
-  //       const nameOld = formatLanguageResponse(translationsOld);
-
-  //       delete streetData.StreetTranslations;
-  //       delete streetData.StreetNewNameTranslations;
-  //       delete streetData.StreetOldNameTranslations;
-
-  //       const regionTranslations = streetData.region.RegionTranslations;
-  //       const regionName = formatLanguageResponse(regionTranslations);
-  //       delete streetData.region.RegionTranslations;
-  //       const region = { ...streetData.region, name: regionName };
-  //       delete streetData.region;
-
-  //       const cityTranslations = streetData.city.CityTranslations;
-  //       const cityName = formatLanguageResponse(cityTranslations);
-  //       delete streetData.city.CityTranslations;
-  //       const city = { ...streetData.city, name: cityName };
-  //       delete streetData.city;
-  //       if (streetData?.district) {
-  //         const districtData = streetData?.district;
-  //         let districtName: string | object;
-  //         let districtNameNew: string | object;
-  //         let districtNameOld: string | object;
-
-  //         if (districtData) {
-  //           const districtTranslations = districtData.DistrictTranslations;
-  //           districtName = formatLanguageResponse(districtTranslations);
-  //           const districtTranslationsNew =
-  //             districtData.DistrictNewNameTranslations;
-  //           districtNameNew = formatLanguageResponse(districtTranslationsNew);
-  //           const districtTranslationsOld =
-  //             districtData.DistrictOldNameTranslations;
-  //           districtNameOld = formatLanguageResponse(districtTranslationsOld);
-  //           delete districtData.DistrictTranslations;
-  //           delete districtData.DistrictNewNameTranslations;
-  //           delete districtData.DistrictOldNameTranslations;
-  //         }
-
-  //         const district = {
-  //           ...districtData,
-  //           name: districtName,
-  //           newName: districtNameNew,
-  //           oldName: districtNameOld,
-  //         };
-  //         streetData = {
-  //           ...streetData,
-  //           district,
-  //         };
-  //       }
-  //       formattedStreet.push({
-  //         ...streetData,
-  //         name,
-  //         newName: nameNew,
-  //         oldName: nameOld,
-  //         region,
-  //         city,
-  //       });
-  //     }
-  //     this.logger.debug(`Method: ${methodName} - Response: `, formattedStreet);
-
-  //     return {
-  //       data: formattedStreet,
-  //       totalDocs: pagination.totalPage,
-  //       totalPage: count,
-  //     };
-  //   }
-
-  //   if (data.module == 'area') {
-  //     const where: any = {
-  //       ...(data.status == 2
-  //         ? {}
-  //         : {
-  //             status: data.status,
-  //           }),
-  //     };
-
-  //     const count = await this.prisma.area.count({
-  //       where,
-  //     });
-
-  //     const pagination = createPagination({
-  //       count,
-  //       page: data.page,
-  //       perPage: data.limit,
-  //     });
-  //     let areas = await getOrderedDataWithDistrict(
-  //       'Area',
-  //       'area',
-  //       this.prisma,
-  //       data,
-  //       pagination
-  //     );
-
-  //     const formattedArea = [];
-
-  //     for (let i = 0; i < areas.length; i++) {
-  //       let areaData = areas[i];
-  //       const translations = areaData.AreaTranslations;
-  //       const name = formatLanguageResponse(translations);
-  //       const translationsNew = areaData.AreaNewNameTranslations;
-  //       const nameNew = formatLanguageResponse(translationsNew);
-  //       const translationsOld = areaData.AreaOldNameTranslations;
-  //       const nameOld = formatLanguageResponse(translationsOld);
-  //       delete areaData.AreaTranslations;
-  //       delete areaData.AreaNewNameTranslations;
-  //       delete areaData.AreaOldNameTranslations;
-
-  //       const regionTranslations = areaData.region.RegionTranslations;
-  //       const regionName = formatLanguageResponse(regionTranslations);
-  //       delete areaData.region.RegionTranslations;
-  //       const region = { ...areaData.region, name: regionName };
-  //       delete areaData.region;
-
-  //       const cityTranslations = areaData.city.CityTranslations;
-  //       const cityName = formatLanguageResponse(cityTranslations);
-  //       delete areaData.city.CityTranslations;
-  //       const city = { ...areaData.city, name: cityName };
-  //       delete areaData.city;
-
-  //       if (areaData?.district) {
-  //         const districtData = areaData?.district;
-  //         let districtName: string | object;
-  //         let districtNameNew: string | object;
-  //         let districtNameOld: string | object;
-
-  //         if (districtData) {
-  //           const districtTranslations = districtData.DistrictTranslations;
-  //           districtName = formatLanguageResponse(districtTranslations);
-  //           const districtTranslationsNew =
-  //             districtData.DistrictNewNameTranslations;
-  //           districtNameNew = formatLanguageResponse(districtTranslationsNew);
-  //           const districtTranslationsOld =
-  //             districtData.DistrictOldNameTranslations;
-  //           districtNameOld = formatLanguageResponse(districtTranslationsOld);
-  //           delete districtData.DistrictTranslations;
-  //           delete districtData.DistrictNewNameTranslations;
-  //           delete districtData.DistrictOldNameTranslations;
-  //         }
-
-  //         const district = {
-  //           ...districtData,
-  //           name: districtName,
-  //           newName: districtNameNew,
-  //           oldName: districtNameOld,
-  //         };
-
-  //         areaData = {
-  //           ...areaData,
-  //           district,
-  //         };
-  //       }
-
-  //       formattedArea.push({
-  //         ...areaData,
-  //         name,
-  //         newName: nameNew,
-  //         oldName: nameOld,
-  //         region,
-  //         city,
-  //       });
-  //     }
-
-  //     this.logger.debug(`Method: ${methodName} -  Response: `, formattedArea);
-  //     return {
-  //       data: formattedArea,
-  //       totalDocs: areas.length,
-  //       totalPage: areas.length > 0 ? 1 : 0,
-  //     };
-  //   }
-
-  //   if (data.module == 'lane') {
-  //     const where: any = {
-  //       ...(data.status == 2
-  //         ? {}
-  //         : {
-  //             status: data.status,
-  //           }),
-  //     };
-  //     const count = await this.prisma.lane.count({
-  //       where,
-  //     });
-
-  //     const pagination = createPagination({
-  //       count,
-  //       page: data.page,
-  //       perPage: data.limit,
-  //     });
-  //     const lanes = await getOrderedDataWithDistrict(
-  //       'Lane',
-  //       'lane',
-  //       this.prisma,
-  //       data,
-  //       pagination
-  //     );
-
-  //     const formattedLane = [];
-
-  //     for (let i = 0; i < lanes.length; i++) {
-  //       let laneData = lanes[i];
-  //       const translations = laneData.LaneTranslations;
-  //       const name = formatLanguageResponse(translations);
-  //       const translationsNew = laneData.LaneNewNameTranslations;
-  //       const nameNew = formatLanguageResponse(translationsNew);
-  //       const translationsOld = laneData.LaneOldNameTranslations;
-  //       const nameOld = formatLanguageResponse(translationsOld);
-  //       delete laneData.LaneTranslations;
-  //       delete laneData.LaneNewNameTranslations;
-  //       delete laneData.LaneOldNameTranslations;
-
-  //       const regionTranslations = laneData.region.RegionTranslations;
-  //       const regionName = formatLanguageResponse(regionTranslations);
-  //       delete laneData.region.RegionTranslations;
-  //       const region = { ...laneData.region, name: regionName };
-  //       delete laneData.region;
-
-  //       const cityTranslations = laneData.city.CityTranslations;
-  //       const cityName = formatLanguageResponse(cityTranslations);
-  //       delete laneData.city.CityTranslations;
-  //       const city = { ...laneData.city, name: cityName };
-  //       delete laneData.city;
-  //       if (laneData?.district) {
-  //         const districtData = laneData?.district;
-  //         let districtName: string | object;
-  //         let districtNameNew: string | object;
-  //         let districtNameOld: string | object;
-
-  //         if (districtData) {
-  //           const districtTranslations = districtData.DistrictTranslations;
-  //           districtName = formatLanguageResponse(districtTranslations);
-  //           const districtTranslationsNew =
-  //             districtData.DistrictNewNameTranslations;
-  //           districtNameNew = formatLanguageResponse(districtTranslationsNew);
-  //           const districtTranslationsOld =
-  //             districtData.DistrictOldNameTranslations;
-  //           districtNameOld = formatLanguageResponse(districtTranslationsOld);
-  //           delete districtData.DistrictTranslations;
-  //           delete districtData.DistrictNewNameTranslations;
-  //           delete districtData.DistrictOldNameTranslations;
-  //         }
-
-  //         const district = {
-  //           ...districtData,
-  //           name: districtName,
-  //           newName: districtNameNew,
-  //           oldName: districtNameOld,
-  //         };
-  //         laneData = {
-  //           ...laneData,
-  //           district,
-  //         };
-  //       }
-  //       this.logger.debug(`Method: ${methodName} -  Response: `, laneData);
-
-  //       formattedLane.push({
-  //         ...laneData,
-  //         name,
-  //         newName: nameNew,
-  //         oldName: nameOld,
-  //         region,
-  //         city,
-  //       });
-  //     }
-
-  //     return {
-  //       data: formattedLane,
-  //       totalPage: pagination.totalPage,
-  //       totalDocs: count,
-  //     };
-  //   }
-
-  //   if (data.module == 'residential-area') {
-  //     const where: any = {
-  //       ...(data.status == 2
-  //         ? {}
-  //         : {
-  //             status: data.status,
-  //           }),
-  //     };
-
-  //     const count = await this.prisma.residentialArea.count({
-  //       where,
-  //     });
-
-  //     const pagination = createPagination({
-  //       count,
-  //       page: data.page,
-  //       perPage: data.limit,
-  //     });
-
-  //     let residentialAreas = await getOrderedDataWithDistrict(
-  //       'ResidentialArea',
-  //       'residential_area',
-  //       this.prisma,
-  //       data,
-  //       pagination
-  //     );
-
-  //     const formattedResidentialArea = [];
-
-  //     for (let i = 0; i < residentialAreas.length; i++) {
-  //       let residentialAreaData = residentialAreas[i];
-  //       const translations = residentialAreaData.ResidentialAreaTranslations;
-  //       const name = formatLanguageResponse(translations);
-  //       const translationsNew =
-  //         residentialAreaData.ResidentialAreaNewNameTranslations;
-  //       const nameNew = formatLanguageResponse(translationsNew);
-  //       const translationsOld =
-  //         residentialAreaData.ResidentialAreaOldNameTranslations;
-  //       const nameOld = formatLanguageResponse(translationsOld);
-  //       delete residentialAreaData.ResidentialAreaTranslations;
-  //       delete residentialAreaData.ResidentialAreaNewNameTranslations;
-  //       delete residentialAreaData.ResidentialAreaOldNameTranslations;
-
-  //       const regionTranslations =
-  //         residentialAreaData.region.RegionTranslations;
-  //       const regionName = formatLanguageResponse(regionTranslations);
-  //       delete residentialAreaData.region.RegionTranslations;
-  //       const region = { ...residentialAreaData.region, name: regionName };
-  //       delete residentialAreaData.region;
-
-  //       const cityTranslations = residentialAreaData.city.CityTranslations;
-  //       const cityName = formatLanguageResponse(cityTranslations);
-  //       delete residentialAreaData.city.CityTranslations;
-  //       const city = { ...residentialAreaData.city, name: cityName };
-  //       delete residentialAreaData.city;
-  //       if (residentialAreaData?.district) {
-  //         const districtData = residentialAreaData?.district;
-  //         let districtName: string | object;
-  //         let districtNameNew: string | object;
-  //         let districtNameOld: string | object;
-
-  //         if (districtData) {
-  //           const districtTranslations = districtData.DistrictTranslations;
-  //           districtName = formatLanguageResponse(districtTranslations);
-  //           const districtTranslationsNew =
-  //             districtData.DistrictNewNameTranslations;
-  //           districtNameNew = formatLanguageResponse(districtTranslationsNew);
-  //           const districtTranslationsOld =
-  //             districtData.DistrictOldNameTranslations;
-  //           districtNameOld = formatLanguageResponse(districtTranslationsOld);
-  //           delete districtData.DistrictTranslations;
-  //           delete districtData.DistrictNewNameTranslations;
-  //           delete districtData.DistrictOldNameTranslations;
-  //         }
-
-  //         const district = {
-  //           ...districtData,
-  //           name: districtName,
-  //           newName: districtNameNew,
-  //           oldName: districtNameOld,
-  //         };
-  //         residentialAreaData = {
-  //           ...residentialAreaData,
-  //           district,
-  //         };
-  //       }
-  //       formattedResidentialArea.push({
-  //         ...residentialAreaData,
-  //         name,
-  //         newName: nameNew,
-  //         oldName: nameOld,
-
-  //         region,
-  //         city,
-  //       });
-  //     }
-  //     this.logger.debug(
-  //       `Method: ${methodName} - Response: `,
-  //       formattedResidentialArea
-  //     );
-
-  //     return {
-  //       data: formattedResidentialArea,
-  //       totalPage: pagination.totalPage,
-  //       totalDocs: count,
-  //     };
-  //   }
-
-  //   if (data.module == 'neighborhood') {
-  //     const where: any = {
-  //       ...(data.status == 2
-  //         ? {}
-  //         : {
-  //             status: data.status,
-  //           }),
-  //     };
-  //     const count = await this.prisma.neighborhood.count({
-  //       where,
-  //     });
-
-  //     const pagination = createPagination({
-  //       count,
-  //       page: data.page,
-  //       perPage: data.limit,
-  //     });
-  //     let neighborhoods = await getOrderedDataWithDistrict(
-  //       'Neighborhood',
-  //       'neighborhood',
-  //       this.prisma,
-  //       data,
-  //       pagination
-  //     );
-
-  //     const formattedNeighborhood = [];
-
-  //     for (let i = 0; i < neighborhoods.length; i++) {
-  //       let neighborhoodData = neighborhoods[i];
-  //       const translations = neighborhoodData.NeighborhoodTranslations;
-  //       const name = formatLanguageResponse(translations);
-  //       const translationsNew =
-  //         neighborhoodData.NeighborhoodNewNameTranslations;
-  //       const nameNew = formatLanguageResponse(translationsNew);
-  //       const translationsOld =
-  //         neighborhoodData.NeighborhoodOldNameTranslations;
-  //       const nameOld = formatLanguageResponse(translationsOld);
-  //       delete neighborhoodData.NeighborhoodTranslations;
-  //       delete neighborhoodData.NeighborhoodNewNameTranslations;
-  //       delete neighborhoodData.NeighborhoodOldNameTranslations;
-
-  //       const regionTranslations = neighborhoodData.region.RegionTranslations;
-  //       const regionName = formatLanguageResponse(regionTranslations);
-  //       delete neighborhoodData.region.RegionTranslations;
-  //       const region = { ...neighborhoodData.region, name: regionName };
-  //       delete neighborhoodData.region;
-
-  //       const cityTranslations = neighborhoodData.city.CityTranslations;
-  //       const cityName = formatLanguageResponse(cityTranslations);
-  //       delete neighborhoodData.city.CityTranslations;
-  //       const city = { ...neighborhoodData.city, name: cityName };
-  //       delete neighborhoodData.city;
-  //       if (neighborhoodData?.district) {
-  //         const districtData = neighborhoodData?.district;
-  //         let districtName: string | object;
-  //         let districtNameNew: string | object;
-  //         let districtNameOld: string | object;
-
-  //         if (districtData) {
-  //           const districtTranslations = districtData.DistrictTranslations;
-  //           districtName = formatLanguageResponse(districtTranslations);
-  //           const districtTranslationsNew =
-  //             districtData.DistrictNewNameTranslations;
-  //           districtNameNew = formatLanguageResponse(districtTranslationsNew);
-  //           const districtTranslationsOld =
-  //             districtData.DistrictOldNameTranslations;
-  //           districtNameOld = formatLanguageResponse(districtTranslationsOld);
-  //           delete districtData.DistrictTranslations;
-  //           delete districtData.DistrictNewNameTranslations;
-  //           delete districtData.DistrictOldNameTranslations;
-  //         }
-
-  //         const district = {
-  //           ...districtData,
-  //           name: districtName,
-  //           newName: districtNameNew,
-  //           oldName: districtNameOld,
-  //         };
-  //         neighborhoodData = {
-  //           ...neighborhoodData,
-  //           district,
-  //         };
-  //       }
-  //       formattedNeighborhood.push({
-  //         ...neighborhoodData,
-  //         name,
-  //         newName: nameNew,
-  //         oldName: nameOld,
-  //         region,
-  //         city,
-  //       });
-  //     }
-  //     this.logger.debug(
-  //       `Method: ${methodName} - Response: `,
-  //       formattedNeighborhood
-  //     );
-
-  //     return {
-  //       data: formattedNeighborhood,
-  //       totalPage: pagination.totalPage,
-  //       totalDocs: count,
-  //     };
-  //   }
-
-  //   if (data.module == 'impasse') {
-  //     const where: any = {
-  //       ...(data.status == 2
-  //         ? {}
-  //         : {
-  //             status: data.status,
-  //           }),
-  //     };
-
-  //     const count = await this.prisma.impasse.count({
-  //       where,
-  //     });
-
-  //     const pagination = createPagination({
-  //       count,
-  //       page: data.page,
-  //       perPage: data.limit,
-  //     });
-  //     let impasses = await getOrderedDataWithDistrict(
-  //       'Impasse',
-  //       'impasse',
-  //       this.prisma,
-  //       data,
-  //       pagination
-  //     );
-
-  //     const formattedImpasse = [];
-
-  //     for (let i = 0; i < impasses.length; i++) {
-  //       let impasseData = impasses[i];
-  //       const translations = impasseData.ImpasseTranslations;
-  //       const name = formatLanguageResponse(translations);
-  //       const translationsNew = impasseData.ImpasseNewNameTranslations;
-  //       const nameNew = formatLanguageResponse(translationsNew);
-  //       const translationsOld = impasseData.ImpasseOldNameTranslations;
-  //       const nameOld = formatLanguageResponse(translationsOld);
-  //       delete impasseData.ImpasseTranslations;
-  //       delete impasseData.ImpasseNewNameTranslations;
-  //       delete impasseData.ImpasseOldNameTranslations;
-
-  //       const regionTranslations = impasseData.region.RegionTranslations;
-  //       const regionName = formatLanguageResponse(regionTranslations);
-  //       delete impasseData.region.RegionTranslations;
-  //       const region = { ...impasseData.region, name: regionName };
-  //       delete impasseData.region;
-
-  //       const cityTranslations = impasseData.city.CityTranslations;
-  //       const cityName = formatLanguageResponse(cityTranslations);
-  //       delete impasseData.city.CityTranslations;
-  //       const city = { ...impasseData.city, name: cityName };
-  //       delete impasseData.city;
-
-  //       if (impasseData?.district) {
-  //         const districtData = impasseData?.district;
-  //         let districtName: string | object;
-  //         let districtNameNew: string | object;
-  //         let districtNameOld: string | object;
-
-  //         if (districtData) {
-  //           const districtTranslations = districtData.DistrictTranslations;
-  //           districtName = formatLanguageResponse(districtTranslations);
-  //           const districtTranslationsNew =
-  //             districtData.DistrictNewNameTranslations;
-  //           districtNameNew = formatLanguageResponse(districtTranslationsNew);
-  //           const districtTranslationsOld =
-  //             districtData.DistrictOldNameTranslations;
-  //           districtNameOld = formatLanguageResponse(districtTranslationsOld);
-  //           delete districtData.DistrictTranslations;
-  //           delete districtData.DistrictNewNameTranslations;
-  //           delete districtData.DistrictOldNameTranslations;
-  //         }
-
-  //         const district = {
-  //           ...impasseData.district,
-  //           name: districtName,
-  //           districtNameNew,
-  //           districtNameOld,
-  //         };
-  //         impasseData = { ...impasseData, district };
-  //       }
-  //       this.logger.debug(`Method: ${methodName} -  Response: `, impasseData);
-
-  //       formattedImpasse.push({
-  //         ...impasseData,
-  //         name,
-  //         newName: nameNew,
-  //         oldName: nameOld,
-  //         region,
-  //         city,
-  //       });
-  //     }
-
-  //     return {
-  //       data: formattedImpasse,
-  //       totalPage: pagination.totalPage,
-  //       totalDocs: count,
-  //     };
-  //   }
-
-  //   if (data.module == 'avenue') {
-  //     const where: any = {
-  //       ...(data.status == 2
-  //         ? {}
-  //         : {
-  //             status: data.status,
-  //           }),
-  //     };
-
-  //     const count = await this.prisma.avenue.count({
-  //       where,
-  //     });
-
-  //     const pagination = createPagination({
-  //       count,
-  //       page: data.page,
-  //       perPage: data.limit,
-  //     });
-  //     let avenues = await getOrderedDataWithDistrict(
-  //       'Avenue',
-  //       'avenue',
-  //       this.prisma,
-  //       data,
-  //       pagination
-  //     );
-  //     const formattedAvenue = [];
-
-  //     for (let i = 0; i < avenues.length; i++) {
-  //       let avenueData = avenues[i];
-  //       const translations = avenueData.AvenueTranslations;
-  //       const name = formatLanguageResponse(translations);
-  //       const translationsNew = avenueData.AvenueNewNameTranslations;
-  //       const nameNew = formatLanguageResponse(translationsNew);
-  //       const translationsOld = avenueData.AvenueOldNameTranslations;
-  //       const nameOld = formatLanguageResponse(translationsOld);
-  //       delete avenueData.AvenueTranslations;
-  //       delete avenueData.AvenueNewNameTranslations;
-  //       delete avenueData.AvenueOldNameTranslations;
-
-  //       const regionTranslations = avenueData.region.RegionTranslations;
-  //       const regionName = formatLanguageResponse(regionTranslations);
-  //       delete avenueData.region.RegionTranslations;
-  //       const region = { ...avenueData.region, name: regionName };
-  //       delete avenueData.region;
-
-  //       const cityTranslations = avenueData.city.CityTranslations;
-  //       const cityName = formatLanguageResponse(cityTranslations);
-  //       delete avenueData.city.CityTranslations;
-  //       const city = { ...avenueData.city, name: cityName };
-  //       delete avenueData.city;
-  //       if (avenueData?.district) {
-  //         const districtData = avenueData?.district;
-  //         let districtName: string | object;
-  //         let districtNameNew: string | object;
-  //         let districtNameOld: string | object;
-
-  //         if (districtData) {
-  //           const districtTranslations = districtData.DistrictTranslations;
-  //           districtName = formatLanguageResponse(districtTranslations);
-  //           const districtTranslationsNew =
-  //             districtData.DistrictNewNameTranslations;
-  //           districtNameNew = formatLanguageResponse(districtTranslationsNew);
-  //           const districtTranslationsOld =
-  //             districtData.DistrictOldNameTranslations;
-  //           districtNameOld = formatLanguageResponse(districtTranslationsOld);
-  //           delete districtData.DistrictTranslations;
-  //           delete districtData.DistrictNewNameTranslations;
-  //           delete districtData.DistrictOldNameTranslations;
-  //         }
-
-  //         const district = {
-  //           ...avenueData.district,
-  //           name: districtName,
-  //           districtNameNew,
-  //           districtNameOld,
-  //         };
-  //         avenueData = {
-  //           ...avenueData,
-  //           district,
-  //         };
-  //       }
-  //       formattedAvenue.push({
-  //         ...avenueData,
-  //         name,
-  //         newName: nameNew,
-  //         oldName: nameOld,
-  //         region,
-  //         city,
-  //       });
-  //     }
-
-  //     this.logger.debug(`Method: ${methodName} - Response: `, formattedAvenue);
-
-  //     return {
-  //       data: formattedAvenue,
-  //       totalPage: pagination.totalPage,
-  //       totalDocs: count,
-  //     };
-  //   }
-
-  //   if (data.module == 'passage') {
-  //     const where: any = {
-  //       ...(data.status == 2
-  //         ? {}
-  //         : {
-  //             status: data.status,
-  //           }),
-  //     };
-
-  //     const count = await this.prisma.passage.count({
-  //       where,
-  //     });
-
-  //     const pagination = createPagination({
-  //       count,
-  //       page: data.page,
-  //       perPage: data.limit,
-  //     });
-  //     let passages = await getOrderedDataWithDistrict(
-  //       'Passage',
-  //       'passage',
-  //       this.prisma,
-  //       data,
-  //       pagination
-  //     );
-
-  //     const formattedPassage = [];
-
-  //     for (let i = 0; i < passages.length; i++) {
-  //       let passageData = passages[i];
-  //       const translations = passageData.PassageTranslations;
-  //       const name = formatLanguageResponse(translations);
-  //       const translationsNew = passageData.PassageNewNameTranslations;
-  //       const nameNew = formatLanguageResponse(translationsNew);
-  //       const translationsOld = passageData.PassageOldNameTranslations;
-  //       const nameOld = formatLanguageResponse(translationsOld);
-  //       delete passageData.PassageTranslations;
-  //       delete passageData.PassageNewNameTranslations;
-  //       delete passageData.PassageOldNameTranslations;
-
-  //       const regionTranslations = passageData.region.RegionTranslations;
-  //       const regionName = formatLanguageResponse(regionTranslations);
-  //       delete passageData.region.RegionTranslations;
-  //       const region = { ...passageData.region, name: regionName };
-  //       delete passageData.region;
-
-  //       const cityTranslations = passageData.city.CityTranslations;
-  //       const cityName = formatLanguageResponse(cityTranslations);
-  //       delete passageData.city.CityTranslations;
-  //       const city = { ...passageData.city, name: cityName };
-  //       delete passageData.city;
-  //       if (passageData?.district) {
-  //         const districtData = passageData?.district;
-  //         let districtName: string | object;
-  //         let districtNameNew: string | object;
-  //         let districtNameOld: string | object;
-
-  //         if (districtData) {
-  //           const districtTranslations = districtData.DistrictTranslations;
-  //           districtName = formatLanguageResponse(districtTranslations);
-  //           const districtTranslationsNew =
-  //             districtData.DistrictNewNameTranslations;
-  //           districtNameNew = formatLanguageResponse(districtTranslationsNew);
-  //           const districtTranslationsOld =
-  //             districtData.DistrictOldNameTranslations;
-  //           districtNameOld = formatLanguageResponse(districtTranslationsOld);
-  //           delete districtData.DistrictTranslations;
-  //           delete districtData.DistrictNewNameTranslations;
-  //           delete districtData.DistrictOldNameTranslations;
-  //         }
-
-  //         const district = {
-  //           ...passageData.district,
-  //           name: districtName,
-  //           districtNameNew,
-  //           districtNameOld,
-  //         };
-  //         passageData = { ...passageData, district };
-  //       }
-
-  //       formattedPassage.push({
-  //         ...passageData,
-  //         name,
-  //         newName: nameNew,
-  //         oldName: nameOld,
-  //         region,
-  //         city,
-  //       });
-  //     }
-  //     this.logger.debug(`Method: ${methodName} - Response: `, formattedPassage);
-
-  //     return {
-  //       data: formattedPassage,
-  //       totalPage: pagination.totalPage,
-  //       totalDocs: count,
-  //     };
-  //   }
-  // }
-=======
   async findObjectAdress(data: ObjectAdressFilterDto) {
     const methodName: string = this.findObjectAdress.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
@@ -1695,7 +873,6 @@ export class OrganizationService {
       };
     }
   }
->>>>>>> 044cf67fb1cdbc24dfa5262be216c1c28043b7b6
 
   async findOne(data: GetOneDto): Promise<OrganizationInterfaces.Response> {
     const methodName: string = this.findOne.name;
@@ -1864,7 +1041,7 @@ export class OrganizationService {
         i.PhoneTypes = {
           value: i.PhoneTypes || null,
           requiredPlan: 'standard',
-        }
+        };
       }
       await this.cacheService.set(
         'organizationOne',
