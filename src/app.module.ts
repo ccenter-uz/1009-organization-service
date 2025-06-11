@@ -57,7 +57,6 @@ import Redis from 'ioredis';
       isGlobal: true,
     }),
 
-    
     ScheduleModule.forRoot(),
     PrismaModule,
     CacheRedisModule,
@@ -92,10 +91,10 @@ import Redis from 'ioredis';
   ],
   controllers: [],
   providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: LoggingInterceptor,
-    },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: LoggingInterceptor,
+    // },
     {
       provide: APP_FILTER,
       useClass: AllExceptionFilter,

@@ -56,7 +56,7 @@ export class LoggingInterceptor implements NestInterceptor {
       role: logData.user?.role,
       organizationId: null,
       organizationName: null,
-      referenceId: null,
+      // referenceId: null,
       method: logData.method,
       path: logData.path,
       request: req,
@@ -78,8 +78,7 @@ export class LoggingInterceptor implements NestInterceptor {
           if (response?.name) logDataComplete.organizationName = response?.name;
         }
 
-        if (response?.id) logDataComplete.referenceId = response?.id;
-        if (response?.status) logDataComplete.status = response?.status;
+        //  if (response?.id) logDataComplete.referenceId = response?.id;
         // if (typeof response?.name !== 'object') {
         //   this.saveLog(logDataComplete).catch((error) => {
         //     console.error('Error saving log:', error);

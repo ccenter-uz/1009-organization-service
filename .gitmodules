@@ -1,5 +1,5 @@
-[submodule "types"]
-	path = types
-	url = https://github.com/ccenter-uz/types.git
 [submodule "https://github.com/ccenter-uz/types"]
 	git = git@github.com:ccenter-uz/1009-types.git
+[submodule "types"]
+	path = types
+	url = https://github.com/ccenter-uz/1009-types.git
