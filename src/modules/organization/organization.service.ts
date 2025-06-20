@@ -66,6 +66,7 @@ import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 import { ObjectAdressFilterDto } from 'types/organization/organization/dto/filter-object-adress-organization.dto';
 import { getOrgCount } from '@/common/helper/for-Org/get-org-data-count.dto';
+import { getOrgOptimizedQuery } from '@/common/helper/for-Org/get-org';
 
 @Injectable()
 export class OrganizationService {
@@ -367,40 +368,6 @@ export class OrganizationService {
     // if (findOrganization) {
     //   return findOrganization;
     // } else {
-    if (data.all) {
-      const organizations = await this.prisma.organization.findMany({
-        where,
-        orderBy: { name: 'asc' },
-        include,
-      });
-      const result = [];
-      for (let [index, org] of Object.entries(organizations)) {
-        for (let [key, prop] of Object.entries(includeConfig)) {
-          let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-          delete org?.[idNameOfModules];
-        }
-        const formattedOrganization = formatOrganizationResponse(
-          org,
-          modulesConfig
-        );
-        if (data.role !== 'moderator') {
-          delete formattedOrganization.secret;
-        }
-        result.push(formattedOrganization);
-      }
-      this.logger.debug(`Method: ${methodName} - Response: `, result);
-      // await this.cacheService.setAll('organization', CacheKey, {
-      //   data: result,
-      //   totalDocs: organizations.length,
-      //   totalPage: organizations.length > 0 ? 1 : 0,
-      // });
-
-      return {
-        data: result,
-        totalDocs: organizations.length,
-        totalPage: organizations.length > 0 ? 1 : 0,
-      };
-    }
 
     const count = await getOrgCount(data, this.prisma);
 
