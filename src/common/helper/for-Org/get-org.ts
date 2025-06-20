@@ -92,16 +92,16 @@ export async function getOrgOptimizedQuery(
   }
 
   if (data.belongAbonent === true) {
-    conditions.push(Prisma.sql`o.created_by = 'Client'`);
+    conditions.push(Prisma.sql`o.created_by = ${CreatedByEnum.Client}`);
   }
 
   if (data.bounded === true) {
-    conditions.push(Prisma.sql`o.created_by = 'Billing'`);
+    conditions.push(Prisma.sql`o.created_by = ${CreatedByEnum.Billing}`);
   }
 
-  // if (data. === true) {
-  //   conditions.push(Prisma.sql`o.created_by = 'Billing'`);
-  // }
+  if (data.fromOperator === true) {
+    conditions.push(Prisma.sql`o.created_by = ${CreatedByEnum.Operator}`);
+  }
 
   if (data.mine === true) {
     conditions.push(Prisma.sql`o.staff_number = ${data.staffNumber}`);
