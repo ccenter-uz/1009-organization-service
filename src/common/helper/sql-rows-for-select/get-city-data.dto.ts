@@ -54,7 +54,11 @@ export async function getCityData(
           GROUP BY rt.region_id
         )
       SELECT
-        c.*,
+        c.id AS "id",
+        c.region_id AS "regionId",
+        c.created_at AS "createdAt",
+        c.updated_at AS "updatedAt",
+        c.deleted_at AS "deletedAt",
 
         -- CityTranslations as multilingual JSON
         ct.name AS name,

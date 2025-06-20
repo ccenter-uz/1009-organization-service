@@ -70,9 +70,20 @@ export async function getCategoryData(
         GROUP BY district_id
       )
       SELECT
-        c.*,
+        c.id AS "id",
+        c.staff_number AS "staffNumber",
+        c.order_number AS "orderNumber",
+        c.status AS "status",
+        c.city_id AS "cityId",
+        c.region_id AS "regionId",
+        c.district_id AS "districtId",
+        c.edited_staff_number AS "editedStaffNumber",
+        c.delete_reason AS "deleteReason",
+        c.created_at AS "createdAt",
+        c.updated_at AS "updatedAt",
+        c.deleted_at AS "deletedAt",
 
-        -- Category name as multilingual JSON
+    -- Multilingual name from category_translation table
         ct.name AS name,
 
         -- City object with translation

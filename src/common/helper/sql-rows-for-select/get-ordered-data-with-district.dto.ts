@@ -101,7 +101,20 @@ export async function getOrderedDataWithDistrict(
         GROUP BY district_id
       )
     SELECT
-      c.*,
+      --c.*,
+      c.id AS "id",
+      c.staff_number AS "staffNumber",
+      c.order_number AS "orderNumber",
+      c.status AS "status",
+      c.city_id AS "cityId",
+      c.region_id AS "regionId",
+      c.district_id AS "districtId",
+      c.edited_staff_number AS "editedStaffNumber",
+      c.index AS "index",
+      c.created_at AS "createdAt",
+      c.updated_at AS "updatedAt",
+      c.deleted_at AS "deletedAt",
+
       ct.name AS name,
       cnt.name AS "newName",
       cot.name AS "oldName",

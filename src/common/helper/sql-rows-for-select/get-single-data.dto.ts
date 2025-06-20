@@ -25,7 +25,11 @@ export async function getSingleData(
           GROUP BY ct.${Prisma.raw(`${name}_id`)}
         )
       SELECT
-        c.*,
+        --c.*,
+        c.id AS "id",
+        c.created_at AS "createdAt",
+        c.updated_at AS "updatedAt",
+        c.deleted_at AS "deletedAt",
         t.name AS name
       FROM ${Prisma.raw(name)} c
       LEFT JOIN ${Prisma.raw(CapitalizaName)}Translations t ON t.${Prisma.raw(`${name}_id`)} = c.id
