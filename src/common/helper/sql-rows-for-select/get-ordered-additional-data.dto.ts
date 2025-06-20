@@ -122,7 +122,15 @@ export async function getAllAdditional(
         )
 
       SELECT
-        a.*,
+        --a.*,
+        a.id AS "id",
+        a.staff_number AS "staffNumber",
+        a.additional_category_id AS "additionalCategoryId",
+        a.status AS "status",
+        a.edited_staff_number AS "editedStaffNumber",
+        a.created_at AS "createdAt",
+        a.updated_at AS "updatedAt",
+        a.deleted_at AS "deletedAt",
         at.translations AS "name",
         awt.warnings AS "warning",
         amt.mentions AS "mention",

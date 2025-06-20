@@ -35,7 +35,16 @@ export async function getSubCategoryOrderedData(
         )
 
       SELECT
-        c.*,
+        c.id AS id,
+       c.category_id AS "categoryId",
+       c.staff_number AS "staffNumber",
+       c.order_number AS "orderNumber",
+       c.status AS "status",
+       c.edited_staff_number AS "editedStaffNumber",
+       c.delete_reason AS "deleteReason",
+       c.created_at AS "createdAt",
+       c.updated_at AS "updatedAt",
+       c.deleted_at AS "deletedAt",
 
         -- SubCategory name (multilingual)
         t.name AS name,
@@ -44,17 +53,17 @@ export async function getSubCategoryOrderedData(
         JSONB_BUILD_OBJECT(
           'id', cat.id,
           'name', COALESCE(ct.name, '{}'::JSONB),
-          'order_number', cat.order_number,
-          'region_id', cat.region_id,
-          'city_id', cat.city_id,
-          'district_id', cat.district_id,
+          'orderNumber', cat.order_number,
+          'regionId', cat.region_id,
+          'cityId', cat.city_id,
+          'districtId', cat.district_id,
           'status', cat.status,
-          'staff_number', cat.staff_number,
-          'delete_reason', cat.delete_reason,
-          'edited_staff_number', cat.edited_staff_number,
-          'created_at', cat.created_at,
-          'updated_at', cat.updated_at,
-          'deleted_at', cat.deleted_at
+          'staffNumber', cat.staff_number,
+          'deleteReason', cat.delete_reason,
+          'editedStaffNumber', cat.edited_staff_number,
+          'createdAt', cat.created_at,
+          'updatedAt', cat.updated_at,
+          'deletedAt', cat.deleted_at
         ) AS ${Prisma.sql`"${Prisma.raw(CapitalizeCategoryName)}"`}
 
       FROM ${Prisma.raw(name)} c

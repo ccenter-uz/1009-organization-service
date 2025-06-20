@@ -25,7 +25,14 @@ export async function getSingleOrderedData(
           GROUP BY ct.${Prisma.raw(`${name}_id`)}
         )
       SELECT
-        c.*,
+        c.id AS "id",
+        c.staff_number AS "staffNumber",
+        c.status AS "status",
+        c.created_at AS "createdAt",
+        c.updated_at AS "updatedAt",
+        c.deleted_at AS "deletedAt",
+        c.order_number AS "orderNumber",
+        c.edited_staff_number AS "editedStaffNumber",
         -- Translated name
         ct.name AS name
       FROM ${Prisma.raw(name)} c

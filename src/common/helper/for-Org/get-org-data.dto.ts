@@ -1110,7 +1110,6 @@ LEFT JOIN LATERAL (
     ${whereClauseFinal}
     ORDER BY o.name ASC
     ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}
-  
     `
     )
     .catch((e) => {

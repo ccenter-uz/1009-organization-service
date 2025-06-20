@@ -16,8 +16,8 @@ export async function getProductServiceSubCategoryOrderedData(
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
       : Prisma.empty;
 
-const result: any = await prisma.$queryRaw(
-  Prisma.sql`WITH
+  const result: any = await prisma.$queryRaw(
+    Prisma.sql`WITH
   ${Prisma.raw(CapitalizeName)}Translations AS (
       SELECT
           ct.${Prisma.raw(`${name}_id`)},
@@ -41,14 +41,31 @@ const result: any = await prisma.$queryRaw(
   )
 
 SELECT
-  c.*,
-  t.name AS name,
-  JSONB_SET(
-    ROW_TO_JSON(${Prisma.raw(categoryName)})::JSONB,  
-    '{name}', 
-    COALESCE(ct.name, '{}'::JSONB)
-  ) AS ${Prisma.sql`"${Prisma.raw(CapitalizeCategoryName)}"`},
-  COALESCE(oc.organization_count, 0) AS "orgCount"
+ --c.*,
+     c.id AS "id",
+     c.staff_number AS "staffNumber",
+     c.order_number AS "orderNumber",
+     c.status AS "status",
+     c.product_service_category_id AS "productServiceCategoryId",
+     c.edited_staff_number AS "editedStaffNumber",
+     c.delete_reason AS "deleteReason",
+     c.created_at AS "createdAt",
+     c.updated_at AS "updatedAt",
+     c.deleted_at AS "deletedAt",
+    t.name AS name,
+    JSONB_BUILD_OBJECT(
+      'id', c.id,
+      'name', COALESCE(ct.name, '{}'::JSONB),
+      'status', c.status,
+      'createdAt', c.created_at,
+      'updatedAt', c.updated_at,
+      'deletedAt', c.deleted_at,
+      'orderNumber', c.order_number,
+      'staffNumber', c.staff_number,
+      'deleteReason', c.delete_reason,
+      'editedStaffNumber', c.edited_staff_number
+    ) AS "ProductServiceCategory" , 
+      COALESCE(oc.organization_count, 0) AS "orgCount"
 
 FROM ${Prisma.raw(name)} c
 LEFT JOIN ${Prisma.raw(categoryName)} ON c.${Prisma.raw(`${categoryName}_id`)} = ${Prisma.raw(categoryName)}.id
@@ -68,7 +85,7 @@ ${
         t.name ->> '${data.langCode ?? 'ru'}' ASC`)
 }
 ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}`
-);
+  );
 
   return result;
 }
