@@ -233,7 +233,7 @@ export async function getOrg(
   if (data.module == 'lane') {
     conditions.push(Prisma.sql`o.lane_id = ${data.objectAdressId}`);
   }
-  if (data.module == 'residential-area') {
+  if (data.module == 'residential') {
     conditions.push(Prisma.sql`o.residential_id = ${data.objectAdressId}`);
   }
 

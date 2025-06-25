@@ -1,15 +1,133 @@
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { CreatedByEnum } from 'types/global';
+import { CreatedByEnum, ModuleNamesObjectAdressArray } from 'types/global';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
+import { createPagination } from '../pagination.helper';
 
 export async function getOrgOptimizedQuery(
-  data: OrganizationFilterDto,
   prisma: PrismaService,
-  pagination?: { take: number; skip: number }
+  data: OrganizationFilterDto,
+  page: number,
+  limit: number
 ) {
   const conditions: Prisma.Sql[] = [];
   let whereClause = Prisma.empty;
+
+  if (data.search) {
+    const queryName = data.search.replace('-', ' ').toLowerCase();
+
+    const orConditions = [
+      Prisma.sql`o.name ILIKE ${`%${data.search}%`}`,
+      Prisma.sql`o.legal_name ILIKE ${`%${data.search}%`}`,
+      Prisma.sql`o.inn ILIKE ${`%${data.search}%`}`,
+      Prisma.sql`
+      EXISTS (
+        SELECT 1
+        FROM product_service_category psc
+        LEFT JOIN product_service_category_translations psct 
+          ON psc.id = psct.product_service_category_id
+        LEFT JOIN product_services ps 
+          ON ps.product_service_category_id = psc.id
+        WHERE COALESCE(psct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${queryName})
+        AND ps.organization_id = o.id
+      )`,
+      Prisma.sql`
+      EXISTS (
+        SELECT 1
+        FROM product_service_sub_category pssc
+        LEFT JOIN product_service_sub_category_translations pssct 
+          ON pssc.id = pssct.product_service_sub_category_id
+        LEFT JOIN product_services ps 
+          ON ps.product_service_sub_category_id = pssc.id
+        WHERE COALESCE(pssct.search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${queryName})
+        AND ps.organization_id = o.id
+      )`,
+    ];
+
+    // OR bilan bitta guruhga qo‘shamiz
+    conditions.push(Prisma.sql`(${Prisma.join(orConditions, ' OR ')})`);
+  }
+
+  if (data.address) {
+    const query = data.address.replace('-', ' ').toLowerCase();
+
+    conditions.push(
+      Prisma.sql`
+      (
+        COALESCE(o.address_search_vector, ''::tsvector) @@ plainto_tsquery('simple', ${query})
+        OR EXISTS (
+          SELECT 1 FROM district_translations dt
+          WHERE dt.district_id = o.district_id
+          AND dt.search_vector @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM region_translations rt
+          WHERE rt.region_id = o.region_id
+          AND rt.search_vector @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM passage_translations pt
+          WHERE pt.passage_id = o.passage_id
+          AND pt.search_vector @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM street_translations st
+          WHERE st.street_id = o.street_id
+          AND st.search_vector @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM area_translations at
+          WHERE at.area_id = o.area_id
+          AND at.search_vector @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM avenue_translations avtt
+          WHERE avtt.avenue_id = o.avenue_id
+          AND avtt.search_vector @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM city_translations ct
+          WHERE ct.city_id = o.city_id
+          AND ct.search_vector @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM residential_area_translations rat
+          WHERE rat.residential_area_id = o.residential_id
+          AND rat.search_vector @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM neighborhood_translations nt
+          WHERE nt.neighborhood_id = o.neighborhood_id
+          AND nt.search_vector @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM impasse_translations it
+          WHERE it.impasse_id = o.impasse_id
+          AND it.search_vector @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM village_translations vt
+          WHERE vt.village_id = o.village_id
+          AND vt.search_vector @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM lane_translations lt
+          WHERE lt.lane_id = o.lane_id
+          AND lt.search_vector @@ plainto_tsquery('simple', ${query})
+        )
+        OR EXISTS (
+          SELECT 1 FROM nearbees no
+          JOIN nearby_translations nt ON nt.nearby_id = no.nearby_id
+          WHERE no.organization_version_id = o.id
+          AND (
+            nt.search_vector @@ plainto_tsquery('simple', ${query})
+            OR no.description_search_vector @@ plainto_tsquery('simple', ${query})
+          )
+        )
+      )
+    `
+    );
+  }
 
   if (data.subCategoryId) {
     conditions.push(Prisma.sql`o.sub_category_id = ${data.subCategoryId}`);
@@ -25,9 +143,9 @@ export async function getOrgOptimizedQuery(
     );
   }
 
-  if (data.subCategoryId) {
-    conditions.push(Prisma.sql`o.sub_category_id = ${data.subCategoryId}`);
-  }
+  // if (data.subCategoryId) {
+  //   conditions.push(Prisma.sql`o.sub_category_id = ${data.subCategoryId}`);
+  // }
 
   if (data.phoneType) {
     conditions.push(Prisma.sql`
@@ -107,86 +225,64 @@ export async function getOrgOptimizedQuery(
     conditions.push(Prisma.sql`o.staff_number = ${data.staffNumber}`);
   }
 
+  for (let i = 0; i < ModuleNamesObjectAdressArray.length; i++) {
+    const moduleName = ModuleNamesObjectAdressArray[i];
+
+    if (moduleName === data.module) {
+      const columnName = `${moduleName}_id`;
+
+      conditions.push(
+        Prisma.sql`${Prisma.raw(`o.${columnName}`)} = ${data.objectAdressId}`
+      );
+    }
+  }
+
   whereClause =
     conditions.length > 0
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
       : Prisma.empty;
 
-  const result = await prisma.$queryRaw(Prisma.sql`
-    -- CTE for MainOrganization translations in all languages
-    WITH MainOrganizationTranslations AS (
-      SELECT
-        mot.main_organization_id,
-        jsonb_object_agg(mot.language_code, mot.name) AS name
-      FROM main_organization_translations mot
-      GROUP BY mot.main_organization_id
-    )
+  // Step 2: Count query
+  const totalResult = await prisma.$queryRaw<{ count: bigint }[]>(Prisma.sql`
+    SELECT COUNT(DISTINCT o.id) AS count
+    FROM organization o
+    LEFT JOIN phone p ON o.id = p.organization_id
+    LEFT JOIN payment_types pt ON o.id = pt.organization_id
+    LEFT JOIN main_organization mo ON o.main_organization_id = mo.id
+    ${whereClause};
+  `);
 
+  const count = Number(totalResult[0]?.count || 0);
+
+  const pagination = createPagination({
+    count,
+    page: page,
+    perPage: limit,
+  });
+
+  const limitOffset = pagination
+    ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}`
+    : Prisma.empty;
+
+  const result = await prisma.$queryRaw(Prisma.sql`
     SELECT  
       o.id,
       o.name, 
       o.address, 
       o.status, 
+      o.edited_staff_number AS "editedStaffNumber",
       o.created_at AS "createdAt",
-      o.legal_name AS "legalName",
-      o.work_time AS "workTime",
-      o.transport,
-
-      -- Aggregate phones
-      json_agg(
-        json_build_object(
-          'id', p.id,
-          'phone', p.phone,
-          'isSecret', p."isSecret",
-          'phoneTypeId', p.phone_type_id
-        )
-      ) FILTER (WHERE p.id IS NOT NULL) AS phones,
-    
-      -- Aggregate payment types
-      json_agg(
-        json_build_object(
-          'id', pt.id,
-          'Cash', pt.cash,
-          'Terminal', pt.terminal,
-          'Transfer', pt.transfer,
-          'createdAt', pt.created_at,
-          'updatedAt', pt.updated_at,
-          'deletedAt', pt.deleted_at
-        )
-      ) FILTER (WHERE pt.id IS NOT NULL) AS "paymentTypes",
-    
-      -- MainOrganization object with translations
-      CASE 
-        WHEN mo.id IS NOT NULL THEN jsonb_build_object(
-          'id', mo.id,
-          'name', COALESCE(mot.name, '{}'::jsonb),
-          'staffNumber', mo.staff_number,
-          'editedStaffNumber', mo.edited_staff_number,
-          'status', mo.status,
-          'orderNumber', mo.order_number,
-          'createdAt', mo.created_at,
-          'updatedAt', mo.updated_at,
-          'deletedAt', mo.deleted_at
-        )
-        ELSE NULL
-      END AS "mainOrganization"
-      
+      o.updated_at AS "updatedAt",
+      o.deleted_at AS "deletedAt"
     FROM organization o
-      
-    -- Phones
-    LEFT JOIN phone p ON o.id = p.organization_id
-      
-    -- Payment Types
-    LEFT JOIN payment_types pt ON o.id = pt.organization_id
-      
-    -- Main Organization
-    LEFT JOIN main_organization mo ON o.main_organization_id = mo.id
-      
-    -- Join with CTE for main organization translations
-    LEFT JOIN MainOrganizationTranslations mot ON mo.id = mot.main_organization_id
-      
-    GROUP BY o.id, mo.id, mot.name;
+    ${whereClause}
+    GROUP BY o.id
+    ${limitOffset};
   `);
 
-  return result;
+  return {
+    data: result,
+    totalPage: pagination.totalPage,
+    totalDocs: count > 0 ? count : 0,
+  };
 }
