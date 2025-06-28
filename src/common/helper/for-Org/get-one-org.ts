@@ -320,28 +320,7 @@ export async function getOneOrgOptimizedQuery(
       o.segment_id AS "segmentId",
       o.neighborhood_id AS "neighborhoodId",
 
-      -- Aggregate phones
-      json_agg(
-        json_build_object(
-          'id', p.id,
-          'phone', p.phone,
-          'isSecret', p."isSecret",
-          'phoneTypeId', p.phone_type_id
-        )
-      ) FILTER (WHERE p.id IS NOT NULL) AS phones,
     
-      -- Aggregate payment types
-      json_agg(
-        json_build_object(
-          'id', pt.id,
-          'Cash', pt.cash,
-          'Terminal', pt.terminal,
-          'Transfer', pt.transfer,
-          'createdAt', pt.created_at,
-          'updatedAt', pt.updated_at,
-          'deletedAt', pt.deleted_at
-        )
-      ) FILTER (WHERE pt.id IS NOT NULL) AS "paymentTypes",
     
       -- MainOrganization object with translations
       CASE 
@@ -562,11 +541,11 @@ export async function getOneOrgOptimizedQuery(
           'updatedAt', pty.updated_at,
           'deletedAt', pty.deleted_at
         )
-      ) FILTER (WHERE pty.id IS NOT NULL) AS "PaymentTypes",
+      ) FILTER (WHERE pty.id IS NOT NULL) -> 0 AS "PaymentTypes",
 
       -- Aggregate phone
       json_agg(
-        jsonb_build_object(
+      DISTINCT  jsonb_build_object(
           'id', ph.id,
           'phone', ph.phone,
           'phoneTypeId', ph.phone_type_id,
@@ -583,11 +562,11 @@ export async function getOneOrgOptimizedQuery(
             'name', COALESCE(ptit.name, '{}'::jsonb)
           )
         )
-      ) FILTER (WHERE p.id IS NOT NULL) AS "Phone" ,
+      ) FILTER (WHERE ph.id IS NOT NULL) AS "Phone" ,
 
       -- Aggregate nearby
-      json_agg(
-        jsonb_build_object(
+       json_agg(
+        DISTINCT jsonb_build_object(
           'id', nb.id,
           'description', nb.description,
           'NearbyId', nb.nearby_id,
@@ -608,7 +587,7 @@ export async function getOneOrgOptimizedQuery(
               'createdAt', n.created_at,
               'deletedAt', n.deleted_at,
               'updatedAt', n.updated_at,
-              'name', COALESCE(to_jsonb(nyt.name), '{}'::jsonb)
+              'name',  COALESCE(nyt.name, '{}'::jsonb)
             ),
             '{}'::jsonb
           ),
@@ -631,7 +610,7 @@ export async function getOneOrgOptimizedQuery(
 
       -- Aggregate product service
       json_agg(
-        jsonb_build_object(
+       DISTINCT jsonb_build_object(
           'id', ps.id,
           'createdAt', ps.created_at,
           'updatedAt', ps.updated_at,
@@ -647,7 +626,7 @@ export async function getOneOrgOptimizedQuery(
                 'createdAt', psc.created_at,
                 'updatedAt', psc.updated_at,
                 'deletedAt', psc.deleted_at,
-                'name', COALESCE(to_jsonb(pstc.name), '{}'::jsonb)
+               'name', COALESCE(to_jsonb(pstc.name), '{}'::jsonb)
               ),
               '{}'::jsonb
             ),
@@ -663,7 +642,7 @@ export async function getOneOrgOptimizedQuery(
                 'createdAt', pssc.created_at,
                 'updatedAt', pssc.updated_at,
                 'deletedAt', pssc.deleted_at,
-                'name', COALESCE(to_jsonb(psst.name), '{}'::jsonb)
+                 'name', COALESCE(to_jsonb(psst.name), '{}'::jsonb)
               ),
               '{}'::jsonb
             )
@@ -717,18 +696,12 @@ export async function getOneOrgOptimizedQuery(
 
     FROM organization o
       
-    -- Phones
-    LEFT JOIN phone p ON o.id = p.organization_id
-      
-    -- Payment Types
-    LEFT JOIN payment_types pt ON o.id = pt.organization_id
-      
     -- Main Organization
     LEFT JOIN main_organization mo ON o.main_organization_id = mo.id
       
     -- Join with CTE for main organization translations
     LEFT JOIN MainOrganizationTranslations mot ON mo.id = mot.main_organization_id
-    
+
    -- City
     LEFT JOIN city c ON o.city_id = c.id
       
@@ -839,14 +812,15 @@ export async function getOneOrgOptimizedQuery(
 
     --paymentTypes
     LEFT JOIN payment_types pty ON pty.organization_id = o.id
+
     -- phone
-    LEFT JOIN phone ph ON p.organization_id = o.id
+    LEFT JOIN phone ph ON ph.organization_id = o.id
 
     --phone types
-    LEFT JOIN phone_types pht ON pt.id = p.phone_type_id
+    LEFT JOIN phone_types pht ON pht.id = ph.phone_type_id
 
     -- Join with CTE for new phone types translations
-    LEFT JOIN PhoneTypesTranslations ptit ON ptit.phone_types_id = pt.id  
+    LEFT JOIN PhoneTypesTranslations ptit ON ptit.phone_types_id = pht.id  
 
     --nearbees
     LEFT JOIN nearbees nb ON nb.organization_version_id = o.id
@@ -855,7 +829,7 @@ export async function getOneOrgOptimizedQuery(
     LEFT JOIN nearby n ON nb.nearby_id = n.id
 
     --nearby translations
-    LEFT JOIN nearby_translations nyt ON nyt.nearby_id = n.id
+    LEFT JOIN NearbyTranslations nyt ON nyt.nearby_id = n.id
 
     --nearby category
     LEFT JOIN nearby_category nc ON n.nearby_category_id = nc.id
@@ -873,7 +847,7 @@ export async function getOneOrgOptimizedQuery(
     LEFT JOIN product_service_sub_category pssc ON ps.product_service_sub_category_id = pssc.id
     
     --product service sub category translations
-    LEFT JOIN product_service_sub_category_translations psst ON psst.product_service_sub_category_id = pssc.id
+    LEFT JOIN ProductServiceSubCategoryTranslations psst ON psst.product_service_sub_category_id = pssc.id
     
     --sub category
     LEFT JOIN sub_category ON o.sub_category_id = sub_category.id
