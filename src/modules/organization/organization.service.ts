@@ -885,8 +885,6 @@ export class OrganizationService {
       'organizationOne',
       data.id?.toString()
     );
-    console.log(findOrganization,'cache');
-    
 
     if (findOrganization) {
       let formattedOrganization = findOrganization;
@@ -1012,17 +1010,17 @@ export class OrganizationService {
       return findOrganization;
     } else {
       const organization = await getOneOrgOptimizedQuery(data.id, this.prisma);
-      
+
       if (!organization) {
         throw new NotFoundException('Organization is not found');
       }
       this.logger.debug(`Method: ${methodName} - Response: `, organization[0]);
-      console.log(organization,'organization');
+      console.log(organization, 'organization');
 
       let formattedOrganization = { ...organization[0] };
-      
+
       if (data.role == 'moderator' || data.role == 'operator') {
-        console.log(formattedOrganization,'formattedOrganization');
+        console.log(formattedOrganization, 'formattedOrganization');
         return formattedOrganization;
       }
       if (data.role !== 'moderator') {
@@ -1118,13 +1116,12 @@ export class OrganizationService {
         value: formattedOrganization.Nearbees || null,
         requiredPlan: 'standard',
       };
-      console.log(formattedOrganization?.Phone,'formattedOrganizationPhone');
-      
+
       if (formattedOrganization?.Phone) {
         const newPhones = [];
         for (let i of formattedOrganization?.Phone) {
-          console.log(i,'i');
-          
+          console.log(i, 'i');
+
           if (!i.isSecret) {
             newPhones.push({
               ...i,
