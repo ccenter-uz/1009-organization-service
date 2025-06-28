@@ -33,7 +33,15 @@ export async function getProductServiceCategoryData(
   )
 
 SELECT
-  c.*,
+        c.id AS "id",
+        c.staff_number AS "staffNumber",
+        c.status AS "status",
+        c.order_number AS "orderNumber",
+        c.edited_staff_number AS "editedStaffNumber",
+        c.delete_reason AS "deleteReason",
+        c.created_at AS "createdAt",
+        c.updated_at AS "updatedAt",
+        c.deleted_at AS "deletedAt",
   t.name,
   COALESCE(oc.organization_count, 0) AS "orgCount"
 FROM
