@@ -762,9 +762,7 @@ ProductServices AS (
         'updatedAt', village.updated_at,
         'deletedAt', village.deleted_at
     )  ELSE NULL
-    END AS "village"
-    
-    , 
+    END AS "village", 
 
     CASE
         WHEN residential_area.id IS NOT NULL THEN
