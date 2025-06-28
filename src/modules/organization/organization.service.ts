@@ -397,6 +397,41 @@ export class OrganizationService {
     // }
   }
 
+  /*async findAll(
+    data: OrganizationFilterDto
+  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
+    // const CacheKey = formatCacheKey(data);
+    // const findOrganization = await this.cacheService.get(
+    //   'organization',
+    //   CacheKey
+    // );
+
+    // if (findOrganization) {
+    //   return findOrganization;
+    // } else {
+
+    const organization: any = await getOrgOptimizedQuery(
+      this.prisma,
+      data,
+      data.page,
+      data.limit
+    );
+
+    this.logger.debug(`Method: ${methodName} - Response: `, organization);
+
+    // await this.cacheService.setAll('organization', CacheKey, {
+    //   data: organization,
+    //   totalPage: pagination.totalPage,
+    //   totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
+    // });
+
+    return organization;
+  }*/
+
   async findMy(
     data: MyOrganizationFilterDto
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
