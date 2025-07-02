@@ -1,6 +1,10 @@
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { CreatedByEnum, ModuleNamesObjectAdressArray } from 'types/global';
+import {
+  CreatedByEnum,
+  ModuleNamesObjectAdressArray,
+  Roles,
+} from 'types/global';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 import { createPagination } from '../pagination.helper';
 
@@ -271,6 +275,13 @@ export async function getOrgOptimizedQuery(
       o.address, 
       o.status, 
       o.edited_staff_number AS "editedStaffNumber",
+
+      -- CASE
+      --   WHEN ${data.role} = ${CreatedByEnum.Moderator} THEN TRUE
+      --   WHEN o.staff_number = ${data.staffNumber} THEN TRUE
+      --   ELSE FALSE
+      -- END AS "operFrom",
+
       o.created_at AS "createdAt",
       o.updated_at AS "updatedAt",
       o.deleted_at AS "deletedAt"
