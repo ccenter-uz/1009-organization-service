@@ -844,7 +844,7 @@ export async function getOneOrgOptimizedQuery(
     LEFT JOIN product_service_category psc ON ps.product_service_category_id = psc.id
     
     --product service category translations
-    LEFT JOIN product_service_category_translations pstc ON pstc.product_service_category_id = psc.id
+    LEFT JOIN ProductServiceCategoryTranslations pstc ON pstc.product_service_category_id = psc.id
     
     --product service sub category
     LEFT JOIN product_service_sub_category pssc ON ps.product_service_sub_category_id = pssc.id

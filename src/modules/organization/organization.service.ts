@@ -355,7 +355,7 @@ export class OrganizationService {
     return organization;
   }
 
-  async findAll(
+  /*async findAll(
     data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
@@ -398,9 +398,9 @@ export class OrganizationService {
       totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
     };
     // }
-  }
+  }*/
 
-  /*async findAll(
+  async findAll(
     data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
@@ -433,7 +433,7 @@ export class OrganizationService {
     // });
 
     return organization;
-  }*/
+  }
 
   async findMy(
     data: MyOrganizationFilterDto
@@ -1009,8 +1009,6 @@ export class OrganizationService {
       }
 
       return formattedOrganization;
-
-      return findOrganization;
     } else {
       const organization = await getOneOrgOptimizedQuery(data.id, this.prisma);
 
@@ -1119,7 +1117,8 @@ export class OrganizationService {
         value: formattedOrganization.Nearbees || null,
         requiredPlan: 'standard',
       };
-      console.log(formattedOrganization?.Phone, 'formattedOrganizationPhone');
+
+
 
       if (formattedOrganization?.Phone) {
         const newPhones = [];
