@@ -278,6 +278,9 @@ export class OrganizationService {
         apartment: data.apartment ? data.apartment : null,
         home: data.home,
         inn: data?.inn ? data?.inn : null,
+        socials: data.social,
+        logo: data.logoLink,
+        certificate: data.certificateLink,
         kvartal: data?.kvartal ? data?.kvartal : null,
         legalName: data?.legalName ? data.legalName : undefined,
         mail: data?.mail ? data?.mail : null,
@@ -1115,6 +1118,8 @@ export class OrganizationService {
         requiredPlan: 'standard',
       };
 
+
+
       if (formattedOrganization?.Phone) {
         const newPhones = [];
         for (let i of formattedOrganization?.Phone) {
@@ -1258,6 +1263,9 @@ export class OrganizationService {
         apartment: organizationVersion.apartment,
         home: organizationVersion.home,
         inn: organizationVersion.inn,
+        socials: organizationVersion.socials,
+        logo: organizationVersion.logo,
+        certificate: organizationVersion.certificate,
         kvartal: organizationVersion.kvartal,
         legalName: organizationVersion.legalName,
         mail: organizationVersion.mail,
