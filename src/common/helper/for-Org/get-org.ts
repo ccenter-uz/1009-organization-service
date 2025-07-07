@@ -276,11 +276,11 @@ export async function getOrgOptimizedQuery(
       o.status, 
       o.edited_staff_number AS "editedStaffNumber",
 
-      -- CASE
-      --   WHEN ${data.role} = ${CreatedByEnum.Moderator} THEN TRUE
-      --   WHEN o.staff_number = ${data.staffNumber} THEN TRUE
-      --   ELSE FALSE
-      -- END AS "operFrom",
+       CASE
+         WHEN ${data?.role} = ${CreatedByEnum.Moderator} THEN TRUE
+         WHEN o.staff_number = ${data?.staffNumber} THEN TRUE
+         ELSE FALSE
+       END AS "operFrom",
 
       o.created_at AS "createdAt",
       o.updated_at AS "updatedAt",
