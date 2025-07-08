@@ -416,6 +416,7 @@ export class OrganizationService {
     // if (findOrganization) {
     //   return findOrganization;
     // } else {
+    
 
     const organization: any = await getOrgOptimizedQuery(
       this.prisma,
