@@ -664,7 +664,7 @@ export class OrganizationVersionService {
           home: data.home || null,
           inn: data.inn || organizationVersion.inn,
           socials: data.social,
-          certificate: data.certificateLink,
+          certificate: data.certificate,
           logo: data.logoLink,
           kvartal: data.kvartal || null,
           legalName: data.legalName || organizationVersion.legalName,
