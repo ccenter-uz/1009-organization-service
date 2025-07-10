@@ -280,7 +280,7 @@ export class OrganizationService {
         inn: data?.inn ? data?.inn : null,
         socials: data.social,
         logo: data.logoLink,
-        certificate: data.certificateLink,
+        certificate: data.certificate,
         kvartal: data?.kvartal ? data?.kvartal : null,
         legalName: data?.legalName ? data.legalName : undefined,
         mail: data?.mail ? data?.mail : null,

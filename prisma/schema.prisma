@@ -1116,6 +1116,7 @@ model Organization {
   Impasse             Impasse?              @relation(fields: [impasseId], references: [id])
   Segment             Segment?              @relation(fields: [segmentId], references: [id])
   Passage             Passage?              @relation(fields: [passageId], references: [id])
+  SavedOrganization   SavedOrganization[]
   Picture             Picture[]
   Phone               Phone[]
   PaymentTypes        PaymentTypes[]
@@ -1345,6 +1346,20 @@ model NearbeesVersion {
   OrganizationVersion   OrganizationVersion @relation(fields: [OrganizationVersionId], references: [id])
 
   @@map("nearbees_version")
+}
+
+model SavedOrganization {
+  id                    Int                 @id @default(autoincrement())
+  organizationId        Int                 @map("organization_id") @db.Integer()
+  userId                Int                 @map("user_id") @db.Integer()
+  isSaved               Boolean             @map("is_saved") @default(true) @db.Boolean()
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamp
+  updatedAt             DateTime?           @updatedAt @map("updated_at")
+  deletedAt             DateTime?           @map("deleted_at")
+
+  Organization      Organization      @relation(fields: [organizationId], references: [id])
+
+  @@map("saved_organization")
 }
 
 model AdditionalCategory {
