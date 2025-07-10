@@ -547,110 +547,119 @@ export async function getOneOrgOptimizedQuery(
       ) FILTER (WHERE pty.id IS NOT NULL) -> 0 AS "PaymentTypes",
 
       -- Aggregate phone
-      json_agg(
-      DISTINCT  jsonb_build_object(
-          'id', ph.id,
-          'phone', ph.phone,
-          'phoneTypeId', ph.phone_type_id,
-          'isSecret', ph."isSecret",
-          'OrganizationId', ph.organization_id,
-          'createdAt', ph.created_at,
-          'updatedAt', ph.updated_at,
-          'deletedAt', ph.deleted_at,
-          'PhoneTypes', jsonb_build_object(
-            'id', pht.id,
-            'createdAt', pht.created_at,
-            'updatedAt', pht.updated_at,
-            'staffNumber', pht.staff_number,
-            'name', COALESCE(ptit.name, '{}'::jsonb)
+      COALESCE(
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'id', ph.id,
+            'phone', ph.phone,
+            'phoneTypeId', ph.phone_type_id,
+            'isSecret', ph."isSecret",
+            'OrganizationId', ph.organization_id,
+            'createdAt', ph.created_at,
+            'updatedAt', ph.updated_at,
+            'deletedAt', ph.deleted_at,
+            'PhoneTypes', jsonb_build_object(
+              'id', pht.id,
+              'createdAt', pht.created_at,
+              'updatedAt', pht.updated_at,
+              'staffNumber', pht.staff_number,
+              'name', COALESCE(ptit.name, '{}'::jsonb)
+            )
           )
-        )
-      ) FILTER (WHERE ph.id IS NOT NULL) AS "Phone" ,
+        ) FILTER (WHERE ph.id IS NOT NULL),
+        '[]'::json
+      ) AS "Phone",
 
       -- Aggregate nearby
-       json_agg(
-        DISTINCT jsonb_build_object(
-          'id', nb.id,
-          'description', nb.description,
-          'NearbyId', nb.nearby_id,
-          'createdAt', nb.created_at,
-          'updatedAt', nb.updated_at,
-          'deletedAt', nb.deleted_at,
-          'Nearby', COALESCE(
-            jsonb_build_object(
-              'id', n.id,
-              'staffNumber', n.staff_number,
-              'editedStaffNumber', n.edited_staff_number,
-              'status', n.status,
-              'nearbyCategoryId', n.nearby_category_id,
-              'regionId', n.region_id,
-              'cityId', n.city_id,
-              'districtId', n.district_id,
-              'orderNumber', n.order_number,
-              'createdAt', n.created_at,
-              'deletedAt', n.deleted_at,
-              'updatedAt', n.updated_at,
-              'name',  COALESCE(nyt.name, '{}'::jsonb)
-            ),
-            '{}'::jsonb
-          ),
-          'NearbyCategory', COALESCE(
-            jsonb_build_object(
-              'id', nc.id,
-              'name', nc.name,
-              'staffNumber', nc.staff_number,
-              'editedStaffNumber', nc.edited_staff_number,
-              'status', nc.status,
-              'orderNumber', nc.order_number,
-              'createdAt', nc.created_at,
-              'updatedAt', nc.updated_at,
-              'deletedAt', nc.deleted_at
-            ),
-            '{}'::jsonb
-          )
-        )
-      ) FILTER (WHERE nb.id IS NOT NULL) AS "Nearbees",
-
-      -- Aggregate product service
-      json_agg(
-       DISTINCT jsonb_build_object(
-          'id', ps.id,
-          'createdAt', ps.created_at,
-          'updatedAt', ps.updated_at,
-          'deletedAt', ps.deleted_at,
-          'ProductServiceCategory', 
-            COALESCE(
+       COALESCE(
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'id', nb.id,
+            'description', nb.description,
+            'NearbyId', nb.nearby_id,
+            'createdAt', nb.created_at,
+            'updatedAt', nb.updated_at,
+            'deletedAt', nb.deleted_at,
+            'Nearby', COALESCE(
               jsonb_build_object(
-                'id', psc.id,
-                'staffNumber', psc.staff_number,
-                'editedStaffNumber', psc.edited_staff_number,
-                'status', psc.status,
-                'orderNumber', psc.order_number,
-                'createdAt', psc.created_at,
-                'updatedAt', psc.updated_at,
-                'deletedAt', psc.deleted_at,
-               'name', COALESCE(to_jsonb(pstc.name), '{}'::jsonb)
+                'id', n.id,
+                'staffNumber', n.staff_number,
+                'editedStaffNumber', n.edited_staff_number,
+                'status', n.status,
+                'nearbyCategoryId', n.nearby_category_id,
+                'regionId', n.region_id,
+                'cityId', n.city_id,
+                'districtId', n.district_id,
+                'orderNumber', n.order_number,
+                'createdAt', n.created_at,
+                'deletedAt', n.deleted_at,
+                'updatedAt', n.updated_at,
+                'name',  COALESCE(nyt.name, '{}'::jsonb)
               ),
               '{}'::jsonb
             ),
-          'ProductServiceSubCategory', 
-            COALESCE(
+            'NearbyCategory', COALESCE(
               jsonb_build_object(
-                'id', pssc.id,
-                'staffNumber', pssc.staff_number,
-                'editedStaffNumber', pssc.edited_staff_number,
-                'status', pssc.status,
-                'productServiceCategoryId', pssc.product_service_category_id,
-                'orderNumber', pssc.order_number,
-                'createdAt', pssc.created_at,
-                'updatedAt', pssc.updated_at,
-                'deletedAt', pssc.deleted_at,
-                 'name', COALESCE(to_jsonb(psst.name), '{}'::jsonb)
+                'id', nc.id,
+                'name', nc.name,
+                'staffNumber', nc.staff_number,
+                'editedStaffNumber', nc.edited_staff_number,
+                'status', nc.status,
+                'orderNumber', nc.order_number,
+                'createdAt', nc.created_at,
+                'updatedAt', nc.updated_at,
+                'deletedAt', nc.deleted_at
               ),
               '{}'::jsonb
             )
-        )
-      ) FILTER (WHERE ps.id IS NOT NULL) AS "ProductServices",
+          )
+        ) FILTER (WHERE nb.id IS NOT NULL),
+        '[]'::json
+      ) AS "Nearbees",
+
+      -- Aggregate product service
+      COALESCE(
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'id', ps.id,
+            'createdAt', ps.created_at,
+            'updatedAt', ps.updated_at,
+            'deletedAt', ps.deleted_at,
+            'ProductServiceCategory', 
+              COALESCE(
+                jsonb_build_object(
+                  'id', psc.id,
+                  'staffNumber', psc.staff_number,
+                  'editedStaffNumber', psc.edited_staff_number,
+                  'status', psc.status,
+                  'orderNumber', psc.order_number,
+                  'createdAt', psc.created_at,
+                  'updatedAt', psc.updated_at,
+                  'deletedAt', psc.deleted_at,
+                  'name', COALESCE(to_jsonb(pstc.name), '{}'::jsonb)
+                ),
+                '{}'::jsonb
+              ),
+            'ProductServiceSubCategory', 
+              COALESCE(
+                jsonb_build_object(
+                  'id', pssc.id,
+                  'staffNumber', pssc.staff_number,
+                  'editedStaffNumber', pssc.edited_staff_number,
+                  'status', pssc.status,
+                  'productServiceCategoryId', pssc.product_service_category_id,
+                  'orderNumber', pssc.order_number,
+                  'createdAt', pssc.created_at,
+                  'updatedAt', pssc.updated_at,
+                  'deletedAt', pssc.deleted_at,
+                  'name', COALESCE(to_jsonb(psst.name), '{}'::jsonb)
+                ),
+                '{}'::jsonb
+              )
+          )
+        ) FILTER (WHERE ps.id IS NOT NULL),
+        '[]'::json
+      ) AS "ProductServices",
 
       -- Aggregate sub category
       json_agg(
@@ -687,15 +696,18 @@ export async function getOneOrgOptimizedQuery(
       ) FILTER (WHERE category.id IS NOT NULL) -> 0 AS "category",
 
       -- Aggregate picture
-      json_agg(
-        jsonb_build_object(
-          'id', pic.id,
-          'link', pic.link,
-          'createdAt', pic.created_at,
-          'updatedAt', pic.updated_at,
-          'deletedAt', pic.deleted_at
-        )
-      ) FILTER (WHERE pic.id IS NOT NULL) AS "Pictures"
+      COALESCE(
+        json_agg(
+          jsonb_build_object(
+            'id', pic.id,
+            'link', pic.link,
+            'createdAt', pic.created_at,
+            'updatedAt', pic.updated_at,
+            'deletedAt', pic.deleted_at
+          )
+        ) FILTER (WHERE pic.id IS NOT NULL),
+        '[]'::json
+      ) AS "Pictures"
 
     FROM organization o
       
