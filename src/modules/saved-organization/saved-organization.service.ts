@@ -38,6 +38,7 @@ export class SavedOrganizationService {
     data: SavedOrganizationCreateDto
   ): Promise<savedOrganizationInterfaces.Response> {
     const methodName: string = this.create.name;
+    console.log(data, 'DATA');
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
@@ -74,7 +75,7 @@ export class SavedOrganizationService {
 
       const savedOrganizations = await this.prisma.savedOrganization.findMany({
         where: {
-          status: data.status,
+          // status: data.status,
         },
       });
 
@@ -112,7 +113,7 @@ export class SavedOrganizationService {
 
     const savedOrganizations = await this.prisma.savedOrganization.findMany({
       where: {
-        status: data.status,
+        // status: data.status,
       },
     });
 
@@ -182,7 +183,6 @@ export class SavedOrganizationService {
         id: findSavedOrganization.id,
       },
       data: {
-        organizationId: data.organizationId,
         userId: data.userId,
         isSaved: data.isSaved,
       },
