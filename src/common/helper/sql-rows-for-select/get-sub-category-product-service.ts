@@ -54,21 +54,21 @@ SELECT
      c.deleted_at AS "deletedAt",
     t.name AS name,
     JSONB_BUILD_OBJECT(
-      'id', c.id,
+      'id', ${Prisma.raw(categoryName)}.id,
       'name', COALESCE(ct.name, '{}'::JSONB),
-      'status', c.status,
-      'createdAt', c.created_at,
-      'updatedAt', c.updated_at,
-      'deletedAt', c.deleted_at,
-      'orderNumber', c.order_number,
-      'staffNumber', c.staff_number,
-      'deleteReason', c.delete_reason,
-      'editedStaffNumber', c.edited_staff_number
+      'status', ${Prisma.raw(categoryName)}.status,
+      'createdAt', ${Prisma.raw(categoryName)}.created_at,
+      'updatedAt', ${Prisma.raw(categoryName)}.updated_at,
+      'deletedAt', ${Prisma.raw(categoryName)}.deleted_at,
+      'orderNumber', ${Prisma.raw(categoryName)}.order_number,
+      'staffNumber', ${Prisma.raw(categoryName)}.staff_number,
+      'deleteReason', ${Prisma.raw(categoryName)}.delete_reason,
+      'editedStaffNumber', ${Prisma.raw(categoryName)}.edited_staff_number
     ) AS "ProductServiceCategory" , 
       COALESCE(oc.organization_count, 0) AS "orgCount"
 
 FROM ${Prisma.raw(name)} c
-LEFT JOIN ${Prisma.raw(categoryName)} ON c.${Prisma.raw(`${categoryName}_id`)} = ${Prisma.raw(categoryName)}.id
+LEFT JOIN ${Prisma.raw(categoryName)}  ON c.${Prisma.raw(`${categoryName}_id`)} = ${Prisma.raw(categoryName)}.id
 LEFT JOIN ${Prisma.raw(CapitalizeName)}Translations t ON t.${Prisma.raw(`${name}_id`)} = c.id
 LEFT JOIN ${Prisma.raw(CapitalizeCategoryName)}Translations ct ON ct.${Prisma.raw(`${categoryName}_id`)} = ${Prisma.raw(categoryName)}.id
 LEFT JOIN OrganizationCounts oc ON oc.id = c.id

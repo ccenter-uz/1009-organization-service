@@ -1353,6 +1353,7 @@ model SavedOrganization {
   organizationId        Int                 @map("organization_id") @db.Integer()
   userId                Int                 @map("user_id") @db.Integer()
   isSaved               Boolean             @map("is_saved") @default(true) @db.Boolean()
+  status                Int                 @default(1) @db.SmallInt()
   createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamp
   updatedAt             DateTime?           @updatedAt @map("updated_at")
   deletedAt             DateTime?           @map("deleted_at")
