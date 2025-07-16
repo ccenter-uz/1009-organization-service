@@ -636,6 +636,7 @@ export class OrganizationVersionService {
         ? OrganizationStatusEnum.Accepted
         : OrganizationStatusEnum.Check;
 
+
     const UpdateOrganizationVersion =
       await this.prisma.organizationVersion.update({
         where: {

@@ -60,6 +60,7 @@ export class OrganizationVersionController {
   update(
     @Payload() data: OrganizationVersionUpdateDto
   ): Promise<OrganizationVersionInterfaces.Update> {
+
     return this.organizationService.update(data);
   }
 
