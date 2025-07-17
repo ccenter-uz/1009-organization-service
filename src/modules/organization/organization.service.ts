@@ -416,7 +416,6 @@ export class OrganizationService {
     // if (findOrganization) {
     //   return findOrganization;
     // } else {
-    
 
     const organization: any = await getOrgOptimizedQuery(
       this.prisma,
@@ -1017,12 +1016,10 @@ export class OrganizationService {
         throw new NotFoundException('Organization is not found');
       }
       this.logger.debug(`Method: ${methodName} - Response: `, organization[0]);
-      console.log(organization, 'organization');
 
       let formattedOrganization = { ...organization[0] };
 
       if (data.role == 'moderator' || data.role == 'operator') {
-        console.log(formattedOrganization, 'formattedOrganization');
         return formattedOrganization;
       }
       if (data.role !== 'moderator') {
@@ -1082,10 +1079,10 @@ export class OrganizationService {
         value: formattedOrganization.mainOrganization || null,
         requiredPlan: 'standard',
       };
-      // formattedOrganization.certificate = {
-      //   value: formattedOrganization.certificate || null,
-      //   requiredPlan: 'standard',
-      // };
+      formattedOrganization.certificate = {
+        value: formattedOrganization.certificate || null,
+        requiredPlan: 'standard',
+      };
       formattedOrganization.village = {
         value: formattedOrganization.village || null,
         requiredPlan: 'standard',
@@ -1118,8 +1115,6 @@ export class OrganizationService {
         value: formattedOrganization.Nearbees || null,
         requiredPlan: 'standard',
       };
-
-
 
       if (formattedOrganization?.Phone) {
         const newPhones = [];
