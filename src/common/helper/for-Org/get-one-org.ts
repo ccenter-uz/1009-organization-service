@@ -534,17 +534,20 @@ export async function getOneOrgOptimizedQuery(
       ) FILTER (WHERE impasse.id IS NOT NULL) -> 0 AS "impasse",
 
       -- Aggregate payment type
-      json_agg(
-        jsonb_build_object(
-          'id', pty.id,
-          'Cash', pty.cash,
-          'Terminal', pty.terminal,
-          'Transfer', pty.transfer,
-          'createdAt', pty.created_at,
-          'updatedAt', pty.updated_at,
-          'deletedAt', pty.deleted_at
-        )
-      ) FILTER (WHERE pty.id IS NOT NULL) -> 0 AS "PaymentTypes",
+      COALESCE(
+        json_agg(
+          jsonb_build_object(
+            'id', pty.id,
+            'cash', pty.cash,
+            'terminal', pty.terminal,
+            'transfer', pty.transfer,
+            'createdAt', pty.created_at,
+            'updatedAt', pty.updated_at,
+            'deletedAt', pty.deleted_at
+          )
+        ) FILTER (WHERE pty.id IS NOT NULL),
+        '[]'::json
+      ) AS "PaymentTypes",
 
       -- Aggregate phone
       COALESCE(

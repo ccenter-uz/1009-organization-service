@@ -3,6 +3,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { SavedOrganizationService } from './saved-organization.service';
 import { SavedOrganizationCommands as Commands } from 'types/organization/saved-organization/commands';
 import {
+  GetOneSavedOrganizationDto,
   SavedOrganizationCreateDto,
   savedOrganizationInterfaces,
   savedOrganizationUpdateDto,
@@ -34,7 +35,7 @@ export class SavedOrganizationController {
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })
   findOne(
-    @Payload() data: GetOneDto
+    @Payload() data: GetOneSavedOrganizationDto
   ): Promise<savedOrganizationInterfaces.Response> {
     return this.categoryService.findOne(data);
   }

@@ -11,6 +11,7 @@ import {
   SavedOrganizationCreateDto,
   savedOrganizationInterfaces,
   savedOrganizationUpdateDto,
+  GetOneSavedOrganizationDto,
 } from 'types/organization/saved-organization';
 import {
   DefaultStatus,
@@ -42,6 +43,23 @@ export class SavedOrganizationService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
+    //   const findSavedOrganization = await this.findOne({
+    //     id: data.organizationId,
+    //     userId: data.userId,
+    //   });
+    // console.log(findSavedOrganization, 'findSavedOrganization');
+    
+    
+    // if (findSavedOrganization) {
+    //   console.log('eroor');
+      
+    //   throw new NotFoundException('Saved Organization is already exist');
+    // }
+    
+    
+    
+    
+
     const savedOrganization = await this.prisma.savedOrganization.create({
       data: {
         organizationId: data.organizationId,
@@ -60,34 +78,17 @@ export class SavedOrganizationService {
   ): Promise<savedOrganizationInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    // const CacheKey = formatCacheKey(data);
-    // const findCategores = await this.cacheService.get('category', CacheKey);
-    // if (findCategores) {
-    //   return findCategores;
-    // } else {
-    if (data.all) {
-      // const categories: any = await getCategoryData(
-      //   'Category',
-      //   'category',
-      //   this.prisma,
-      //   data
-      // );
 
+    if (data.all) {
       const savedOrganizations = await this.prisma.savedOrganization.findMany({
-        where: {
-          // status: data.status,
-        },
+        where: {},
       });
 
       this.logger.debug(
         `Method: ${methodName} -  Response: `,
         savedOrganizations
       );
-      // await this.cacheService.setAll('category', CacheKey, {
-      //   data: categories,
-      //   totalDocs: categories.length,
-      //   totalPage: categories.length > 0 ? 1 : 0,
-      // });
+
       return {
         data: savedOrganizations,
         totalDocs: savedOrganizations.length,
@@ -119,37 +120,24 @@ export class SavedOrganizationService {
 
     this.logger.debug(`Method: ${methodName} - Response: `, savedOrganizations);
 
-    // await this.cacheService.setAll('category', CacheKey, {
-    //   data: categories,
-    //   totalPage: pagination.totalPage,
-    //   totalDocs: count,
-    // });
     return {
       data: savedOrganizations,
       totalPage: pagination.totalPage,
       totalDocs: count,
     };
-    // }
   }
 
   async findOne(
-    data: GetOneDto
+    data: GetOneSavedOrganizationDto
   ): Promise<savedOrganizationInterfaces.Response> {
     const methodName: string = this.findOne.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-    // const findCategory = await this.cacheService.get(
-    //   'categoryOne',
-    //   data.id?.toString()
-    // );
-    // if (findCategory) {
-    //   console.log(findCategory, 'findCategory');
-    //   return findCategory;
-    // } else {
     const savedOrganization = await this.prisma.savedOrganization.findFirst({
       where: {
-        id: data.id,
+        organizationId: data.id,
+        userId: data.userId,
         status: DefaultStatus.ACTIVE,
       },
     });
@@ -159,14 +147,7 @@ export class SavedOrganizationService {
     }
 
     this.logger.debug(`Method: ${methodName} - Response: `, savedOrganization);
-
-    // await this.cacheService.set(
-    //   'categoryOne',
-    //   data.id?.toString(),
-    //   formatedRespons
-    // );
     return savedOrganization;
-    // }
   }
 
   async update(
@@ -176,7 +157,10 @@ export class SavedOrganizationService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-    const findSavedOrganization = await this.findOne({ id: data.id });
+    const findSavedOrganization = await this.findOne({
+      id: data.id,
+      userId: data.userId,
+    });
 
     const updatedCategory = await this.prisma.savedOrganization.update({
       where: {
@@ -189,8 +173,7 @@ export class SavedOrganizationService {
     });
 
     this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
-    // await this.cacheService.delete('categoryOne', data.id?.toString());
-    // await this.cacheService.invalidateAllCaches('category');
+
     return updatedCategory;
   }
 

@@ -209,6 +209,12 @@ export async function getOrgOptimizedQuery(
     conditions.push(Prisma.sql`o.apartment ILIKE ${`%${data.apartment}%`}`);
   }
 
+  // if (data.isSaved) {
+  //   console.log(data.userId);
+
+  //   conditions.push(Prisma.sql`so."user_id" = ${data.userId}`);
+  // }
+
   if (data.status === 0 || data.status === 1 || data.status === -1) {
     conditions.push(Prisma.sql`o.status = ${data.status}`);
   }
@@ -253,6 +259,7 @@ export async function getOrgOptimizedQuery(
     LEFT JOIN phone p ON o.id = p.organization_id
     LEFT JOIN payment_types pt ON o.id = pt.organization_id
     LEFT JOIN main_organization mo ON o.main_organization_id = mo.id
+    LEFT JOIN saved_organization so ON o.id = so.organization_id
     ${whereClause};
   `);
 
@@ -263,7 +270,6 @@ export async function getOrgOptimizedQuery(
     page: page,
     perPage: limit,
   });
-
   const limitOffset = pagination
     ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}`
     : Prisma.empty;
@@ -277,6 +283,12 @@ export async function getOrgOptimizedQuery(
       o.edited_staff_number AS "editedStaffNumber",
 
       CASE
+        WHEN so.is_saved = TRUE 
+        THEN TRUE
+        ELSE FALSE
+      END AS "isSaved",
+
+      CASE
         WHEN o.staff_number = ${data?.staffNumber} AND ${data?.role} = ${CreatedByEnum.Operator}
         THEN TRUE
         ELSE FALSE
@@ -286,11 +298,11 @@ export async function getOrgOptimizedQuery(
       o.updated_at AS "updatedAt",
       o.deleted_at AS "deletedAt"
     FROM organization o
+    LEFT JOIN saved_organization so ON o.id = so.organization_id
     ${whereClause}
-    GROUP BY o.id
+    GROUP BY o.id, so.is_saved, so.deleted_at
     ${limitOffset};
   `);
-
   return {
     data: result,
     totalPage: pagination.totalPage,
