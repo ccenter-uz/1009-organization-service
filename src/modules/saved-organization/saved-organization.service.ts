@@ -12,6 +12,7 @@ import {
   savedOrganizationInterfaces,
   savedOrganizationUpdateDto,
   GetOneSavedOrganizationDto,
+  SavedOrganizationFilterDto
 } from 'types/organization/saved-organization';
 import {
   DefaultStatus,
@@ -25,6 +26,7 @@ import { Prisma } from '@prisma/client';
 import { CacheService } from '../cache/cache.service';
 
 import { savedOrganizationDeleteDto } from 'types/organization/saved-organization/dto/delete-saved-organization.dto';
+import { getOrgOptimizedQuery } from '@/common/helper/for-Org/get-org';
 
 @Injectable()
 export class SavedOrganizationService {
@@ -48,17 +50,12 @@ export class SavedOrganizationService {
     //     userId: data.userId,
     //   });
     // console.log(findSavedOrganization, 'findSavedOrganization');
-    
-    
+
     // if (findSavedOrganization) {
     //   console.log('eroor');
-      
+
     //   throw new NotFoundException('Saved Organization is already exist');
     // }
-    
-    
-    
-    
 
     const savedOrganization = await this.prisma.savedOrganization.create({
       data: {
@@ -74,57 +71,23 @@ export class SavedOrganizationService {
   }
 
   async findAll(
-    data: CityRegionFilterDto
+    data: SavedOrganizationFilterDto
   ): Promise<savedOrganizationInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
+
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-    if (data.all) {
-      const savedOrganizations = await this.prisma.savedOrganization.findMany({
-        where: {},
-      });
+    const organization: any = await getOrgOptimizedQuery(
+      this.prisma,
+      data,
+      data.page,
+      data.limit
+    );
 
-      this.logger.debug(
-        `Method: ${methodName} -  Response: `,
-        savedOrganizations
-      );
+    this.logger.debug(`Method: ${methodName} - Response: `, organization);
 
-      return {
-        data: savedOrganizations,
-        totalDocs: savedOrganizations.length,
-        totalPage: savedOrganizations.length > 0 ? 1 : 0,
-      };
-    }
 
-    const where: any = {
-      ...(data.status == 2
-        ? {}
-        : {
-            status: data.status,
-          }),
-    };
-
-    const count = await this.prisma.savedOrganization.count({ where });
-
-    const pagination = createPagination({
-      count,
-      page: data.page,
-      perPage: data.limit,
-    });
-
-    const savedOrganizations = await this.prisma.savedOrganization.findMany({
-      where: {
-        // status: data.status,
-      },
-    });
-
-    this.logger.debug(`Method: ${methodName} - Response: `, savedOrganizations);
-
-    return {
-      data: savedOrganizations,
-      totalPage: pagination.totalPage,
-      totalDocs: count,
-    };
+    return organization;
   }
 
   async findOne(

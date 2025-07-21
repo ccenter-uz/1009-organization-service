@@ -5,6 +5,7 @@ import { SavedOrganizationCommands as Commands } from 'types/organization/saved-
 import {
   GetOneSavedOrganizationDto,
   SavedOrganizationCreateDto,
+  SavedOrganizationFilterDto,
   savedOrganizationInterfaces,
   savedOrganizationUpdateDto,
 } from 'types/organization/saved-organization';
@@ -27,7 +28,7 @@ export class SavedOrganizationController {
   @Get('all')
   @MessagePattern({ cmd: Commands.GET_ALL_LIST })
   findAll(
-    @Payload() data: CityRegionFilterDto
+    @Payload() data: SavedOrganizationFilterDto
   ): Promise<savedOrganizationInterfaces.ResponseWithoutPagination> {
     return this.categoryService.findAll(data);
   }

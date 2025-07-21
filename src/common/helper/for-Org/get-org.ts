@@ -209,11 +209,10 @@ export async function getOrgOptimizedQuery(
     conditions.push(Prisma.sql`o.apartment ILIKE ${`%${data.apartment}%`}`);
   }
 
-  // if (data.isSaved) {
-  //   console.log(data.userId);
-
-  //   conditions.push(Prisma.sql`so."user_id" = ${data.userId}`);
-  // }
+  if (data.savedOrganization) {
+    conditions.push(Prisma.sql`so."user_id" = ${data.userId}`);
+    conditions.push(Prisma.sql`so.is_saved = true`);
+  }
 
   if (data.status === 0 || data.status === 1 || data.status === -1) {
     conditions.push(Prisma.sql`o.status = ${data.status}`);
