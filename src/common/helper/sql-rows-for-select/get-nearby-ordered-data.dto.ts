@@ -75,7 +75,20 @@ export async function getNearbyOrderedData(
         GROUP BY district_id
       )
     SELECT
-      c.*,
+      --c.*,
+      c.id AS "id",
+      c.staff_number AS "staffNumber",
+      c.order_number AS "orderNumber",
+      c.status AS "status",
+      c.nearby_category_id AS "nearbyCategoryId",
+      c.city_id AS "cityId",
+      c.region_id AS "regionId", 
+      c.district_id AS "districtId",
+      c.edited_staff_number AS "editedStaffNumber",
+      --c.delete_reason AS "deleteReason",
+      c.created_at AS "createdAt",
+      c.updated_at AS "updatedAt",
+      c.deleted_at AS "deletedAt",
 
       -- Translations
       nt.name AS name,
@@ -102,7 +115,17 @@ export async function getNearbyOrderedData(
       ) AS region,
 
       -- Nearby Category
-      ROW_TO_JSON(nearby_category)::JSONB AS category,
+      JSONB_BUILD_OBJECT(
+        'id', nearby_category.id,
+        'name', nearby_category.name,
+        'status', nearby_category.status,
+        'createdAt', nearby_category.created_at,
+        'updatedAt', nearby_category.updated_at,
+        'deletedAt', nearby_category.deleted_at,
+        'orderNumber', nearby_category.order_number,
+        'staffNumber', nearby_category.staff_number,
+        'editedStaffNumber', nearby_category.edited_staff_number
+      ) AS category,
 
       -- District object
      CASE 

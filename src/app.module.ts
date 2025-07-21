@@ -43,6 +43,7 @@ import { NeighborhoodModule } from './modules/neighborhood/neighborhood.module';
 import { CacheRedisModule } from './modules/cache/cache.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
+import { SavedOrganizationModule } from './modules/saved-organization/saved-organization.module';
 
 @Module({
   imports: [
@@ -87,14 +88,15 @@ import Redis from 'ioredis';
     AdditionalCategoryModule,
     AdditionalModule,
     MonitoringModule,
+    SavedOrganizationModule,
     // CronJobModule,
   ],
   controllers: [],
   providers: [
-    // {
-    //   provide: APP_INTERCEPTOR,
-    //   useClass: LoggingInterceptor,
-    // },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
     {
       provide: APP_FILTER,
       useClass: AllExceptionFilter,

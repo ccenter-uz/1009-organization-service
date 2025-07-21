@@ -66,6 +66,8 @@ import { formatLanguageResponse } from '@/common/helper/format-language.helper';
 import { getOrderedDataWithDistrict } from '@/common/helper/sql-rows-for-select/get-ordered-data-with-district.dto';
 import { ObjectAdressFilterDto } from 'types/organization/organization/dto/filter-object-adress-organization.dto';
 import { getOrgCount } from '@/common/helper/for-Org/get-org-data-count.dto';
+import { getOrgOptimizedQuery } from '@/common/helper/for-Org/get-org';
+import { getOneOrgOptimizedQuery } from '@/common/helper/for-Org/get-one-org';
 
 @Injectable()
 export class OrganizationService {
@@ -276,6 +278,9 @@ export class OrganizationService {
         apartment: data.apartment ? data.apartment : null,
         home: data.home,
         inn: data?.inn ? data?.inn : null,
+        socials: data.social,
+        logo: data.logoLink,
+        certificate: data.certificate,
         kvartal: data?.kvartal ? data?.kvartal : null,
         legalName: data?.legalName ? data.legalName : undefined,
         mail: data?.mail ? data?.mail : null,
@@ -350,7 +355,7 @@ export class OrganizationService {
     return organization;
   }
 
-  async findAll(
+  /*async findAll(
     data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
@@ -367,40 +372,6 @@ export class OrganizationService {
     // if (findOrganization) {
     //   return findOrganization;
     // } else {
-    if (data.all) {
-      const organizations = await this.prisma.organization.findMany({
-        where,
-        orderBy: { name: 'asc' },
-        include,
-      });
-      const result = [];
-      for (let [index, org] of Object.entries(organizations)) {
-        for (let [key, prop] of Object.entries(includeConfig)) {
-          let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-          delete org?.[idNameOfModules];
-        }
-        const formattedOrganization = formatOrganizationResponse(
-          org,
-          modulesConfig
-        );
-        if (data.role !== 'moderator') {
-          delete formattedOrganization.secret;
-        }
-        result.push(formattedOrganization);
-      }
-      this.logger.debug(`Method: ${methodName} - Response: `, result);
-      // await this.cacheService.setAll('organization', CacheKey, {
-      //   data: result,
-      //   totalDocs: organizations.length,
-      //   totalPage: organizations.length > 0 ? 1 : 0,
-      // });
-
-      return {
-        data: result,
-        totalDocs: organizations.length,
-        totalPage: organizations.length > 0 ? 1 : 0,
-      };
-    }
 
     const count = await getOrgCount(data, this.prisma);
 
@@ -427,6 +398,41 @@ export class OrganizationService {
       totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
     };
     // }
+  }*/
+
+  async findAll(
+    data: OrganizationFilterDto
+  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
+    const methodName: string = this.findAll.name;
+
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
+    // const CacheKey = formatCacheKey(data);
+    // const findOrganization = await this.cacheService.get(
+    //   'organization',
+    //   CacheKey
+    // );
+
+    // if (findOrganization) {
+    //   return findOrganization;
+    // } else {
+
+    const organization: any = await getOrgOptimizedQuery(
+      this.prisma,
+      data,
+      data.page,
+      data.limit
+    );
+
+    this.logger.debug(`Method: ${methodName} - Response: `, organization);
+
+    // await this.cacheService.setAll('organization', CacheKey, {
+    //   data: organization,
+    //   totalPage: pagination.totalPage,
+    //   totalDocs: count[0]?.totalCount > 0 ? count[0]?.totalCount : 0,
+    // });
+
+    return organization;
   }
 
   async findMy(
@@ -877,78 +883,26 @@ export class OrganizationService {
   async findOne(data: GetOneDto): Promise<OrganizationInterfaces.Response> {
     const methodName: string = this.findOne.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const include = buildInclude(includeConfig, data);
+
     const findOrganization = await this.cacheService.get(
       'organizationOne',
       data.id?.toString()
     );
 
-    console.log(include, 'INCLUDE');
-
-    const organization = await this.prisma.organization.findFirst({
-      where: {
-        id: data.id,
-      },
-      orderBy: { name: 'asc' },
-      include: {
-        ...include,
-      },
-    });
-    for (let [key, prop] of Object.entries(includeConfig)) {
-      let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-      delete organization?.[idNameOfModules];
-    }
-    if (!organization) {
-      throw new NotFoundException('Organization is not found');
-    }
-
-    let formattedOrganization = formatOrganizationResponse(
-      organization,
-      modulesConfig
-    );
-    if (data.role !== 'moderator') {
-      delete formattedOrganization.secret;
-    }
-    this.logger.debug(
-      `Method: ${methodName} - Response: `,
-      formattedOrganization
-    );
     if (findOrganization) {
-      return findOrganization;
-    } else {
-      const organization = await this.prisma.organization.findFirst({
-        where: {
-          id: data.id,
-        },
-        orderBy: { name: 'asc' },
-        include: {
-          ...include,
-        },
-      });
-      for (let [key, prop] of Object.entries(includeConfig)) {
-        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-        delete organization?.[idNameOfModules];
+      let formattedOrganization = findOrganization;
+      if (data.role == 'moderator' || data.role == 'operator') {
+        return formattedOrganization;
       }
-      if (!organization) {
-        throw new NotFoundException('Organization is not found');
-      }
-
-      let formattedOrganization = formatOrganizationResponse(
-        organization,
-        modulesConfig
-      );
       if (data.role !== 'moderator') {
         delete formattedOrganization.secret;
       }
-      this.logger.debug(
-        `Method: ${methodName} - Response: `,
-        formattedOrganization
-      );
 
       formattedOrganization.kvartal = {
         value: formattedOrganization.kvartal || null,
         requiredPlan: 'standard',
       };
+
       formattedOrganization.home = {
         value: formattedOrganization.home || null,
         requiredPlan: 'standard',
@@ -1033,21 +987,156 @@ export class OrganizationService {
         value: formattedOrganization.Nearbees || null,
         requiredPlan: 'standard',
       };
-      for (let i of formattedOrganization.Phone) {
-        i.phone = {
-          value: i.phone || null,
-          requiredPlan: 'standard',
-        };
-        i.PhoneTypes = {
-          value: i.PhoneTypes || null,
-          requiredPlan: 'standard',
-        };
+
+      if (formattedOrganization?.Phone) {
+        const newPhones = [];
+        for (let i of formattedOrganization?.Phone) {
+          if (!i.isSecret) {
+            newPhones.push({
+              ...i,
+              phone: {
+                value: i.phone || null,
+                requiredPlan: 'standard',
+              },
+              PhoneTypes: {
+                value: i.PhoneTypes || null,
+                requiredPlan: 'standard',
+              },
+            });
+          }
+        }
+        formattedOrganization.Phone = newPhones;
       }
-      await this.cacheService.set(
-        'organizationOne',
-        data.id?.toString(),
-        formattedOrganization
-      );
+
+      return formattedOrganization;
+    } else {
+      const organization = await getOneOrgOptimizedQuery(data.id, this.prisma);
+
+      if (!organization) {
+        throw new NotFoundException('Organization is not found');
+      }
+      this.logger.debug(`Method: ${methodName} - Response: `, organization[0]);
+
+      let formattedOrganization = { ...organization[0] };
+
+      if (data.role == 'moderator' || data.role == 'operator') {
+        return formattedOrganization;
+      }
+      if (data.role !== 'moderator') {
+        delete formattedOrganization.secret;
+      }
+
+      formattedOrganization.kvartal = {
+        value: formattedOrganization.kvartal || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.home = {
+        value: formattedOrganization.home || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.apartment = {
+        value: formattedOrganization.apartment || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.inn = {
+        value: formattedOrganization.inn || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.description = {
+        value: formattedOrganization.description || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.bankNumber = {
+        value: formattedOrganization.bankNumber || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.mail = {
+        value: formattedOrganization.mail || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.manager = {
+        value: formattedOrganization.manager || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.index = {
+        value: formattedOrganization.index || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.region = {
+        value: formattedOrganization.region || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.city = {
+        value: formattedOrganization.city || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.district = {
+        value: formattedOrganization.district || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.mainOrganization = {
+        value: formattedOrganization.mainOrganization || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.certificate = {
+        value: formattedOrganization.certificate || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.village = {
+        value: formattedOrganization.village || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.avenue = {
+        value: formattedOrganization.avenue || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.residentialArea = {
+        value: formattedOrganization.residentialArea || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.neighborhood = {
+        value: formattedOrganization.neighborhood || null,
+        requiredPlan: 'standard',
+      };
+      formattedOrganization.street = {
+        value: formattedOrganization.street || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.segment = {
+        value: formattedOrganization.segment || null,
+        requiredPlan: 'standard',
+      };
+
+      formattedOrganization.Nearbees = {
+        value: formattedOrganization.Nearbees || null,
+        requiredPlan: 'standard',
+      };
+
+      if (formattedOrganization?.Phone) {
+        const newPhones = [];
+        for (let i of formattedOrganization?.Phone) {
+          console.log(i, 'i');
+
+          if (!i.isSecret) {
+            newPhones.push({
+              ...i,
+              phone: {
+                value: i.phone || null,
+                requiredPlan: 'standard',
+              },
+              PhoneTypes: {
+                value: i.PhoneTypes || null,
+                requiredPlan: 'standard',
+              },
+            });
+          }
+        }
+        formattedOrganization.Phone = newPhones;
+      }
 
       return formattedOrganization;
     }
@@ -1170,6 +1259,9 @@ export class OrganizationService {
         apartment: organizationVersion.apartment,
         home: organizationVersion.home,
         inn: organizationVersion.inn,
+        socials: organizationVersion.socials,
+        logo: organizationVersion.logo,
+        certificate: organizationVersion.certificate,
         kvartal: organizationVersion.kvartal,
         legalName: organizationVersion.legalName,
         mail: organizationVersion.mail,

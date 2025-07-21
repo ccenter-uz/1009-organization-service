@@ -16,8 +16,8 @@ export async function getProductServiceSubCategoryOrderedData(
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
       : Prisma.empty;
 
-const result: any = await prisma.$queryRaw(
-  Prisma.sql`WITH
+  const result: any = await prisma.$queryRaw(
+    Prisma.sql`WITH
   ${Prisma.raw(CapitalizeName)}Translations AS (
       SELECT
           ct.${Prisma.raw(`${name}_id`)},
@@ -41,17 +41,34 @@ const result: any = await prisma.$queryRaw(
   )
 
 SELECT
-  c.*,
-  t.name AS name,
-  JSONB_SET(
-    ROW_TO_JSON(${Prisma.raw(categoryName)})::JSONB,  
-    '{name}', 
-    COALESCE(ct.name, '{}'::JSONB)
-  ) AS ${Prisma.sql`"${Prisma.raw(CapitalizeCategoryName)}"`},
-  COALESCE(oc.organization_count, 0) AS "orgCount"
+ --c.*,
+     c.id AS "id",
+     c.staff_number AS "staffNumber",
+     c.order_number AS "orderNumber",
+     c.status AS "status",
+     c.product_service_category_id AS "productServiceCategoryId",
+     c.edited_staff_number AS "editedStaffNumber",
+     c.delete_reason AS "deleteReason",
+     c.created_at AS "createdAt",
+     c.updated_at AS "updatedAt",
+     c.deleted_at AS "deletedAt",
+    t.name AS name,
+    JSONB_BUILD_OBJECT(
+      'id', ${Prisma.raw(categoryName)}.id,
+      'name', COALESCE(ct.name, '{}'::JSONB),
+      'status', ${Prisma.raw(categoryName)}.status,
+      'createdAt', ${Prisma.raw(categoryName)}.created_at,
+      'updatedAt', ${Prisma.raw(categoryName)}.updated_at,
+      'deletedAt', ${Prisma.raw(categoryName)}.deleted_at,
+      'orderNumber', ${Prisma.raw(categoryName)}.order_number,
+      'staffNumber', ${Prisma.raw(categoryName)}.staff_number,
+      'deleteReason', ${Prisma.raw(categoryName)}.delete_reason,
+      'editedStaffNumber', ${Prisma.raw(categoryName)}.edited_staff_number
+    ) AS "ProductServiceCategory" , 
+      COALESCE(oc.organization_count, 0) AS "orgCount"
 
 FROM ${Prisma.raw(name)} c
-LEFT JOIN ${Prisma.raw(categoryName)} ON c.${Prisma.raw(`${categoryName}_id`)} = ${Prisma.raw(categoryName)}.id
+LEFT JOIN ${Prisma.raw(categoryName)}  ON c.${Prisma.raw(`${categoryName}_id`)} = ${Prisma.raw(categoryName)}.id
 LEFT JOIN ${Prisma.raw(CapitalizeName)}Translations t ON t.${Prisma.raw(`${name}_id`)} = c.id
 LEFT JOIN ${Prisma.raw(CapitalizeCategoryName)}Translations ct ON ct.${Prisma.raw(`${categoryName}_id`)} = ${Prisma.raw(categoryName)}.id
 LEFT JOIN OrganizationCounts oc ON oc.id = c.id
@@ -68,7 +85,7 @@ ${
         t.name ->> '${data.langCode ?? 'ru'}' ASC`)
 }
 ${pagination ? Prisma.sql`LIMIT ${pagination.take} OFFSET ${pagination.skip}` : Prisma.empty}`
-);
+  );
 
   return result;
 }

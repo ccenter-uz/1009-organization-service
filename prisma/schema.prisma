@@ -1070,9 +1070,12 @@ model Organization {
   bankNumber          String?                  @map("bank_number") @db.VarChar()
   account             String?                  @map("account") @db.VarChar()
   mail                String?                  @map("mail") @db.VarChar()
+  logo                String?                  @map("logo") @db.VarChar()
+  certificate         String?                  @map("certificate") @db.VarChar()
   clientId            String?                  @unique() @map("client_id") @db.VarChar()
   manager             String?                  @map("manager") @db.VarChar()
   index               String?                  @db.VarChar(1000)
+  socials             Json?                    @map("socials") @db.Json()
   workTime            Json?                    @map("work_time") @db.Json()
   transport           Json?                    @map("transport") @db.Json()
   createdBy           String                   @map("created_by") @db.VarChar()
@@ -1113,6 +1116,7 @@ model Organization {
   Impasse             Impasse?              @relation(fields: [impasseId], references: [id])
   Segment             Segment?              @relation(fields: [segmentId], references: [id])
   Passage             Passage?              @relation(fields: [passageId], references: [id])
+  SavedOrganization   SavedOrganization[]
   Picture             Picture[]
   Phone               Phone[]
   PaymentTypes        PaymentTypes[]
@@ -1215,9 +1219,12 @@ model OrganizationVersion {
   bankNumber         String?   @map("bank_number") @db.VarChar()
   account            String?   @map("account") @db.VarChar()
   mail               String?   @map("mail") @db.VarChar()
+  logo               String?   @map("logo") @db.VarChar()
+  certificate        String?   @map("certificate") @db.VarChar()
   clientId           String?   @unique() @map("client_id") @db.VarChar()
   manager            String?   @map("manager") @db.VarChar()
   index              String?   @db.VarChar(1000)
+  socials            Json?     @map("socials") @db.Json()
   workTime           Json?     @map("work_time") @db.Json()
   transport          Json?     @map("transport") @db.Json()
   createdBy          String    @map("created_by") @db.VarChar()
@@ -1339,6 +1346,21 @@ model NearbeesVersion {
   OrganizationVersion   OrganizationVersion @relation(fields: [OrganizationVersionId], references: [id])
 
   @@map("nearbees_version")
+}
+
+model SavedOrganization {
+  id                    Int                 @id @default(autoincrement())
+  organizationId        Int                 @map("organization_id") @db.Integer()
+  userId                Int                 @map("user_id") @db.Integer()
+  isSaved               Boolean             @map("is_saved") @default(true) @db.Boolean()
+  status                Int                 @default(1) @db.SmallInt()
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamp
+  updatedAt             DateTime?           @updatedAt @map("updated_at")
+  deletedAt             DateTime?           @map("deleted_at")
+
+  Organization      Organization      @relation(fields: [organizationId], references: [id])
+
+  @@map("saved_organization")
 }
 
 model AdditionalCategory {

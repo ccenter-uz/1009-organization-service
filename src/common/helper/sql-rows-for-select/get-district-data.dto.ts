@@ -1,7 +1,8 @@
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 
-export async function getDistrictData(
+export async function
+  getDistrictData(
   CapitalizaName: string,
   name: string,
   prisma: PrismaService,
@@ -74,12 +75,22 @@ export async function getDistrictData(
         GROUP BY region_id
       )
       SELECT
-        c.*,
+        c.id AS "id",
+        c.staff_number AS "staffNumber",
+        c.order_number AS "orderNumber",
+        c.status AS "status",
+        c.city_id AS "cityId",
+        c.region_id AS "regionId",
+        c.edited_staff_number AS "editedStaffNumber",
+        c.created_at AS "createdAt",
+        c."upd ated_at" AS "updatedAt", 
+        c.deleted_at AS "deletedAt",
+        c.index AS "index",
 
         -- District name as multilingual JSON
         dt.name AS name,
-        dnnt.name AS newName,
-        dont.name AS oldName,
+        dnnt.name AS "newName",
+        dont.name AS "oldName",
 
         -- City object with translation
         JSONB_BUILD_OBJECT(

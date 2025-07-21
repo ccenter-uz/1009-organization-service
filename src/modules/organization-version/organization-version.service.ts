@@ -141,6 +141,9 @@ export class OrganizationVersionService {
         apartment: data.apartment,
         home: data.home,
         inn: data.inn,
+        socials: data.socials,
+        logo: data.logo,
+        certificate: data.certificate,
         kvartal: data.kvartal,
         legalName: data.legalName,
         mail: data.mail,
@@ -633,6 +636,7 @@ export class OrganizationVersionService {
         ? OrganizationStatusEnum.Accepted
         : OrganizationStatusEnum.Check;
 
+
     const UpdateOrganizationVersion =
       await this.prisma.organizationVersion.update({
         where: {
@@ -660,6 +664,9 @@ export class OrganizationVersionService {
           apartment: data.apartment || organizationVersion.apartment,
           home: data.home || null,
           inn: data.inn || organizationVersion.inn,
+          socials: data.social,
+          certificate: data.certificate,
+          logo: data.logoLink == 'null' ? null : data.logoLink,
           kvartal: data.kvartal || null,
           legalName: data.legalName || organizationVersion.legalName,
           mail: data.mail || organizationVersion.mail,
@@ -700,7 +707,7 @@ export class OrganizationVersionService {
         },
       });
 
-    if (status == OrganizationStatusEnum.Accepted) {
+    if (status == OrganizationStatusEnum.Accepted && data.staffNumber == organizationVersion.staffNumber) {
       await this.organizationService.update(data.id);
     }
     this.logger.debug(
