@@ -353,15 +353,17 @@ export class OrganizationVersionService {
     };
   }
 
-   async findOne(data: GetOneDto): Promise<OrganizationVersionInterfaces.Response> {
-     const methodName: string = this.findOne.name;
-     this.logger.debug(`Method: ${methodName} - Request: `, data);
- 
+  async findOne(
+    data: GetOneDto
+  ): Promise<OrganizationVersionInterfaces.Response> {
+    const methodName: string = this.findOne.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
     //  const findOrganization = await this.cacheService.get(
     //    'organizationOne',
     //    data.id?.toString()
     //  );
- 
+
     //  if (findOrganization) {
     //    let formattedOrganization = findOrganization;
     //    if (data.role == 'moderator' || data.role == 'operator') {
@@ -370,12 +372,12 @@ export class OrganizationVersionService {
     //    if (data.role !== 'moderator') {
     //      delete formattedOrganization.secret;
     //    }
- 
+
     //    formattedOrganization.kvartal = {
     //      value: formattedOrganization.kvartal || null,
     //      requiredPlan: 'standard',
     //    };
- 
+
     //    formattedOrganization.home = {
     //      value: formattedOrganization.home || null,
     //      requiredPlan: 'standard',
@@ -436,12 +438,12 @@ export class OrganizationVersionService {
     //      value: formattedOrganization.avenue || null,
     //      requiredPlan: 'standard',
     //    };
- 
+
     //    formattedOrganization.residentialArea = {
     //      value: formattedOrganization.residentialArea || null,
     //      requiredPlan: 'standard',
     //    };
- 
+
     //    formattedOrganization.neighborhood = {
     //      value: formattedOrganization.neighborhood || null,
     //      requiredPlan: 'standard',
@@ -450,17 +452,17 @@ export class OrganizationVersionService {
     //      value: formattedOrganization.street || null,
     //      requiredPlan: 'standard',
     //    };
- 
+
     //    formattedOrganization.segment = {
     //      value: formattedOrganization.segment || null,
     //      requiredPlan: 'standard',
     //    };
- 
+
     //    formattedOrganization.Nearbees = {
     //      value: formattedOrganization.Nearbees || null,
     //      requiredPlan: 'standard',
     //    };
- 
+
     //    if (formattedOrganization?.Phone) {
     //      const newPhones = [];
     //      for (let i of formattedOrganization?.Phone) {
@@ -480,140 +482,140 @@ export class OrganizationVersionService {
     //      }
     //      formattedOrganization.Phone = newPhones;
     //    }
- 
+
     //    return formattedOrganization;
     //  } else {
-       const organization = await getOneOrgVersionQuery(data.id, this.prisma);
- 
-       if (!organization) {
-         throw new NotFoundException('Organization is not found');
-       }
-       this.logger.debug(`Method: ${methodName} - Response: `, organization[0]);
- 
-       let formattedOrganization = { ...organization[0] };
- 
-       if (data.role == 'moderator' || data.role == 'operator') {
-         return formattedOrganization;
-       }
-       if (data.role !== 'moderator') {
-         delete formattedOrganization.secret;
-       }
- 
-       formattedOrganization.kvartal = {
-         value: formattedOrganization.kvartal || null,
-         requiredPlan: 'standard',
-       };
- 
-       formattedOrganization.home = {
-         value: formattedOrganization.home || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.apartment = {
-         value: formattedOrganization.apartment || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.inn = {
-         value: formattedOrganization.inn || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.description = {
-         value: formattedOrganization.description || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.bankNumber = {
-         value: formattedOrganization.bankNumber || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.mail = {
-         value: formattedOrganization.mail || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.manager = {
-         value: formattedOrganization.manager || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.index = {
-         value: formattedOrganization.index || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.region = {
-         value: formattedOrganization.region || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.city = {
-         value: formattedOrganization.city || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.district = {
-         value: formattedOrganization.district || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.mainOrganization = {
-         value: formattedOrganization.mainOrganization || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.certificate = {
-         value: formattedOrganization.certificate || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.village = {
-         value: formattedOrganization.village || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.avenue = {
-         value: formattedOrganization.avenue || null,
-         requiredPlan: 'standard',
-       };
- 
-       formattedOrganization.residentialArea = {
-         value: formattedOrganization.residentialArea || null,
-         requiredPlan: 'standard',
-       };
- 
-       formattedOrganization.neighborhood = {
-         value: formattedOrganization.neighborhood || null,
-         requiredPlan: 'standard',
-       };
-       formattedOrganization.street = {
-         value: formattedOrganization.street || null,
-         requiredPlan: 'standard',
-       };
- 
-       formattedOrganization.segment = {
-         value: formattedOrganization.segment || null,
-         requiredPlan: 'standard',
-       };
- 
-       formattedOrganization.Nearbees = {
-         value: formattedOrganization.Nearbees || null,
-         requiredPlan: 'standard',
-       };
- 
-       if (formattedOrganization?.Phone) {
-         const newPhones = [];
-         for (let i of formattedOrganization?.Phone) {
-           console.log(i, 'i');
- 
-           if (!i.isSecret) {
-             newPhones.push({
-               ...i,
-               phone: {
-                 value: i.phone || null,
-                 requiredPlan: 'standard',
-               },
-               PhoneTypes: {
-                 value: i.PhoneTypes || null,
-                 requiredPlan: 'standard',
-               },
-             });
-           }
-         }
-         formattedOrganization.Phone = newPhones;
-       }
- 
-       return formattedOrganization;
+    const organization = await getOneOrgVersionQuery(data.id, this.prisma);
+
+    if (!organization) {
+      throw new NotFoundException('Organization is not found');
+    }
+    this.logger.debug(`Method: ${methodName} - Response: `, organization[0]);
+
+    let formattedOrganization = { ...organization[0] };
+
+    if (data.role == 'moderator' || data.role == 'operator') {
+      return formattedOrganization;
+    }
+    if (data.role !== 'moderator') {
+      delete formattedOrganization.secret;
+    }
+
+    formattedOrganization.kvartal = {
+      value: formattedOrganization.kvartal || null,
+      requiredPlan: 'standard',
+    };
+
+    formattedOrganization.home = {
+      value: formattedOrganization.home || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.apartment = {
+      value: formattedOrganization.apartment || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.inn = {
+      value: formattedOrganization.inn || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.description = {
+      value: formattedOrganization.description || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.bankNumber = {
+      value: formattedOrganization.bankNumber || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.mail = {
+      value: formattedOrganization.mail || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.manager = {
+      value: formattedOrganization.manager || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.index = {
+      value: formattedOrganization.index || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.region = {
+      value: formattedOrganization.region || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.city = {
+      value: formattedOrganization.city || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.district = {
+      value: formattedOrganization.district || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.mainOrganization = {
+      value: formattedOrganization.mainOrganization || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.certificate = {
+      value: formattedOrganization.certificate || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.village = {
+      value: formattedOrganization.village || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.avenue = {
+      value: formattedOrganization.avenue || null,
+      requiredPlan: 'standard',
+    };
+
+    formattedOrganization.residentialArea = {
+      value: formattedOrganization.residentialArea || null,
+      requiredPlan: 'standard',
+    };
+
+    formattedOrganization.neighborhood = {
+      value: formattedOrganization.neighborhood || null,
+      requiredPlan: 'standard',
+    };
+    formattedOrganization.street = {
+      value: formattedOrganization.street || null,
+      requiredPlan: 'standard',
+    };
+
+    formattedOrganization.segment = {
+      value: formattedOrganization.segment || null,
+      requiredPlan: 'standard',
+    };
+
+    formattedOrganization.Nearbees = {
+      value: formattedOrganization.Nearbees || null,
+      requiredPlan: 'standard',
+    };
+
+    if (formattedOrganization?.Phone) {
+      const newPhones = [];
+      for (let i of formattedOrganization?.Phone) {
+        console.log(i, 'i');
+
+        if (!i.isSecret) {
+          newPhones.push({
+            ...i,
+            phone: {
+              value: i.phone || null,
+              requiredPlan: 'standard',
+            },
+            PhoneTypes: {
+              value: i.PhoneTypes || null,
+              requiredPlan: 'standard',
+            },
+          });
+        }
+      }
+      formattedOrganization.Phone = newPhones;
+    }
+
+    return formattedOrganization;
     //  }
-   }
+  }
 
   async update(
     data: OrganizationVersionUpdateDto
@@ -836,7 +838,16 @@ export class OrganizationVersionService {
       data.role == CreatedByEnum.Moderator
         ? OrganizationStatusEnum.Accepted
         : OrganizationStatusEnum.Check;
-    
+    let method = OrganizationMethodEnum.Update;
+
+    if (
+      organizationVersion.method == OrganizationMethodEnum.Create &&
+      data.role == CreatedByEnum.Moderator &&
+      organizationVersion.status == OrganizationStatusEnum.Check
+    ) {
+      status = OrganizationStatusEnum.Check;
+      method = OrganizationMethodEnum.Create;
+    }
     const UpdateOrganizationVersion =
       await this.prisma.organizationVersion.update({
         where: {
@@ -866,7 +877,10 @@ export class OrganizationVersionService {
           inn: data.inn || organizationVersion.inn,
           socials: data.social,
           certificate: data.certificate,
-          logo: data.logoLink == 'null' || data.logoLink == null ? null : data.logoLink,
+          logo:
+            data.logoLink == 'null' || data.logoLink == null
+              ? null
+              : data.logoLink,
           kvartal: data.kvartal || null,
           legalName: data.legalName || organizationVersion.legalName,
           mail: data.mail || organizationVersion.mail,
@@ -880,7 +894,7 @@ export class OrganizationVersionService {
           description: data.description || organizationVersion.description,
           passageId: data.passageId || null,
           status: status,
-          method: OrganizationMethodEnum.Update,
+          method: method,
           createdBy: organizationVersion.createdBy,
           PaymentTypesVersion: {
             create: PaymentTypesVersionCreateArray,
@@ -907,11 +921,10 @@ export class OrganizationVersionService {
         },
       });
 
-    if (status == OrganizationStatusEnum.Accepted && data.staffNumber == organizationVersion.staffNumber) {
+    if (status == OrganizationStatusEnum.Accepted) {
       await this.organizationService.update(data.id);
     }
 
-    
     this.logger.debug(
       `Method: ${methodName} - Response: `,
       UpdateOrganizationVersion
