@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { CreatedByEnum } from 'types/global';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 
-export async function getOneOrgOptimizedQuery(
+export async function getOneOrgVersionQuery(
   id: number,
   prisma: PrismaService,
   pagination?: { take: number; skip: number }
