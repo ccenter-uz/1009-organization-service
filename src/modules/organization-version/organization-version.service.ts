@@ -666,7 +666,7 @@ export class OrganizationVersionService {
           inn: data.inn || organizationVersion.inn,
           socials: data.social,
           certificate: data.certificate,
-          logo: data.logoLink == 'null' ? null : data.logoLink,
+          logo: data.logoLink == 'null' || data.logoLink == null ? null : data.logoLink,
           kvartal: data.kvartal || null,
           legalName: data.legalName || organizationVersion.legalName,
           mail: data.mail || organizationVersion.mail,
@@ -710,6 +710,8 @@ export class OrganizationVersionService {
     if (status == OrganizationStatusEnum.Accepted && data.staffNumber == organizationVersion.staffNumber) {
       await this.organizationService.update(data.id);
     }
+
+    
     this.logger.debug(
       `Method: ${methodName} - Response: `,
       UpdateOrganizationVersion
