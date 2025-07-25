@@ -13,6 +13,7 @@ import {
   OrganizationVersionUpdateDto,
 } from 'types/organization/organization-version';
 import {
+  GetOneDto,
   LanguageRequestDto,
   ListQueryDto,
 } from 'types/global';
@@ -49,11 +50,14 @@ export class OrganizationVersionController {
     return this.organizationService.findAllByPagination(data);
   }
 
-  // @Get('by-id')
-  // @MessagePattern({ cmd: Commands.GET_BY_ID })
-  // findOne(@Payload() data: GetOneDto): Promise<OrganizationInterfaces.Response> {
-  //   return this.organizationService.findOne(data);
-  // }
+  @Get('by-id')
+  @MessagePattern({ cmd: Commands.GET_BY_ID })
+  findOne(
+    @Payload() data: GetOneDto
+  ): Promise<OrganizationVersionInterfaces.Response> {
+    return this.organizationService.findOne(data);
+  }
+
 
   @Put()
   @MessagePattern({ cmd: Commands.UPDATE })

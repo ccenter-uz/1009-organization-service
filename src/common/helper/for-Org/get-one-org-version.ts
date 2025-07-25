@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { CreatedByEnum } from 'types/global';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 
-export async function getOneOrgOptimizedQuery(
+export async function getOneOrgVersionQuery(
   id: number,
   prisma: PrismaService,
   pagination?: { take: number; skip: number }
@@ -322,8 +322,11 @@ export async function getOneOrgOptimizedQuery(
       o.impasse_id AS "impasseId",
       o.segment_id AS "segmentId",
       o.neighborhood_id AS "neighborhoodId",
+      o.organization_id AS "organizationId",
+      o.method AS "method",
+      o.reject_reason AS "rejectReason",
+      o.delete_reason AS "deleteReason",
 
-    
     
       -- MainOrganization object with translations
       CASE 
@@ -557,7 +560,7 @@ export async function getOneOrgOptimizedQuery(
             'phone', ph.phone,
             'phoneTypeId', ph.phone_type_id,
             'isSecret', ph."isSecret",
-            'OrganizationId', ph.organization_id,
+            'OrganizationVersionId', ph.organization_version_id,
             'createdAt', ph.created_at,
             'updatedAt', ph.updated_at,
             'deletedAt', ph.deleted_at,
@@ -712,7 +715,7 @@ export async function getOneOrgOptimizedQuery(
         '[]'::json
       ) AS "Pictures"
 
-    FROM organization o
+    FROM organization_version o
       
     -- Main Organization
     LEFT JOIN main_organization mo ON o.main_organization_id = mo.id
@@ -829,10 +832,10 @@ export async function getOneOrgOptimizedQuery(
     LEFT JOIN ImpasseNewNameTranslations int ON impasse.id = int.impasse_id
 
     --paymentTypes
-    LEFT JOIN payment_types pty ON pty.organization_id = o.id
+    LEFT JOIN payment_types_version pty ON pty.organization_version_id = o.id
 
     -- phone
-    LEFT JOIN phone ph ON ph.organization_id = o.id
+    LEFT JOIN phone_version ph ON ph.organization_version_id = o.id
 
     --phone types
     LEFT JOIN phone_types pht ON pht.id = ph.phone_type_id
@@ -841,7 +844,7 @@ export async function getOneOrgOptimizedQuery(
     LEFT JOIN PhoneTypesTranslations ptit ON ptit.phone_types_id = pht.id  
 
     --nearbees
-    LEFT JOIN nearbees nb ON nb.organization_version_id = o.id
+    LEFT JOIN nearbees_version nb ON nb.organization_version_id = o.id
 
     --nearby
     LEFT JOIN nearby n ON nb.nearby_id = n.id
@@ -853,7 +856,7 @@ export async function getOneOrgOptimizedQuery(
     LEFT JOIN nearby_category nc ON n.nearby_category_id = nc.id
     
     --product services
-    LEFT JOIN product_services ps ON ps.organization_id = o.id
+    LEFT JOIN product_services_version ps ON ps.organization_version_id = o.id
 
     --product service category
     LEFT JOIN product_service_category psc ON ps.product_service_category_id = psc.id
@@ -880,7 +883,7 @@ export async function getOneOrgOptimizedQuery(
     LEFT JOIN CategoryTranslations cat ON cat.category_id = category.id
 
     --Pictures
-    LEFT JOIN picture pic ON pic.organization_id = o.id
+    LEFT JOIN picture_version pic ON pic.organization_version_id = o.id
 
     WHERE o.id = ${Prisma.raw(String(id))}
 
