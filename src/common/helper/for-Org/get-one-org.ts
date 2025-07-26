@@ -701,7 +701,7 @@ export async function getOneOrgOptimizedQuery(
       -- Aggregate picture
       COALESCE(
         json_agg(
-          jsonb_build_object(
+          DISTINCT jsonb_build_object(
             'id', pic.id,
             'link', pic.link,
             'createdAt', pic.created_at,
