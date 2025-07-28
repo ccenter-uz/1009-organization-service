@@ -440,14 +440,14 @@ export class OrganizationService {
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
     const methodName: string = this.findMy.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const CacheKey = formatCacheKey(data);
-    const findOrganization = await this.cacheService.get(
-      'organization',
-      CacheKey
-    );
-    if (findOrganization) {
-      return findOrganization;
-    } else {
+    // const CacheKey = formatCacheKey(data);
+    // const findOrganization = await this.cacheService.get(
+    //   'organization',
+    //   CacheKey
+    // );
+    // if (findOrganization) {
+    //   return findOrganization;
+    // } else {
       const include = buildIncludeVersion(includeConfigVersion, data);
       const where = {
         staffNumber: data.staffNumber,
@@ -474,11 +474,11 @@ export class OrganizationService {
           result.push(formattedOrganization);
         }
         this.logger.debug(`Method: ${methodName} - Response: `, result);
-        await this.cacheService.setAll('organization', CacheKey, {
-          data: result,
-          totalDocs: organizations.length,
-          totalPage: organizations.length > 0 ? 1 : 0,
-        });
+        // await this.cacheService.setAll('organization', CacheKey, {
+        //   data: result,
+        //   totalDocs: organizations.length,
+        //   totalPage: organizations.length > 0 ? 1 : 0,
+        // });
         return {
           data: result,
           totalDocs: organizations.length,
@@ -529,17 +529,17 @@ export class OrganizationService {
         result.push(formattedOrganization);
       }
       this.logger.debug(`Method: ${methodName} - Response: `, result);
-      await this.cacheService.setAll('organization', CacheKey, {
-        data: result,
-        totalPage: pagination.totalPage,
-        totalDocs: count,
-      });
+      // await this.cacheService.setAll('organization', CacheKey, {
+      //   data: result,
+      //   totalPage: pagination.totalPage,
+      //   totalDocs: count,
+      // });
       return {
         data: result,
         totalPage: pagination.totalPage,
         totalDocs: count,
       };
-    }
+    // }
   }
 
   async findUnconfirm(
@@ -547,14 +547,14 @@ export class OrganizationService {
   ): Promise<OrganizationVersionInterfaces.ResponseWithPagination> {
     const methodName: string = this.findUnconfirm.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const CachKey = formatCacheKey(data);
-    const findOrganization = await this.cacheService.get(
-      'organization',
-      CachKey
-    );
-    if (findOrganization) {
-      return findOrganization;
-    } else {
+    // const CachKey = formatCacheKey(data);
+    // const findOrganization = await this.cacheService.get(
+    //   'organization',
+    //   CachKey
+    // );
+    // if (findOrganization) {
+    //   return findOrganization;
+    // } else {
       const include = buildIncludeVersion(includeConfigVersion, data);
 
       const where = {
@@ -584,11 +584,11 @@ export class OrganizationService {
           result.push(formattedOrganization);
         }
         this.logger.debug(`Method: ${methodName} - Response: `, result);
-        await this.cacheService.setAll('organization', CachKey, {
-          data: result,
-          totalDocs: organizations.length,
-          totalPage: organizations.length > 0 ? 1 : 0,
-        });
+        // await this.cacheService.setAll('organization', CachKey, {
+        //   data: result,
+        //   totalDocs: organizations.length,
+        //   totalPage: organizations.length > 0 ? 1 : 0,
+        // });
         return {
           data: result,
           totalDocs: organizations.length,
@@ -634,17 +634,17 @@ export class OrganizationService {
         result.push(formattedOrganization);
       }
       this.logger.debug(`Method: ${methodName} - Response: `, result);
-      await this.cacheService.setAll('organization', CachKey, {
-        data: result,
-        totalPage: pagination.totalPage,
-        totalDocs: count,
-      });
+      // await this.cacheService.setAll('organization', CachKey, {
+      //   data: result,
+      //   totalPage: pagination.totalPage,
+      //   totalDocs: count,
+      // });
       return {
         data: result,
         totalPage: pagination.totalPage,
         totalDocs: count,
       };
-    }
+    // }
   }
 
   async findObjectAdress(data: ObjectAdressFilterDto) {
