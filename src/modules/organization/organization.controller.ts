@@ -25,6 +25,7 @@ import { OrganizationRestoreDto } from 'types/organization/organization/dto/get-
 import { OrganizationVersionInterfaces } from 'types/organization/organization-version';
 import { UnconfirmOrganizationFilterDto } from 'types/organization/organization/dto/filter-unconfirm-organization.dto';
 import { ObjectAdressFilterDto } from 'types/organization/organization/dto/filter-object-adress-organization.dto';
+import { OrganizationFilterBusinessDto } from 'types/organization/organization/dto/filter-business.dto';
 
 @Controller('organization')
 export class OrganizationController {
@@ -46,6 +47,14 @@ export class OrganizationController {
     @Payload() data: OrganizationFilterDto
   ): Promise<OrganizationInterfaces.ResponseWithPagination> {
     return this.organizationService.findAll(data);
+  }
+
+  @Get('business')
+  @MessagePattern({ cmd: Commands.GET_BUSINESS })
+  getOrganizationBusiness(
+    @Payload() data: OrganizationFilterBusinessDto
+  ): Promise<OrganizationInterfaces.ResponseWithPagination> {
+    return this.organizationService.getOrganizationBusiness(data);
   }
 
   @Get('all-my')
