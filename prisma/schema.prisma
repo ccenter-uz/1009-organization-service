@@ -1056,7 +1056,7 @@ model PhoneTypesTranslations {
 
 model Organization {
   id                  Int                      @id @default(autoincrement())
-  name                String                   @map("name") @db.VarChar()
+  name                String?                  @map("name") @db.VarChar()
   staffNumber         String?                  @map("staff_number") @db.VarChar()
   editedStaffNumber   String?                  @map("edited_staff_number") @db.VarChar(40)
   legalName           String?                  @map("legal_name") @db.VarChar()
@@ -1123,6 +1123,7 @@ model Organization {
   OrganizationVersion OrganizationVersion[]
   ProductServices     ProductServices[]
   Nearbees            Nearbees[]
+  Site                Site[]
 
   @@index([addressSearchVector], type: Gin)
   @@map("organization")
@@ -1205,7 +1206,7 @@ model Nearbees {
 
 model OrganizationVersion {
   id                 Int       @id @default(autoincrement())
-  name               String    @map("name") @db.VarChar()
+  name               String?    @map("name") @db.VarChar()
   staffNumber        String?   @map("staff_number") @db.VarChar()
   editedStaffNumber  String?   @map("edited_staff_number") @db.VarChar(40)
   legalName          String?   @map("legal_name") @db.VarChar()
@@ -1529,6 +1530,21 @@ model AdditionalTableContentTranslations {
   AdditionalTable AdditionalTable @relation(fields: [additionalTableId], references: [id], onDelete: Cascade)
 
   @@map("additional_table_content_translations")
+}
+
+
+model Site {
+  id                          Int                        @id @default(autoincrement())
+  siteDescription             String?                    @map("site_description") @db.VarChar()
+  banner                      String?                    @map("banner") @db.VarChar()
+  map                         Json?                      @map("map") @db.Json()
+  OrganizationId              Int                        @map("organization_id")
+  createdAt                   DateTime                   @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                   DateTime?                  @updatedAt @map("updated_at")
+  deletedAt                   DateTime?                  @map("deleted_at")
+  Organization                Organization               @relation(fields: [OrganizationId], references: [id])
+
+  @@map("site")
 }
 
 model ApiLogs {

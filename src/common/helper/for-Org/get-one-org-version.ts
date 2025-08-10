@@ -280,6 +280,7 @@ export async function getOneOrgVersionQuery(
        GROUP BY cat.category_id
     )
 
+
     SELECT  
       o.id,
       o.name, 
@@ -713,7 +714,21 @@ export async function getOneOrgVersionQuery(
           )
         ) FILTER (WHERE pic.id IS NOT NULL),
         '[]'::json
-      ) AS "Pictures"
+      ) AS "Pictures",
+      COALESCE(
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'id', s.id,
+            'siteDescription', s.site_description,
+            'banner', s.banner,
+            'map', s.map,
+            'createdAt', s.created_at,
+            'updatedAt', s.updated_at,
+            'deletedAt', s.deleted_at
+          )
+        ) FILTER (WHERE s.id IS NOT NULL),
+        '[]'::json
+      ) AS "Site"
 
 
     FROM organization_version o
@@ -885,6 +900,10 @@ export async function getOneOrgVersionQuery(
 
     --Pictures
     LEFT JOIN picture_version pic ON pic.organization_version_id = o.id
+
+      -- Site
+    LEFT JOIN site s ON s.organization_id = o.id
+
 
     WHERE o.id = ${Prisma.raw(String(id))}
 
