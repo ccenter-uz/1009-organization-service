@@ -710,7 +710,21 @@ export async function getOneOrgOptimizedQuery(
           )
         ) FILTER (WHERE pic.id IS NOT NULL),
         '[]'::json
-      ) AS "Pictures"
+      ) AS "Pictures",
+       COALESCE(
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'id', s.id,
+            'siteDescription', s.site_description,
+            'banner', s.banner,
+            'map', s.map,
+            'createdAt', s.created_at,
+            'updatedAt', s.updated_at,
+            'deletedAt', s.deleted_at
+          )
+        ) FILTER (WHERE s.id IS NOT NULL),
+        '[]'::json
+      ) AS "Site"
 
     FROM organization o
       
@@ -881,6 +895,9 @@ export async function getOneOrgOptimizedQuery(
 
     --Pictures
     LEFT JOIN picture pic ON pic.organization_id = o.id
+
+    -- Site
+    LEFT JOIN site s ON s.organization_id = o.id
 
     WHERE o.id = ${Prisma.raw(String(id))}
 

@@ -898,10 +898,13 @@ export class OrganizationService {
     const methodName: string = this.getOrganizationBusiness.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-    const organization = await getOneOrgBusinessQuery(data.inn, this.prisma);
+    const organization = await getOneOrgBusinessQuery(
+      data.inn,
+      null,
+      this.prisma
+    );
 
     if (!organization.length) {
-      console.log('Organization is not found');
 
       throw new NotFoundException('Organization is not found');
     }
@@ -1049,7 +1052,7 @@ export class OrganizationService {
 
       let formattedOrganization = { ...organization[0] };
 
-      if (data.role == 'moderator' || data.role == 'operator') {
+      if (data.role == 'moderator' || data.role == 'operator' || data.role == 'business') {
         return formattedOrganization;
       }
       if (data.role !== 'moderator') {
@@ -1149,7 +1152,6 @@ export class OrganizationService {
       if (formattedOrganization?.Phone) {
         const newPhones = [];
         for (let i of formattedOrganization?.Phone) {
-          console.log(i, 'i');
 
           if (!i.isSecret) {
             newPhones.push({
@@ -1170,6 +1172,19 @@ export class OrganizationService {
 
       return formattedOrganization;
     }
+  }
+
+  async findOneSearch(data: {
+    name: string;
+  }): Promise<OrganizationInterfaces.Response> {
+
+    const organization = await getOneOrgBusinessQuery(
+      null,
+      data.name,
+      this.prisma
+    );
+if(!organization.length) throw new NotFoundException('Organization is not found');
+    return organization[0];
   }
 
   async update(id: number): Promise<OrganizationInterfaces.Response> {

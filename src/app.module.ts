@@ -45,6 +45,7 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { SavedOrganizationModule } from './modules/saved-organization/saved-organization.module';
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -89,6 +90,7 @@ import { SavedOrganizationModule } from './modules/saved-organization/saved-orga
     AdditionalModule,
     MonitoringModule,
     SavedOrganizationModule,
+
     // CronJobModule,
   ],
   controllers: [],

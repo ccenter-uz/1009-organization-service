@@ -42,6 +42,7 @@ import { PhoneTypeService } from '../phone-type/phone-type.service';
 import { NeighborhoodService } from '../neighborhood/neighborhood.service';
 import { getOneOrgVersionQuery } from '@/common/helper/for-Org/get-one-org-version';
 
+
 @Injectable()
 export class OrganizationVersionService {
   private logger = new Logger(MainOrganizationService.name);
@@ -67,7 +68,7 @@ export class OrganizationVersionService {
     private readonly impasseService: ImpasseService,
     private readonly nearbyService: NearbyService,
     private readonly segmentService: SegmentService,
-    private readonly phoneTypeService: PhoneTypeService
+    private readonly phoneTypeService: PhoneTypeService,
   ) {}
 
   async create(
@@ -189,6 +190,18 @@ export class OrganizationVersionService {
       `Method: ${methodName} - Response: `,
       organizationVersion
     );
+
+    // if (data.createdBy == CreatedByEnum.Client) {
+    
+      
+    //   this.businessService.create({
+    //     organizationId: data.id,
+    //     certificate: data.certificate,
+    //     address: data.address,
+    //     social: null,
+    //     PhotoLink:null
+    //   });
+    // }
 
     return organizationVersion;
   }
@@ -494,7 +507,7 @@ export class OrganizationVersionService {
 
     let formattedOrganization = { ...organization[0] };
 
-    if (data.role == 'moderator' || data.role == 'operator') {
+    if (data.role == 'moderator' || data.role == 'operator' || data.role == 'business') {
       return formattedOrganization;
     }
     if (data.role !== 'moderator') {
@@ -594,7 +607,6 @@ export class OrganizationVersionService {
     if (formattedOrganization?.Phone) {
       const newPhones = [];
       for (let i of formattedOrganization?.Phone) {
-        console.log(i, 'i');
 
         if (!i.isSecret) {
           newPhones.push({
@@ -923,6 +935,36 @@ export class OrganizationVersionService {
 
     if (status == OrganizationStatusEnum.Accepted) {
       await this.organizationService.update(data.id);
+    }
+
+    if (data.role == CreatedByEnum.Business) {
+     const  findSite = await this.prisma.site.findFirst({
+        where: {
+          OrganizationId: data.id,
+        },
+     });
+      if(!findSite) {
+        await this.prisma.site.create({
+          data: {
+            OrganizationId: data.id,
+            banner: data.site.banner == 'null' ? null : data.site.banner,
+            siteDescription: data.site.site_description,
+            map: data.site.map,
+          },
+        });
+      } else {
+        await this.prisma.site.update({
+          where: {
+            id: findSite.id,
+          },
+          data: {
+            banner: data.site.banner == 'null' ? null : data.site.banner,
+            siteDescription: data.site.site_description,
+            map: data.site.map,
+          }
+        })
+      }
+
     }
 
     this.logger.debug(
