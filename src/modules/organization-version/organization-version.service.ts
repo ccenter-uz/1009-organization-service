@@ -404,13 +404,13 @@ export class OrganizationVersionService {
         name: formattedOrganization.name,
         paymentTypes: formattedOrganization.PaymentTypes,
         phone: formattedOrganization.Phone,
-        PictureVersion: formattedOrganization.Pictures,
-        site: formattedOrganization.site,
+        Picture: formattedOrganization.Pictures,
+        site: formattedOrganization.Site,
         address: formattedOrganization.address,
         legalName: formattedOrganization.legalName,
         email: formattedOrganization.mail,
         inn: formattedOrganization.inn,
-        socials: formattedOrganization.socials,
+        socials: formattedOrganization.social,
         transport: formattedOrganization.transport,
         workTime: formattedOrganization.workTime,
         rate: {
@@ -766,7 +766,7 @@ export class OrganizationVersionService {
             OrganizationId: data.id,
             banner: data.site.banner == 'null' ? null : data.site.banner,
             siteDescription: data.site.site_description,
-            map: data.site.map,
+            branches: data.site.branch,
           },
         });
       } else {
@@ -777,7 +777,7 @@ export class OrganizationVersionService {
           data: {
             banner: data.site.banner == 'null' ? null : data.site.banner,
             siteDescription: data.site?.site_description || null,
-            map: data.site.map,
+            branches: data.site.branch,
           },
         });
       }
