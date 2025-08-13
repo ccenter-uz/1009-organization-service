@@ -3,19 +3,32 @@ import { Prisma } from '@prisma/client';
 import { CreatedByEnum } from 'types/global';
 import { OrganizationFilterDto } from 'types/organization/organization/dto/filter-organization.dto';
 
-export async function getOneOrgOptimizedQuery(
-  id: number,
+
+export async function getOneOrgBusinessQuery(
+  inn: string | null,
+  name: string | null,
   prisma: PrismaService,
   pagination?: { take: number; skip: number }
 ) {
   const conditions: Prisma.Sql[] = [];
   let whereClause = Prisma.empty;
 
+
+  if (inn) {
+    conditions.push(Prisma.sql`o.inn = ${inn}`);
+  } 
+
+  if (name) {
+    conditions.push(Prisma.sql`o.name = ${`${name}`}`);
+  }
+
+
+
   whereClause =
     conditions.length > 0
       ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
       : Prisma.empty;
-
+  
   try {
     const result: any = await prisma.$queryRaw(Prisma.sql`
     -- CTE for MainOrganization translations in all languages
@@ -711,13 +724,13 @@ export async function getOneOrgOptimizedQuery(
         ) FILTER (WHERE pic.id IS NOT NULL),
         '[]'::json
       ) AS "Pictures",
-       COALESCE(
+      COALESCE(
         json_agg(
           DISTINCT jsonb_build_object(
             'id', s.id,
             'siteDescription', s.site_description,
             'banner', s.banner,
-            'branches', s.branches,
+            'map', s.map,
             'createdAt', s.created_at,
             'updatedAt', s.updated_at,
             'deletedAt', s.deleted_at
@@ -898,10 +911,11 @@ export async function getOneOrgOptimizedQuery(
 
     -- Site
     LEFT JOIN site s ON s.organization_id = o.id
+      
 
-    WHERE o.id = ${Prisma.raw(String(id))}
+     ${whereClause}
 
-    GROUP BY o.id, mo.id, mot.name;
+    GROUP BY o.id, o.inn, mo.id, mot.name;
   `);
 
     return result;

@@ -20,6 +20,7 @@ import { SegmentModule } from '../segment/segment.module';
 import { PhoneTypeModule } from '../phone-type/phone-type.module';
 import { OrganizationModule } from '../organization/organization.module';
 import { NeighborhoodModule } from '../neighborhood/neighborhood.module';
+// import { BusinessModule } from '../business/business.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { NeighborhoodModule } from '../neighborhood/neighborhood.module';
     SegmentModule,
     PhoneTypeModule,
     NeighborhoodModule,
+    // BusinessModule, 
   ],
   controllers: [OrganizationVersionController],
   providers: [OrganizationVersionService],

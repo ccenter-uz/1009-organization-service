@@ -68,6 +68,9 @@ import { ObjectAdressFilterDto } from 'types/organization/organization/dto/filte
 import { getOrgCount } from '@/common/helper/for-Org/get-org-data-count.dto';
 import { getOrgOptimizedQuery } from '@/common/helper/for-Org/get-org';
 import { getOneOrgOptimizedQuery } from '@/common/helper/for-Org/get-one-org';
+import { OrganizationFilterBusinessDto } from 'types/organization/organization/dto/filter-business.dto';
+import { getOneOrgBusinessQuery } from '@/common/helper/for-Org/get-one-Business-org.dto';
+import { generateCount, generateRate } from '@/common/helper/generate-number';
 
 @Injectable()
 export class OrganizationService {
@@ -112,17 +115,25 @@ export class OrganizationService {
       });
     }
 
-    const subCategory = await this.subCategoryService.findOne({
-      id: data.subCategoryId,
-    });
+    let subCategory;
+    if (data.subCategoryId) {
+      subCategory = await this.subCategoryService.findOne({
+        id: data.subCategoryId,
+      });
+    }
 
-    const region = await this.regionService.findOne({
-      id: data.regionId,
-    });
-
-    const city = await this.cityService.findOne({
-      id: data.cityId,
-    });
+    let region;
+    if (data.regionId) {
+      region = await this.regionService.findOne({
+        id: data.regionId,
+      });
+    }
+    let city;
+    if (data.cityId) {
+      city = await this.cityService.findOne({
+        id: data.cityId,
+      });
+    }
 
     let district;
     if (data.districtId) {
@@ -248,6 +259,10 @@ export class OrganizationService {
     }
     let CreatedByRole = CreatedByEnum.Moderator;
 
+    if (data.role == CreatedByEnum.Business) {
+      CreatedByRole = CreatedByEnum.Client;
+    }
+
     if (data.role == CreatedByEnum.Client) {
       CreatedByRole = CreatedByEnum.Client;
     }
@@ -257,8 +272,8 @@ export class OrganizationService {
 
     const organization = await this.prisma.organization.create({
       data: {
-        regionId: region.id,
-        cityId: city.id,
+        regionId: region?.id,
+        cityId: city?.id,
         districtId: district?.id,
         villageId: village?.id,
         avenueId: avenue?.id,
@@ -270,7 +285,7 @@ export class OrganizationService {
         impasseId: impasse?.id,
         segmentId: segment?.id ? segment.id : undefined,
         mainOrganizationId: mainOrganization?.id ? mainOrganization?.id : null,
-        subCategoryId: subCategory.id,
+        subCategoryId: subCategory?.id,
         description: data?.description ? data?.description : null,
         account: data?.account ? data?.account : null,
         bankNumber: data?.bankNumber ? data?.bankNumber : null,
@@ -448,77 +463,22 @@ export class OrganizationService {
     // if (findOrganization) {
     //   return findOrganization;
     // } else {
-      const include = buildIncludeVersion(includeConfigVersion, data);
-      const where = {
-        staffNumber: data.staffNumber,
-      };
-      if (data.all) {
-        const organizations = await this.prisma.organizationVersion.findMany({
-          where,
-          orderBy: { name: 'desc' },
-          include,
-        });
-        const result = [];
-        for (let [index, org] of Object.entries(organizations)) {
-          for (let [key, prop] of Object.entries(includeConfig)) {
-            let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-            delete org?.[idNameOfModules];
-          }
-          const formattedOrganization = formatOrganizationResponseVersion(
-            org,
-            modulesConfigVersion
-          );
-          if (data.role !== 'moderator') {
-            delete formattedOrganization.secret;
-          }
-          result.push(formattedOrganization);
-        }
-        this.logger.debug(`Method: ${methodName} - Response: `, result);
-        // await this.cacheService.setAll('organization', CacheKey, {
-        //   data: result,
-        //   totalDocs: organizations.length,
-        //   totalPage: organizations.length > 0 ? 1 : 0,
-        // });
-        return {
-          data: result,
-          totalDocs: organizations.length,
-          totalPage: organizations.length > 0 ? 1 : 0,
-        };
-      }
-
-      const whereWithLang: any = {
-        ...{
-          status: data.status,
-        },
-        ...where,
-      };
-
-      const count = await this.prisma.organizationVersion.count({
-        where: whereWithLang,
-      });
-
-      const pagination = createPagination({
-        count,
-        page: data.page,
-        perPage: data.limit,
-      });
-
-      const organization = await this.prisma.organizationVersion.findMany({
-        where: whereWithLang,
+    const include = buildIncludeVersion(includeConfigVersion, data);
+    const where = {
+      staffNumber: data.staffNumber,
+    };
+    if (data.all) {
+      const organizations = await this.prisma.organizationVersion.findMany({
+        where,
         orderBy: { name: 'desc' },
         include,
-        take: pagination.take,
-        skip: pagination.skip,
       });
-
       const result = [];
-
-      for (let [index, org] of Object.entries(organization)) {
+      for (let [index, org] of Object.entries(organizations)) {
         for (let [key, prop] of Object.entries(includeConfig)) {
           let idNameOfModules = key.toLocaleLowerCase() + 'Id';
           delete org?.[idNameOfModules];
         }
-
         const formattedOrganization = formatOrganizationResponseVersion(
           org,
           modulesConfigVersion
@@ -531,14 +491,69 @@ export class OrganizationService {
       this.logger.debug(`Method: ${methodName} - Response: `, result);
       // await this.cacheService.setAll('organization', CacheKey, {
       //   data: result,
-      //   totalPage: pagination.totalPage,
-      //   totalDocs: count,
+      //   totalDocs: organizations.length,
+      //   totalPage: organizations.length > 0 ? 1 : 0,
       // });
       return {
         data: result,
-        totalPage: pagination.totalPage,
-        totalDocs: count,
+        totalDocs: organizations.length,
+        totalPage: organizations.length > 0 ? 1 : 0,
       };
+    }
+
+    const whereWithLang: any = {
+      ...{
+        status: data.status,
+      },
+      ...where,
+    };
+
+    const count = await this.prisma.organizationVersion.count({
+      where: whereWithLang,
+    });
+
+    const pagination = createPagination({
+      count,
+      page: data.page,
+      perPage: data.limit,
+    });
+
+    const organization = await this.prisma.organizationVersion.findMany({
+      where: whereWithLang,
+      orderBy: { name: 'desc' },
+      include,
+      take: pagination.take,
+      skip: pagination.skip,
+    });
+
+    const result = [];
+
+    for (let [index, org] of Object.entries(organization)) {
+      for (let [key, prop] of Object.entries(includeConfig)) {
+        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+        delete org?.[idNameOfModules];
+      }
+
+      const formattedOrganization = formatOrganizationResponseVersion(
+        org,
+        modulesConfigVersion
+      );
+      if (data.role !== 'moderator') {
+        delete formattedOrganization.secret;
+      }
+      result.push(formattedOrganization);
+    }
+    this.logger.debug(`Method: ${methodName} - Response: `, result);
+    // await this.cacheService.setAll('organization', CacheKey, {
+    //   data: result,
+    //   totalPage: pagination.totalPage,
+    //   totalDocs: count,
+    // });
+    return {
+      data: result,
+      totalPage: pagination.totalPage,
+      totalDocs: count,
+    };
     // }
   }
 
@@ -555,95 +570,95 @@ export class OrganizationService {
     // if (findOrganization) {
     //   return findOrganization;
     // } else {
-      const include = buildIncludeVersion(includeConfigVersion, data);
+    const include = buildIncludeVersion(includeConfigVersion, data);
 
-      const where = {
-        status: 0,
-        name: data.search
-          ? { contains: data.search, mode: Prisma.QueryMode.insensitive }
-          : undefined,
-        createdBy:
-          data.createdBy == CreatedByEnum.All ? undefined : data.createdBy,
-      };
-      if (data.all) {
-        const organizations = await this.prisma.organizationVersion.findMany({
-          where,
-          orderBy: { name: 'desc' },
-          include,
-        });
-        const result = [];
-        for (let [index, org] of Object.entries(organizations)) {
-          for (let [key, prop] of Object.entries(includeConfig)) {
-            let idNameOfModules = key.toLocaleLowerCase() + 'Id';
-            delete org?.[idNameOfModules];
-          }
-          const formattedOrganization = formatOrganizationResponseVersion(
-            org,
-            modulesConfigVersion
-          );
-          result.push(formattedOrganization);
-        }
-        this.logger.debug(`Method: ${methodName} - Response: `, result);
-        // await this.cacheService.setAll('organization', CachKey, {
-        //   data: result,
-        //   totalDocs: organizations.length,
-        //   totalPage: organizations.length > 0 ? 1 : 0,
-        // });
-        return {
-          data: result,
-          totalDocs: organizations.length,
-          totalPage: organizations.length > 0 ? 1 : 0,
-        };
-      }
-
-      const whereWithLang: any = {
-        ...where,
-      };
-
-      const count = await this.prisma.organizationVersion.count({
-        where: whereWithLang,
-      });
-
-      const pagination = createPagination({
-        count,
-        page: data.page,
-        perPage: data.limit,
-      });
-
-      const organization = await this.prisma.organizationVersion.findMany({
-        where: whereWithLang,
+    const where = {
+      status: 0,
+      name: data.search
+        ? { contains: data.search, mode: Prisma.QueryMode.insensitive }
+        : undefined,
+      createdBy:
+        data.createdBy == CreatedByEnum.All ? undefined : data.createdBy,
+    };
+    if (data.all) {
+      const organizations = await this.prisma.organizationVersion.findMany({
+        where,
         orderBy: { name: 'desc' },
         include,
-        take: pagination.take,
-        skip: pagination.skip,
       });
-
       const result = [];
-
-      for (let [index, org] of Object.entries(organization)) {
+      for (let [index, org] of Object.entries(organizations)) {
         for (let [key, prop] of Object.entries(includeConfig)) {
           let idNameOfModules = key.toLocaleLowerCase() + 'Id';
           delete org?.[idNameOfModules];
         }
-
         const formattedOrganization = formatOrganizationResponseVersion(
           org,
           modulesConfigVersion
         );
-
         result.push(formattedOrganization);
       }
       this.logger.debug(`Method: ${methodName} - Response: `, result);
       // await this.cacheService.setAll('organization', CachKey, {
       //   data: result,
-      //   totalPage: pagination.totalPage,
-      //   totalDocs: count,
+      //   totalDocs: organizations.length,
+      //   totalPage: organizations.length > 0 ? 1 : 0,
       // });
       return {
         data: result,
-        totalPage: pagination.totalPage,
-        totalDocs: count,
+        totalDocs: organizations.length,
+        totalPage: organizations.length > 0 ? 1 : 0,
       };
+    }
+
+    const whereWithLang: any = {
+      ...where,
+    };
+
+    const count = await this.prisma.organizationVersion.count({
+      where: whereWithLang,
+    });
+
+    const pagination = createPagination({
+      count,
+      page: data.page,
+      perPage: data.limit,
+    });
+
+    const organization = await this.prisma.organizationVersion.findMany({
+      where: whereWithLang,
+      orderBy: { name: 'desc' },
+      include,
+      take: pagination.take,
+      skip: pagination.skip,
+    });
+
+    const result = [];
+
+    for (let [index, org] of Object.entries(organization)) {
+      for (let [key, prop] of Object.entries(includeConfig)) {
+        let idNameOfModules = key.toLocaleLowerCase() + 'Id';
+        delete org?.[idNameOfModules];
+      }
+
+      const formattedOrganization = formatOrganizationResponseVersion(
+        org,
+        modulesConfigVersion
+      );
+
+      result.push(formattedOrganization);
+    }
+    this.logger.debug(`Method: ${methodName} - Response: `, result);
+    // await this.cacheService.setAll('organization', CachKey, {
+    //   data: result,
+    //   totalPage: pagination.totalPage,
+    //   totalDocs: count,
+    // });
+    return {
+      data: result,
+      totalPage: pagination.totalPage,
+      totalDocs: count,
+    };
     // }
   }
 
@@ -880,6 +895,24 @@ export class OrganizationService {
     }
   }
 
+  async getOrganizationBusiness(data: OrganizationFilterBusinessDto) {
+    const methodName: string = this.getOrganizationBusiness.name;
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+
+    const organization = await getOneOrgBusinessQuery(
+      data.inn,
+      null,
+      this.prisma
+    );
+
+    if (!organization.length) {
+      throw new NotFoundException('Organization is not found');
+    }
+    this.logger.debug(`Method: ${methodName} - Response: `, organization);
+
+    return organization;
+  }
+
   async findOne(data: GetOneDto): Promise<OrganizationInterfaces.Response> {
     const methodName: string = this.findOne.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
@@ -898,96 +931,41 @@ export class OrganizationService {
         delete formattedOrganization.secret;
       }
 
-      formattedOrganization.kvartal = {
-        value: formattedOrganization.kvartal || null,
-        requiredPlan: 'standard',
-      };
-
-      formattedOrganization.home = {
-        value: formattedOrganization.home || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.apartment = {
-        value: formattedOrganization.apartment || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.inn = {
-        value: formattedOrganization.inn || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.description = {
-        value: formattedOrganization.description || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.bankNumber = {
-        value: formattedOrganization.bankNumber || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.mail = {
-        value: formattedOrganization.mail || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.manager = {
-        value: formattedOrganization.manager || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.index = {
-        value: formattedOrganization.index || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.region = {
-        value: formattedOrganization.region || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.city = {
-        value: formattedOrganization.city || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.district = {
-        value: formattedOrganization.district || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.mainOrganization = {
-        value: formattedOrganization.mainOrganization || null,
-        requiredPlan: 'standard',
-      };
-      // formattedOrganization.certificate = {
-      //   value: formattedOrganization.certificate || null,
-      //   requiredPlan: 'standard',
-      // };
-      formattedOrganization.village = {
-        value: formattedOrganization.village || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.avenue = {
-        value: formattedOrganization.avenue || null,
-        requiredPlan: 'standard',
-      };
-
-      formattedOrganization.residentialArea = {
-        value: formattedOrganization.residentialArea || null,
-        requiredPlan: 'standard',
-      };
-
-      formattedOrganization.neighborhood = {
-        value: formattedOrganization.neighborhood || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.street = {
-        value: formattedOrganization.street || null,
-        requiredPlan: 'standard',
-      };
-
-      formattedOrganization.segment = {
-        value: formattedOrganization.segment || null,
-        requiredPlan: 'standard',
-      };
-
-      formattedOrganization.Nearbees = {
-        value: formattedOrganization.Nearbees || null,
-        requiredPlan: 'standard',
-      };
-
+      if (data.role == 'business') {
+        if (formattedOrganization?.Phone) {
+          const newPhones = [];
+          for (let i of formattedOrganization?.Phone) {
+            if (!i.isSecret) {
+              newPhones.push({
+                ...i,
+              });
+            }
+          }
+          formattedOrganization.Phone = newPhones;
+        }
+        return {
+          id: formattedOrganization.id,
+          name: formattedOrganization.name,
+          paymentTypes: formattedOrganization.PaymentTypes,
+          phone: formattedOrganization.Phone,
+          Picture: formattedOrganization.Pictures,
+          site: formattedOrganization.site,
+          address: formattedOrganization.address,
+          legalName: formattedOrganization.legalName,
+          email: formattedOrganization.mail,
+          inn: formattedOrganization.inn,
+          socials: formattedOrganization.socials,
+          transport: formattedOrganization.transport,
+          workTime: formattedOrganization.workTime,
+          rate: {
+            rate: generateRate(),
+            count: generateCount(),
+          },
+          createdAt: formattedOrganization.createdAt,
+          updatedAt: formattedOrganization.updatedAt,
+          deletedAt: formattedOrganization.deletedAt,
+        };
+      }
       if (formattedOrganization?.Phone) {
         const newPhones = [];
         for (let i of formattedOrganization?.Phone) {
@@ -1026,101 +1004,46 @@ export class OrganizationService {
         delete formattedOrganization.secret;
       }
 
-      formattedOrganization.kvartal = {
-        value: formattedOrganization.kvartal || null,
-        requiredPlan: 'standard',
-      };
+      if (data.role == 'business') {
+        if (formattedOrganization?.Phone) {
+          const newPhones = [];
+          for (let i of formattedOrganization?.Phone) {
+            if (!i.isSecret) {
+              newPhones.push({
+                ...i,
+              });
+            }
+          }
+          formattedOrganization.Phone = newPhones;
+        }
 
-      formattedOrganization.home = {
-        value: formattedOrganization.home || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.apartment = {
-        value: formattedOrganization.apartment || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.inn = {
-        value: formattedOrganization.inn || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.description = {
-        value: formattedOrganization.description || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.bankNumber = {
-        value: formattedOrganization.bankNumber || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.mail = {
-        value: formattedOrganization.mail || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.manager = {
-        value: formattedOrganization.manager || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.index = {
-        value: formattedOrganization.index || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.region = {
-        value: formattedOrganization.region || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.city = {
-        value: formattedOrganization.city || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.district = {
-        value: formattedOrganization.district || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.mainOrganization = {
-        value: formattedOrganization.mainOrganization || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.certificate = {
-        value: formattedOrganization.certificate || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.village = {
-        value: formattedOrganization.village || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.avenue = {
-        value: formattedOrganization.avenue || null,
-        requiredPlan: 'standard',
-      };
-
-      formattedOrganization.residentialArea = {
-        value: formattedOrganization.residentialArea || null,
-        requiredPlan: 'standard',
-      };
-
-      formattedOrganization.neighborhood = {
-        value: formattedOrganization.neighborhood || null,
-        requiredPlan: 'standard',
-      };
-      formattedOrganization.street = {
-        value: formattedOrganization.street || null,
-        requiredPlan: 'standard',
-      };
-
-      formattedOrganization.segment = {
-        value: formattedOrganization.segment || null,
-        requiredPlan: 'standard',
-      };
-
-      formattedOrganization.Nearbees = {
-        value: formattedOrganization.Nearbees || null,
-        requiredPlan: 'standard',
-      };
+        return {
+          id: formattedOrganization.id,
+          name: formattedOrganization.name,
+          paymentTypes: formattedOrganization.PaymentTypes,
+          phone: formattedOrganization.Phone,
+          Picture: formattedOrganization.Pictures,
+          site: formattedOrganization.Site,
+          address: formattedOrganization.address,
+          legalName: formattedOrganization.legalName,
+          email: formattedOrganization.mail,
+          inn: formattedOrganization.inn,
+          socials: formattedOrganization.social,
+          transport: formattedOrganization.transport,
+          workTime: formattedOrganization.workTime,
+          rate: {
+            rate: generateRate(),
+            count: generateCount(),
+          },
+          createdAt: formattedOrganization.createdAt,
+          updatedAt: formattedOrganization.updatedAt,
+          deletedAt: formattedOrganization.deletedAt,
+        };
+      }
 
       if (formattedOrganization?.Phone) {
         const newPhones = [];
         for (let i of formattedOrganization?.Phone) {
-          console.log(i, 'i');
-
           if (!i.isSecret) {
             newPhones.push({
               ...i,
@@ -1140,6 +1063,19 @@ export class OrganizationService {
 
       return formattedOrganization;
     }
+  }
+
+  async findOneSearch(data: {
+    name: string;
+  }): Promise<OrganizationInterfaces.Response> {
+    const organization = await getOneOrgBusinessQuery(
+      null,
+      data.name,
+      this.prisma
+    );
+    if (!organization.length)
+      throw new NotFoundException('Organization is not found');
+    return organization[0];
   }
 
   async update(id: number): Promise<OrganizationInterfaces.Response> {
