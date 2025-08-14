@@ -1537,7 +1537,7 @@ model Site {
   id                          Int                        @id @default(autoincrement())
   siteDescription             String?                    @map("site_description") @db.VarChar()
   banner                      String?                    @map("banner") @db.VarChar()
-  map                         Json?                      @map("map") @db.Json()
+  branches                    Json?                      @map("branches") @db.Json()
   OrganizationId              Int                        @map("organization_id")
   createdAt                   DateTime                   @default(now()) @map("created_at") @db.Timestamp
   updatedAt                   DateTime?                  @updatedAt @map("updated_at")
