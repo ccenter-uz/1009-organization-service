@@ -730,7 +730,7 @@ export async function getOneOrgBusinessQuery(
             'id', s.id,
             'siteDescription', s.site_description,
             'banner', s.banner,
-            'map', s.map,
+            'branches', s.branches,
             'createdAt', s.created_at,
             'updatedAt', s.updated_at,
             'deletedAt', s.deleted_at
