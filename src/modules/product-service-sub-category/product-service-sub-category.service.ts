@@ -295,7 +295,6 @@ export class ProductServiceSubCategoryService {
     data: ProductServiceSubCategoryDeleteDto
   ): Promise<ProductServiceSubCategoryInterfaces.Response> {
     const methodName: string = this.remove.name;
-    console.log(data, 'data');
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {

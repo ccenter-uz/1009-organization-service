@@ -86,7 +86,6 @@ export class ProductServiceCategoryService {
   async findAll(
     data: ListQueryWithOrderDto
   ): Promise<ProductServiseCategoryInterfaces.ResponseWithPagination> {
-    console.log(data, 'data in findAll');
 
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);

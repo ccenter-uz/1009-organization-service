@@ -214,7 +214,6 @@ export class DistrictService {
       perPage: data.limit,
     });
 
-    console.log('data in district', data);
     const district = await getDistrictData(
       'District',
       'district',
@@ -222,7 +221,6 @@ export class DistrictService {
       data,
       pagination
     );
-    console.log(district, 'district');
 
     this.logger.debug(`Method: ${methodName} - Response: `, district);
 
