@@ -211,8 +211,6 @@ export class CategoryService {
       data.id?.toString()
     );
     if (findCategory) {
-      console.log(findCategory, 'findCategory');
-
       return findCategory;
     } else {
       const category = await this.prisma.category.findFirst({

@@ -41,21 +41,19 @@ export class SavedOrganizationService {
     data: SavedOrganizationCreateDto
   ): Promise<savedOrganizationInterfaces.Response> {
     const methodName: string = this.create.name;
-    console.log(data, 'DATA');
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-    //   const findSavedOrganization = await this.findOne({
-    //     id: data.organizationId,
-    //     userId: data.userId,
-    //   });
-    // console.log(findSavedOrganization, 'findSavedOrganization');
+      const findSavedOrganization = await this.findOne({
+        id: data.organizationId,
+        userId: data.userId,
+      });
 
-    // if (findSavedOrganization) {
-    //   console.log('eroor');
 
-    //   throw new NotFoundException('Saved Organization is already exist');
-    // }
+    if (findSavedOrganization) {
+
+      throw new NotFoundException('Saved Organization is already exist');
+    }
 
     const savedOrganization = await this.prisma.savedOrganization.create({
       data: {

@@ -288,7 +288,6 @@ export class SubCategoryService {
     data: SubCategoryDeleteDto
   ): Promise<SubCategoryInterfaces.Response> {
     const methodName: string = this.remove.name;
-    console.log(data, 'data');
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     if (data.delete) {

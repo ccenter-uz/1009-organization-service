@@ -35,7 +35,6 @@ export class NearbyService {
   async create(data: NearbyCreateDto): Promise<NearbyInterfaces.Response> {
     const methodName: string = this.create.name;
 
-    console.log(data, 'DATA');
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
     const region = await this.regionService.findOne({
@@ -192,7 +191,6 @@ export class NearbyService {
       data,
       pagination
     );
-    console.log(nearby, 'nearby');
     
 
     this.logger.debug(`Method: ${methodName} - Response: `, nearby);
