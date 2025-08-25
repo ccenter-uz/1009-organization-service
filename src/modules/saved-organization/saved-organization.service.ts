@@ -44,17 +44,6 @@ export class SavedOrganizationService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-      const findSavedOrganization = await this.findOne({
-        id: data.organizationId,
-        userId: data.userId,
-      });
-
-
-    if (findSavedOrganization) {
-
-      throw new NotFoundException('Saved Organization is already exist');
-    }
-
     const savedOrganization = await this.prisma.savedOrganization.create({
       data: {
         organizationId: data.organizationId,

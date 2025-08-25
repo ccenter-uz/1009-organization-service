@@ -960,7 +960,7 @@ export class OrganizationService {
           rate: {
             rate: generateRate(),
             count: generateCount(),
-          }, 
+          },
           status: formattedOrganization.status,
           createdAt: formattedOrganization.createdAt,
           updatedAt: formattedOrganization.updatedAt,
@@ -1036,30 +1036,11 @@ export class OrganizationService {
             rate: generateRate(),
             count: generateCount(),
           },
+          status: formattedOrganization.status,
           createdAt: formattedOrganization.createdAt,
           updatedAt: formattedOrganization.updatedAt,
           deletedAt: formattedOrganization.deletedAt,
         };
-      }
-
-      if (formattedOrganization?.Phone) {
-        const newPhones = [];
-        for (let i of formattedOrganization?.Phone) {
-          if (!i.isSecret) {
-            newPhones.push({
-              ...i,
-              phone: {
-                value: i.phone || null,
-                requiredPlan: 'standard',
-              },
-              PhoneTypes: {
-                value: i.PhoneTypes || null,
-                requiredPlan: 'standard',
-              },
-            });
-          }
-        }
-        formattedOrganization.Phone = newPhones;
       }
 
       return formattedOrganization;
