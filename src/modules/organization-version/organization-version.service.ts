@@ -424,28 +424,8 @@ export class OrganizationVersionService {
       };
     }
 
-    if (formattedOrganization?.Phone) {
-      const newPhones = [];
-      for (let i of formattedOrganization?.Phone) {
-        if (!i.isSecret) {
-          newPhones.push({
-            ...i,
-            phone: {
-              value: i.phone || null,
-              requiredPlan: 'standard',
-            },
-            PhoneTypes: {
-              value: i.PhoneTypes || null,
-              requiredPlan: 'standard',
-            },
-          });
-        }
-      }
-      formattedOrganization.Phone = newPhones;
-    }
-
     return formattedOrganization;
-    //  }
+
   }
 
   async update(
