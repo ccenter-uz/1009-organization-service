@@ -12,7 +12,7 @@ import {
   savedOrganizationInterfaces,
   savedOrganizationUpdateDto,
   GetOneSavedOrganizationDto,
-  SavedOrganizationFilterDto
+  SavedOrganizationFilterDto,
 } from 'types/organization/saved-organization';
 import {
   DefaultStatus,
@@ -53,7 +53,6 @@ export class SavedOrganizationService {
     });
 
     this.logger.debug(`Method: ${methodName} - Response: `, data);
-    // await this.cacheService.invalidateAllCaches('category');
     return savedOrganization;
   }
 
@@ -73,7 +72,6 @@ export class SavedOrganizationService {
 
     this.logger.debug(`Method: ${methodName} - Response: `, organization);
 
-
     return organization;
   }
 
@@ -91,8 +89,12 @@ export class SavedOrganizationService {
         status: DefaultStatus.ACTIVE,
       },
     });
+    console.log(savedOrganization);
+    
 
     if (!savedOrganization) {
+      console.log(savedOrganization);
+      
       throw new NotFoundException('Saved Organization is not found');
     }
 
@@ -100,85 +102,25 @@ export class SavedOrganizationService {
     return savedOrganization;
   }
 
-  async update(
-    data: savedOrganizationUpdateDto
-  ): Promise<savedOrganizationInterfaces.Response> {
-    const methodName: string = this.update.name;
-
-    this.logger.debug(`Method: ${methodName} - Request: `, data);
-
-    const findSavedOrganization = await this.findOne({
-      id: data.id,
-      userId: data.userId,
-    });
-
-    const updatedCategory = await this.prisma.savedOrganization.update({
-      where: {
-        id: findSavedOrganization.id,
-      },
-      data: {
-        userId: data.userId,
-        isSaved: data.isSaved,
-      },
-    });
-
-    this.logger.debug(`Method: ${methodName} - Response: `, updatedCategory);
-
-    return updatedCategory;
-  }
-
   async remove(
     data: savedOrganizationDeleteDto
   ): Promise<savedOrganizationInterfaces.Response> {
     const methodName: string = this.remove.name;
-
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-    if (data.delete) {
-      const savedOrganization = await this.prisma.savedOrganization.delete({
-        where: { id: data.id },
-      });
+    const findSaved = await this.findOne({ id: data.id, userId: data.userId });
 
-      this.logger.debug(
-        `Method: ${methodName} - Rresponse when delete true: `,
-        savedOrganization
-      );
-      // await this.cacheService.delete('categoryOne', data.id?.toString());
-      // await this.cacheService.invalidateAllCaches('category');
-      return savedOrganization;
-    }
-
-    const savedOrgnization = await this.prisma.savedOrganization.update({
-      where: { id: data.id, status: DefaultStatus.ACTIVE },
-      data: { status: DefaultStatus.INACTIVE },
+    const savedOrganization = await this.prisma.savedOrganization.delete({
+      where: {
+        id: findSaved.id,
+      },
     });
 
     this.logger.debug(
-      `Method: ${methodName} - Rresponse when delete false: `,
-      savedOrgnization
+      `Method: ${methodName} - Rresponse when delete true: `,
+      savedOrganization
     );
-    // await this.cacheService.delete('categoryOne', data.id?.toString());
-    // await this.cacheService.invalidateAllCaches('category');
-    return savedOrgnization;
-  }
 
-  async restore(
-    data: GetOneDto
-  ): Promise<savedOrganizationInterfaces.Response> {
-    const methodName: string = this.restore.name;
-
-    this.logger.debug(`Method: ${methodName} - Request: `, data);
-
-    const savedOrganization = this.prisma.savedOrganization.update({
-      where: {
-        id: data.id,
-        status: DefaultStatus.INACTIVE,
-      },
-      data: { status: DefaultStatus.ACTIVE },
-    });
-
-    this.logger.debug(`Method: ${methodName} - Rresponse: `, savedOrganization);
-    // await this.cacheService.invalidateAllCaches('category');
     return savedOrganization;
   }
 }
