@@ -6,6 +6,7 @@ import {
   GetOneSavedOrganizationDto,
   SavedOrganizationCreateDto,
   SavedOrganizationFilterDto,
+  savedOrganizationDeleteDto,
   savedOrganizationInterfaces,
   savedOrganizationUpdateDto,
 } from 'types/organization/saved-organization';
@@ -33,35 +34,11 @@ export class SavedOrganizationController {
     return this.categoryService.findAll(data);
   }
 
-  @Get('by-id')
-  @MessagePattern({ cmd: Commands.GET_BY_ID })
-  findOne(
-    @Payload() data: GetOneSavedOrganizationDto
-  ): Promise<savedOrganizationInterfaces.Response> {
-    return this.categoryService.findOne(data);
-  }
-
-  @Put()
-  @MessagePattern({ cmd: Commands.UPDATE })
-  update(
-    @Payload() data: savedOrganizationUpdateDto
-  ): Promise<savedOrganizationInterfaces.Response> {
-    return this.categoryService.update(data);
-  }
-
   @Delete()
   @MessagePattern({ cmd: Commands.DELETE })
   remove(
-    @Payload() data: CategoryDeleteDto
+    @Payload() data: savedOrganizationDeleteDto
   ): Promise<savedOrganizationInterfaces.Response> {
     return this.categoryService.remove(data);
-  }
-
-  @Patch()
-  @MessagePattern({ cmd: Commands.RESTORE })
-  restore(
-    @Payload() data: GetOneDto
-  ): Promise<savedOrganizationInterfaces.Response> {
-    return this.categoryService.restore(data);
   }
 }
