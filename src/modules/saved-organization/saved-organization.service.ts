@@ -4,6 +4,8 @@ import {
   NotFoundException,
   forwardRef,
   Inject,
+  ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { createPagination } from '@/common/helper/pagination.helper';
 import { PrismaService } from '@/modules/prisma/prisma.service';
@@ -44,6 +46,14 @@ export class SavedOrganizationService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
+    const findSavedOrg = await this.findOne({
+      id: data.organizationId,
+      userId: data.userId,
+    });
+
+    if (findSavedOrg) {
+      throw new ConflictException('Organization is already saved');
+    }
     const savedOrganization = await this.prisma.savedOrganization.create({
       data: {
         organizationId: data.organizationId,
@@ -89,12 +99,8 @@ export class SavedOrganizationService {
         status: DefaultStatus.ACTIVE,
       },
     });
-    console.log(savedOrganization);
-    
 
     if (!savedOrganization) {
-      console.log(savedOrganization);
-      
       throw new NotFoundException('Saved Organization is not found');
     }
 
