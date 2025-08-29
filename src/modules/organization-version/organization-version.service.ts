@@ -417,6 +417,7 @@ export class OrganizationVersionService {
           rate: generateRate(),
           count: generateCount(),
         },
+        logoLink: formattedOrganization.logoLink,
         status: formattedOrganization.status,
         createdAt: formattedOrganization.createdAt,
         updatedAt: formattedOrganization.updatedAt,
