@@ -1037,6 +1037,7 @@ export class OrganizationService {
             rate: generateRate(),
             count: generateCount(),
           },
+          logoLink: formattedOrganization.logo,
           status: formattedOrganization.status,
           createdAt: formattedOrganization.createdAt,
           updatedAt: formattedOrganization.updatedAt,
