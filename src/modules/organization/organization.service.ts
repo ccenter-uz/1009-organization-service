@@ -954,7 +954,8 @@ export class OrganizationService {
           legalName: formattedOrganization.legalName,
           email: formattedOrganization.mail,
           inn: formattedOrganization.inn,
-          socials: formattedOrganization.socials,
+          social: formattedOrganization.social,
+          certificate: formattedOrganization.certificate,
           transport: formattedOrganization.transport,
           workTime: formattedOrganization.workTime,
           rate: {
@@ -1030,7 +1031,8 @@ export class OrganizationService {
           legalName: formattedOrganization.legalName,
           email: formattedOrganization.mail,
           inn: formattedOrganization.inn,
-          socials: formattedOrganization.social,
+          social: formattedOrganization.social,
+          certificate: formattedOrganization.certificate,
           transport: formattedOrganization.transport,
           workTime: formattedOrganization.workTime,
           rate: {

@@ -410,7 +410,8 @@ export class OrganizationVersionService {
         legalName: formattedOrganization.legalName,
         email: formattedOrganization.mail,
         inn: formattedOrganization.inn,
-        socials: formattedOrganization.social,
+        social: formattedOrganization.social,
+        certificate: formattedOrganization.certificate,
         transport: formattedOrganization.transport,
         workTime: formattedOrganization.workTime,
         rate: {
