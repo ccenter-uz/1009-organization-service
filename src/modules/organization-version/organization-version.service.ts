@@ -42,6 +42,7 @@ import { PhoneTypeService } from '../phone-type/phone-type.service';
 import { NeighborhoodService } from '../neighborhood/neighborhood.service';
 import { getOneOrgVersionQuery } from '@/common/helper/for-Org/get-one-org-version';
 import { generateCount, generateRate } from '@/common/helper/generate-number';
+import { getOneOrgVersionBusinessQuery } from '@/common/helper/for-Org/get-one-business-org-version';
 
 @Injectable()
 export class OrganizationVersionService {
@@ -149,7 +150,7 @@ export class OrganizationVersionService {
         kvartal: data.kvartal,
         legalName: data.legalName,
         mail: data.mail,
-        name: data.name,
+        name: data.name.trim(),
         secret: data.secret,
         manager: data.manager,
         index: data.index,
@@ -427,7 +428,19 @@ export class OrganizationVersionService {
     }
 
     return formattedOrganization;
+  }
 
+  async findOneSearch(data: {
+    name: string;
+  }): Promise<OrganizationVersionInterfaces.Response> {
+
+    const organization = await getOneOrgVersionBusinessQuery(
+      data.name.trim(),
+      this.prisma
+    );
+    if (!organization.length)
+      throw new NotFoundException('Organization is not found');
+    return organization[0];
   }
 
   async update(
@@ -697,7 +710,7 @@ export class OrganizationVersionService {
           kvartal: data.kvartal || null,
           legalName: data.legalName || organizationVersion.legalName,
           mail: data.mail || organizationVersion.mail,
-          name: data.name || organizationVersion.name,
+          name: data.name.trim() || organizationVersion.name.trim(),
           secret: data.secret || organizationVersion.secret,
           manager: data.manager || organizationVersion.manager,
           index: data.index || organizationVersion.index,

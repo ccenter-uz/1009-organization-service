@@ -87,13 +87,13 @@ export class OrganizationController {
     return this.organizationService.findOne(data);
   }
 
-  @Get('by-id')
-  @MessagePattern({ cmd: Commands.GET_SEARCH })
-  findOneSearch(
-    @Payload() data: {name :string}
-  ): Promise<OrganizationInterfaces.Response> {
-    return this.organizationService.findOneSearch(data);
-  }
+  // @Get('by-id')
+  // @MessagePattern({ cmd: Commands.GET_SEARCH })
+  // findOneSearch(
+  //   @Payload() data: {name :string}
+  // ): Promise<OrganizationInterfaces.Response> {
+  //   return this.organizationService.findOneSearch(data);
+  // }
 
   @Put()
   @MessagePattern({ cmd: Commands.CHECK })

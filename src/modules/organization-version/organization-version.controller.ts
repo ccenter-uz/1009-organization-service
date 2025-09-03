@@ -58,13 +58,19 @@ export class OrganizationVersionController {
     return this.organizationService.findOne(data);
   }
 
+  @Get('by-id')
+  @MessagePattern({ cmd: Commands.GET_SEARCH })
+  findOneSearch(
+    @Payload() data: { name: string }
+  ): Promise<OrganizationVersionInterfaces.Response> {
+    return this.organizationService.findOneSearch(data);
+  }
 
   @Put()
   @MessagePattern({ cmd: Commands.UPDATE })
   update(
     @Payload() data: OrganizationVersionUpdateDto
   ): Promise<OrganizationVersionInterfaces.Update> {
-
     return this.organizationService.update(data);
   }
 
