@@ -433,14 +433,50 @@ export class OrganizationVersionService {
   async findOneSearch(data: {
     name: string;
   }): Promise<OrganizationVersionInterfaces.Response> {
-
     const organization = await getOneOrgVersionBusinessQuery(
       data.name.trim(),
       this.prisma
     );
     if (!organization.length)
       throw new NotFoundException('Organization is not found');
-    return organization[0];
+    let formattedOrganization = organization[0];
+
+    if (formattedOrganization?.Phone) {
+      const newPhones = [];
+      for (let i of formattedOrganization?.Phone) {
+        if (!i.isSecret) {
+          newPhones.push({
+            ...i,
+          });
+        }
+      }
+      formattedOrganization.Phone = newPhones;
+    }
+    return {
+      id: formattedOrganization.id,
+      name: formattedOrganization.name,
+      paymentTypes: formattedOrganization.PaymentTypes,
+      phone: formattedOrganization.Phone,
+      Picture: formattedOrganization.Pictures,
+      site: formattedOrganization.Site,
+      address: formattedOrganization.address,
+      legalName: formattedOrganization.legalName,
+      email: formattedOrganization.mail,
+      inn: formattedOrganization.inn,
+      social: formattedOrganization.social,
+      certificate: formattedOrganization.certificate,
+      transport: formattedOrganization.transport,
+      workTime: formattedOrganization.workTime,
+      rate: {
+        rate: generateRate(),
+        count: generateCount(),
+      },
+      logoLink: formattedOrganization.logo,
+      status: formattedOrganization.status,
+      createdAt: formattedOrganization.createdAt,
+      updatedAt: formattedOrganization.updatedAt,
+      deletedAt: formattedOrganization.deletedAt,
+    };
   }
 
   async update(
