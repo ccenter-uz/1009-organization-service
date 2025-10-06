@@ -46,9 +46,12 @@ export class SavedOrganizationService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-    const findSavedOrg = await this.findOne({
-      id: data.organizationId,
-      userId: data.userId,
+    const findSavedOrg = await this.prisma.savedOrganization.findFirst({
+      where: {
+        organizationId: data.organizationId,
+        userId: data.userId,
+        status: DefaultStatus.ACTIVE,
+      },
     });
 
     if (findSavedOrg) {
