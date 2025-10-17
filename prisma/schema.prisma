@@ -1124,6 +1124,7 @@ model Organization {
   ProductServices     ProductServices[]
   Nearbees            Nearbees[]
   Site                Site[]
+  SiteStatistics      SiteStatistics[]
 
   @@index([addressSearchVector], type: Gin)
   @@map("organization")
@@ -1545,6 +1546,22 @@ model Site {
   Organization                Organization               @relation(fields: [OrganizationId], references: [id])
 
   @@map("site")
+}
+
+model SiteStatistics {
+  id                          Int                        @id @default(autoincrement())
+  address                     String?                    @map("address") @db.VarChar()
+  device                      String?                    @map("device") @db.VarChar()
+  sourceSite                  String?                    @map("source_site") @db.VarChar()
+  sessionTime                 String?                    @map("session_time") @db.VarChar()
+  userLogId                   Int                        @map("user_log_id")
+  OrganizationId              Int                        @map("organization_id")
+  createdAt                   DateTime                   @default(now()) @map("created_at") @db.Timestamp
+  updatedAt                   DateTime?                  @updatedAt @map("updated_at")
+  deletedAt                   DateTime?                  @map("deleted_at")
+  Organization                Organization               @relation(fields: [OrganizationId], references: [id])
+
+  @@map("site_statistics")
 }
 
 model ApiLogs {
