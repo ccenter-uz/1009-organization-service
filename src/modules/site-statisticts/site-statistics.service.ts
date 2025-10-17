@@ -59,7 +59,7 @@ export class siteStatisticsService {
         OrganizationId: data.id,
       },
     });
-    console.log(statistics);
+
 
     const result = {
       total: statistics.length,
@@ -72,7 +72,7 @@ export class siteStatisticsService {
     };
     const uniqueUserIds = new Set<number>();
     for (const item of statistics) {
-      console.log(item);
+
 
       const device = item.device?.toLowerCase() || 'other';
       const address = item.address?.toLowerCase() || 'other';
@@ -96,7 +96,7 @@ export class siteStatisticsService {
     }
     this.logger.debug(`Method: ${methodName} - Response: `, statistics);
     result.uniqueUsers = uniqueUserIds.size;
-    console.log(result);
+
 
     return result;
   }
