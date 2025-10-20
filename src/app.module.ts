@@ -45,6 +45,7 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { SavedOrganizationModule } from './modules/saved-organization/saved-organization.module';
 import { TempCacheModule } from './modules/temp-cache/temp-cache.module';
+import { siteStatisticsModule } from './modules/site-statisticts/site-statistics.module';
 
 
 @Module({
@@ -92,6 +93,7 @@ import { TempCacheModule } from './modules/temp-cache/temp-cache.module';
     MonitoringModule,
     SavedOrganizationModule,
     TempCacheModule,
+    siteStatisticsModule,
 
     // CronJobModule,
   ],
