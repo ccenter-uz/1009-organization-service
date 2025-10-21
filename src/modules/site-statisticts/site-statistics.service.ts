@@ -9,11 +9,13 @@ import {
   ListQueryDto,
 } from 'types/global';
 import {
+  GetSiteStatisticsDto,
   siteStatisticsCreateDto,
   siteStatisticsInterfaces,
 } from 'types/organization/site-statistics';
 import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 import { IsNumber } from 'class-validator';
+import { buildDateFilter } from '@/common/helper/format-date.helper';
 
 @Injectable()
 export class siteStatisticsService {
@@ -51,15 +53,21 @@ export class siteStatisticsService {
     return siteStatistics;
   }
 
-  async findOne(data: GetOneDto): Promise<siteStatisticsInterfaces.Response> {
+  async findOne(
+    data: GetSiteStatisticsDto
+  ): Promise<siteStatisticsInterfaces.Response> {
+    console.log(data, 'data');
+
     const methodName: string = this.findOne.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
+    console.log(buildDateFilter(data.dateRange));
+
     const statistics = await this.prisma.siteStatistics.findMany({
       where: {
         OrganizationId: data.id,
+        createdAt: buildDateFilter(data.dateRange),
       },
     });
-
 
     const result = {
       total: statistics.length,
@@ -69,11 +77,10 @@ export class siteStatisticsService {
       byDevice: {} as Record<string, number>,
       byAddress: {} as Record<string, number>,
       bySourceSite: {} as Record<string, number>,
+      byViewsGraph: {} as Record<string, number>,
     };
     const uniqueUserIds = new Set<number>();
     for (const item of statistics) {
-
-
       const device = item.device?.toLowerCase() || 'other';
       const address = item.address?.toLowerCase() || 'other';
       const site = item.sourceSite?.toLowerCase() || 'other';
@@ -89,6 +96,15 @@ export class siteStatisticsService {
       if (item.sessionTime && +item.sessionTime >= 0) {
         result.avarageSessionTime += +item.sessionTime;
       }
+
+      if (item.createdAt) {
+        const date = new Date(item.createdAt);
+        const formatted = date
+          .toLocaleDateString('uz-UZ') // "20.10.2025" format
+          .replace(/\//g, '.'); // ayrim lokalarda / chiqadi, shu sabab almashtiramiz
+        result.byViewsGraph[formatted] =
+          (result.byViewsGraph[formatted] || 0) + 1;
+      }
     }
 
     if (!statistics) {
@@ -96,7 +112,6 @@ export class siteStatisticsService {
     }
     this.logger.debug(`Method: ${methodName} - Response: `, statistics);
     result.uniqueUsers = uniqueUserIds.size;
-
 
     return result;
   }
