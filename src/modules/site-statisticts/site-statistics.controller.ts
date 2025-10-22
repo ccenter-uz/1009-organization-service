@@ -1,16 +1,12 @@
 import { Controller, Delete, Get, Patch, Post, Put } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { siteStatisticsService } from './site-statistics.service';
-import {
-  DeleteDto,
-  GetOneDto,
-  LanguageRequestDto,
-  ListQueryDto,
-} from 'types/global';
+
 import {
   siteStatisticsCreateDto,
   siteStatisticsInterfaces,
   siteStatisticsCommands as Commands,
+  GetSiteStatisticsDto,
 } from 'types/organization/site-statistics';
 import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
@@ -29,7 +25,7 @@ export class siteStatisticsController {
   @Get('by-id')
   @MessagePattern({ cmd: Commands.GET_BY_ID })
   findOne(
-    @Payload() data: GetOneDto
+    @Payload() data: GetSiteStatisticsDto
   ): Promise<siteStatisticsInterfaces.Response> {
     return this.siteStatisticsService.findOne(data);
   }
