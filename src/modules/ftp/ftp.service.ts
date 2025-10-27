@@ -1,3 +1,4 @@
+import { PhoneVersion } from './../../../node_modules/.prisma/client/index.d';
 import { SegmentService } from './../segment/segment.service';
 import { Injectable, Logger } from '@nestjs/common';
 import excelDateToDateTime from '@/common/helper/excelDateConverter';
@@ -8,6 +9,8 @@ import {
   OrganizationStatusEnum,
 } from 'types/global';
 import { ExcelData } from 'types/organization/organization/dto/create-exel.dto';
+import { OrganizationExcelDataFieldsEnum } from 'types/organization/organization/enum';
+import { create } from 'domain';
 
 @Injectable()
 export class FtpService {
@@ -23,116 +26,120 @@ export class FtpService {
 
     try {
       this.logger.debug(`Method: ${methodName} - Request: `, newRows);
-
-      newRows.forEach(async (row: ExcelData) => {
-        const foundSegment = await this.prisma.segment.findFirst({
-          where: {
-            name: row.SEGMENT,
-          },
-        });
-        let segment: any;
-        if (!foundSegment) {
-          segment = await this.segment.create({
-            name: row.SEGMENT,
+      try {
+        for (const row of newRows) {
+          const foundSegment = await this.prisma.segment.findFirst({
+            where: {
+              name: row.SEGMENT,
+            },
           });
-        } else {
-          segment = foundSegment;
-        }
-        const foundOrg = await this.prisma.organization.findFirst({
-          where: {
-            clientId: row.CLNT_ID,
-          },
-        });
-        if (foundOrg) {
-          return;
-        }
-
-        let res = await this.prisma.organization.create({
-          data: {
-            clientId: row.CLNT_ID || '',
-            createdAt: row.START ? excelDateToDateTime(row.START) : '',
-            deletedAt: row.STOP ? excelDateToDateTime(row.STOP) : null,
-            name: row.NAME || '',
-            Phone: {
-              create: [
-                {
-                  phone: row.PHONE || '',
-                  isSecret: true,
-                },
-              ],
+          let segment: any;
+          if (!foundSegment) {
+            segment = await this.segment.create({
+              name: row.SEGMENT,
+            });
+          } else {
+            segment = foundSegment;
+          }
+          const foundOrg = await this.prisma.organization.findFirst({
+            where: {
+              clientId: row.CLNT_ID,
             },
-            segmentId: segment.id || 0,
-            account: row.ACCOUNT || '',
-            inn: row.INN || '',
-            bankNumber: row.BANK || '',
-            address: row.ADDRESS || '',
-            mail: row.MAIL || '',
-            createdBy: CreatedByEnum.Billing,
-            status: OrganizationStatusEnum.Check,
-          },
-          select: {
-            id: true,
-            clientId: true,
-            createdAt: true,
-            deletedAt: true,
-            name: true,
-            segmentId: true,
-            account: true,
-            inn: true,
-            bankNumber: true,
-            address: true,
-            mail: true,
-            createdBy: true,
-            status: true,
-          },
-        });
+          });
+          if (foundOrg) {
+            continue;
+          }
 
-        await this.prisma.organizationVersion.create({
-          data: {
-            clientId: row.CLNT_ID || '',
-            createdAt: row.START ? excelDateToDateTime(row.START) : '',
-            deletedAt: row.STOP ? excelDateToDateTime(row.STOP) : null,
-            name: row.NAME || '',
-            PhoneVersion: {
-              create: [
-                {
-                  phone: row.PHONE || '',
-                  isSecret: true,
-                },
-              ],
+          let res = await this.prisma.organization.create({
+            data: {
+              clientId: row.CLNT_ID || '',
+              createdAt: row.START ? excelDateToDateTime(row.START) : '',
+              deletedAt: row.STOP ? excelDateToDateTime(row.STOP) : null,
+              name: row.NAME || '',
+              Phone: {
+                create: [
+                  {
+                    phone: row.PHONE || '',
+                    isSecret: true,
+                  },
+                ],
+              },
+              segmentId: segment.id || 0,
+              account: row.ACCOUNT || '',
+              inn: row.INN || '',
+              bankNumber: row.BANK || '',
+              address: row.ADDRESS || '',
+              mail: row.MAIL || '',
+              createdBy: CreatedByEnum.Billing,
+              status: OrganizationStatusEnum.Check,
             },
-            segmentId: segment.id || 0,
-            account: row.ACCOUNT || '',
-            inn: row.INN || '',
-            bankNumber: row.BANK || '',
-            address: row.ADDRESS || '',
-            mail: row.MAIL || '',
-            createdBy: CreatedByEnum.Billing,
-            status: OrganizationStatusEnum.Check,
-            organizationId: res.id,
-            method: OrganizationMethodEnum.Create,
-          },
-        });
-        this.logger.debug(`Method: ${methodName} - Response: `, res);
-      });
+            select: {
+              id: true,
+              clientId: true,
+              createdAt: true,
+              deletedAt: true,
+              name: true,
+              segmentId: true,
+              account: true,
+              inn: true,
+              bankNumber: true,
+              address: true,
+              mail: true,
+              createdBy: true,
+              status: true,
+            },
+          });
+
+          await this.prisma.organizationVersion.create({
+            data: {
+              clientId: row.CLNT_ID || '',
+              createdAt: row.START ? excelDateToDateTime(row.START) : '',
+              deletedAt: row.STOP ? excelDateToDateTime(row.STOP) : null,
+              name: row.NAME || '',
+              PhoneVersion: {
+                create: [
+                  {
+                    phone: row.PHONE || '',
+                    isSecret: true,
+                  },
+                ],
+              },
+              segmentId: segment.id || 0,
+              account: row.ACCOUNT || '',
+              inn: row.INN || '',
+              bankNumber: row.BANK || '',
+              address: row.ADDRESS || '',
+              mail: row.MAIL || '',
+              createdBy: CreatedByEnum.Billing,
+              status: OrganizationStatusEnum.Check,
+              organizationId: res.id,
+              method: OrganizationMethodEnum.Create,
+            },
+          });
+          this.logger.debug(`Method: ${methodName} - Response: `, res);
+        }
+      } catch (error) {
+        console.error('Error processing CSV files:', error.message);
+
+        throw error;
+      }
+      return newRows.length + '-created rows ';
     } catch (error) {
-      console.error('Error processing CSV files:', error.message);
-
+      console.error('Error processing CSV files:', error);
       throw error;
     }
-    return newRows.length + '-created rows ';
   }
 
   async deactiveteExcelData(deactiveRows: ExcelData[] | []): Promise<string> {
     try {
-      deactiveRows.forEach(async (row: ExcelData) => {
+      for (const row of deactiveRows) {
         const organization = await this.prisma.organization.findUnique({
           where: { clientId: row.CLNT_ID },
         });
 
         if (!organization) {
           console.error(`Organization with clientId ${row.CLNT_ID} not found.`);
-          return;
+          continue;
         }
 
         await this.prisma.organization.update({
@@ -141,7 +148,6 @@ export class FtpService {
           },
           data: {
             deletedAt: row.STOP ? excelDateToDateTime(row.STOP) : null,
-            createdBy: CreatedByEnum.Billing,
             status: OrganizationStatusEnum.Deleted,
           },
         });
@@ -152,12 +158,11 @@ export class FtpService {
           },
           data: {
             deletedAt: row.STOP ? excelDateToDateTime(row.STOP) : null,
-            createdBy: CreatedByEnum.Billing,
             status: OrganizationStatusEnum.Deleted,
             method: OrganizationMethodEnum.Delete,
           },
         });
-      });
+      }
     } catch (error) {
       console.error('Error processing CSV files:', error.message);
 
@@ -169,7 +174,7 @@ export class FtpService {
 
   async updateExcelData(updateRows: ExcelData[] | []): Promise<string> {
     try {
-      updateRows.forEach(async (row: ExcelData) => {
+    for (const row of updateRows) {
         const organization = await this.prisma.organization.findUnique({
           where: { clientId: row.CLNT_ID },
         });
@@ -179,32 +184,79 @@ export class FtpService {
           return;
         }
 
-        await this.prisma.organization.update({
-          where: {
-            clientId: row.CLNT_ID,
-          },
-          data: Object.assign(
-            {},
-            ...row.UPDATES.split(',').map((item) => ({
-              [item.trim()]: row[item.trim()],
-            }))
-          ),
-        });
-
-        await this.prisma.organizationVersion.update({
-          where: {
-            clientId: row.CLNT_ID,
-          },
-          data: Object.assign(
-            {
-              method: OrganizationMethodEnum.Update,
+        if (row.UPDATES && row.UPDATES.length > 0) {
+          let segment: any;
+          if (row.UPDATES.includes('SEGMENT')) {
+            const foundSegment = await this.prisma.segment.findFirst({
+              where: {
+                name: row.SEGMENT,
+              },
+            });
+            if (!foundSegment) {
+              segment = await this.segment.create({
+                name: row.SEGMENT,
+              });
+            } else {
+              segment = foundSegment;
+            }
+          }
+          await this.prisma.organization.update({
+            where: {
+              clientId: row.CLNT_ID,
             },
-            ...row.UPDATES.split(',').map((item) => ({
-              [item.trim()]: row[item.trim()],
-            }))
-          ),
-        });
-      });
+            data: Object.assign(
+              {},
+              ...row.UPDATES.replaceAll('"', '')
+                .split(',')
+                .map((item) =>
+                  item === 'PHONE'
+                    ? {
+                        Phone: {
+                          create: [{ phone: row[item.trim()], isSecret: true }],
+                        },
+                      }
+                    : item === 'SEGMENT'
+                      ? {
+                          segmentId: segment.id,
+                        }
+                      : {
+                          [OrganizationExcelDataFieldsEnum[item.trim()]]:
+                            row[item.trim()],
+                        }
+                )
+            ),
+          });
+
+          await this.prisma.organizationVersion.update({
+            where: {
+              clientId: row.CLNT_ID,
+            },
+            data: Object.assign(
+              {
+                method: OrganizationMethodEnum.Update,
+              },
+              ...row.UPDATES.replaceAll('"', '')
+                .split(',')
+                .map((item) =>
+                  item === 'PHONE'
+                    ? {
+                        PhoneVersion: {
+                          create: [{ phone: row[item.trim()], isSecret: true }],
+                        },
+                      }
+                    : item === 'SEGMENT'
+                      ? {
+                          segmentId: segment.id,
+                        }
+                      : {
+                          [OrganizationExcelDataFieldsEnum[item.trim()]]:
+                            row[item.trim()],
+                        }
+                )
+            ),
+          });
+        }
+      };
     } catch (error) {
       console.error('Error processing CSV files:', error.message);
 
