@@ -1,7 +1,5 @@
-import { PhoneVersion } from './../../../node_modules/.prisma/client/index.d';
 import { SegmentService } from './../segment/segment.service';
 import { Injectable, Logger } from '@nestjs/common';
-import excelDateToDateTime from '@/common/helper/excelDateConverter';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreatedByEnum,
@@ -10,7 +8,6 @@ import {
 } from 'types/global';
 import { ExcelData } from 'types/organization/organization/dto/create-exel.dto';
 import { OrganizationExcelDataFieldsEnum } from 'types/organization/organization/enum';
-import { create } from 'domain';
 
 @Injectable()
 export class FtpService {
@@ -53,8 +50,6 @@ export class FtpService {
           let res = await this.prisma.organization.create({
             data: {
               clientId: row.CLNT_ID || '',
-              createdAt: row.START ? excelDateToDateTime(row.START) : '',
-              deletedAt: row.STOP ? excelDateToDateTime(row.STOP) : null,
               name: row.NAME || '',
               Phone: {
                 create: [
@@ -93,8 +88,6 @@ export class FtpService {
           await this.prisma.organizationVersion.create({
             data: {
               clientId: row.CLNT_ID || '',
-              createdAt: row.START ? excelDateToDateTime(row.START) : '',
-              deletedAt: row.STOP ? excelDateToDateTime(row.STOP) : null,
               name: row.NAME || '',
               PhoneVersion: {
                 create: [
@@ -123,14 +116,14 @@ export class FtpService {
 
         throw error;
       }
-      return newRows.length + '-created rows ';
+      return newRows.length + '-created rows';
     } catch (error) {
       console.error('Error processing CSV files:', error);
       throw error;
     }
   }
 
-  async deactiveteExcelData(deactiveRows: ExcelData[] | []): Promise<string> {
+  async deactivateExcelData(deactiveRows: ExcelData[] | []): Promise<string> {
     try {
       for (const row of deactiveRows) {
         const organization = await this.prisma.organization.findUnique({
@@ -147,7 +140,7 @@ export class FtpService {
             clientId: row.CLNT_ID,
           },
           data: {
-            deletedAt: row.STOP ? excelDateToDateTime(row.STOP) : null,
+            deletedAt: new Date(),
             status: OrganizationStatusEnum.Deleted,
           },
         });
@@ -157,31 +150,30 @@ export class FtpService {
             clientId: row.CLNT_ID,
           },
           data: {
-            deletedAt: row.STOP ? excelDateToDateTime(row.STOP) : null,
+            deletedAt: new Date(),
             status: OrganizationStatusEnum.Deleted,
             method: OrganizationMethodEnum.Delete,
           },
         });
       }
+      return deactiveRows.length + '-deleted rows';
     } catch (error) {
       console.error('Error processing CSV files:', error.message);
 
       throw error;
     }
-
-    return deactiveRows.length + '-deleted rows';
   }
 
   async updateExcelData(updateRows: ExcelData[] | []): Promise<string> {
     try {
-    for (const row of updateRows) {
+      for (const row of updateRows) {
         const organization = await this.prisma.organization.findUnique({
           where: { clientId: row.CLNT_ID },
         });
 
         if (!organization) {
           console.error(`Organization with clientId ${row.CLNT_ID} not found.`);
-          return;
+          continue;
         }
 
         if (row.UPDATES && row.UPDATES.length > 0) {
@@ -200,69 +192,65 @@ export class FtpService {
               segment = foundSegment;
             }
           }
+
           await this.prisma.organization.update({
-            where: {
-              clientId: row.CLNT_ID,
-            },
-            data: Object.assign(
-              {},
-              ...row.UPDATES.replaceAll('"', '')
+            where: { clientId: row.CLNT_ID },
+            data: Object.fromEntries(
+              row.UPDATES.replaceAll('"', '')
                 .split(',')
-                .map((item) =>
-                  item === 'PHONE'
-                    ? {
-                        Phone: {
-                          create: [{ phone: row[item.trim()], isSecret: true }],
-                        },
-                      }
-                    : item === 'SEGMENT'
-                      ? {
-                          segmentId: segment.id,
-                        }
-                      : {
-                          [OrganizationExcelDataFieldsEnum[item.trim()]]:
-                            row[item.trim()],
-                        }
-                )
+                .map((i) => i.trim())
+                .filter((item) => !['START', 'STOP'].includes(item))
+                .map((item) => {
+                  if (item === 'PHONE') {
+                    return [
+                      'Phone',
+                      { create: [{ phone: row[item], isSecret: true }] },
+                    ];
+                  }
+
+                  if (item === 'SEGMENT') {
+                    return ['segmentId', segment.id];
+                  }
+
+                  return [OrganizationExcelDataFieldsEnum[item], row[item]];
+                })
             ),
           });
 
           await this.prisma.organizationVersion.update({
-            where: {
-              clientId: row.CLNT_ID,
+            where: { clientId: row.CLNT_ID },
+            data: {
+              method: OrganizationMethodEnum.Update,
+              ...Object.fromEntries(
+                row.UPDATES.replaceAll('"', '')
+                  .split(',')
+                  .map((i) => i.trim())
+                  .filter(
+                    (item) => !['START', 'STOP'].includes(item.toUpperCase())
+                  )
+                  .map((item) => {
+                    if (item === 'PHONE') {
+                      return [
+                        'PhoneVersion',
+                        { create: [{ phone: row[item], isSecret: true }] },
+                      ];
+                    }
+
+                    if (item === 'SEGMENT') {
+                      return ['segmentId', segment.id];
+                    }
+
+                    return [OrganizationExcelDataFieldsEnum[item], row[item]];
+                  })
+              ),
             },
-            data: Object.assign(
-              {
-                method: OrganizationMethodEnum.Update,
-              },
-              ...row.UPDATES.replaceAll('"', '')
-                .split(',')
-                .map((item) =>
-                  item === 'PHONE'
-                    ? {
-                        PhoneVersion: {
-                          create: [{ phone: row[item.trim()], isSecret: true }],
-                        },
-                      }
-                    : item === 'SEGMENT'
-                      ? {
-                          segmentId: segment.id,
-                        }
-                      : {
-                          [OrganizationExcelDataFieldsEnum[item.trim()]]:
-                            row[item.trim()],
-                        }
-                )
-            ),
           });
         }
-      };
+      }
+      return updateRows.length + '-updated rows';
     } catch (error) {
       console.error('Error processing CSV files:', error.message);
-
       throw error;
     }
-
-    return updateRows.length + '-updated rows';
   }
 }

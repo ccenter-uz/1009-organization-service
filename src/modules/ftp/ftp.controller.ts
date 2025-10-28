@@ -15,7 +15,7 @@ export class FtpController {
   @MessagePattern({ cmd: FtpServiceCommands.POST_ORGANIZATIONS })
   async processFiles(@Payload('rows') rows: any): Promise<any> {
     const createRes = await this.ftpService.createExcelData(rows.new);
-    const deleteRes = await this.ftpService.deactiveteExcelData(rows.deactive);
+    const deleteRes = await this.ftpService.deactivateExcelData(rows.deactive);
     const updateRes = await this.ftpService.updateExcelData(rows.update);
 
     return { createRes, deleteRes, updateRes };
