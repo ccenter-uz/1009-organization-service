@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   NotificationCreateDto,
   NotificationUpdateDto,
   NotificationInterfaces,
+  NotificationServiceCommands as Commands,
 } from 'types/organization/notification';
 import {
   DefaultStatus,
@@ -18,10 +19,16 @@ import { CityFilterDto } from 'types/organization/city/dto/filter-city.dto';
 import { Prisma } from '@prisma/client';
 import { getCityData } from '@/common/helper/sql-rows-for-select/get-city-data.dto';
 import { NotificationFilterDto } from 'types/organization/notification/dto/filter-notification.dto';
+import { ORGANIZATION, USER } from 'types/config';
+import { ClientProxy } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
 @Injectable()
 export class NotificationService {
   private logger = new Logger(NotificationService.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject('ORG_EVENT_BUS') private readonly eventBus: ClientProxy
+  ) {}
 
   async create(
     data: NotificationCreateDto
@@ -41,6 +48,23 @@ export class NotificationService {
     });
     this.logger.debug(`Method: ${methodName} - Response: `, notification);
 
+    const event: any = {
+      eventId: 'asasq1223',
+      occurredAt: new Date().toISOString(),
+      source: 'organization-service',
+      version: 1,
+      data: {
+        id: notification.id,
+        name: notification.title,
+        status: notification.status,
+      },
+    };
+
+    // 3) Fire-and-forget publish
+    // Pattern string becomes the routing key on amq.topic
+    this.eventBus.emit<any>('organization.created.v1', event);
+    // no await required; emit returns an Observable (fire & forget)
+
     return notification;
   }
 
@@ -49,6 +73,23 @@ export class NotificationService {
   ): Promise<NotificationInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
+console.log('eventdan oldin');
+
+        const event: any = {
+          eventId: 'asasq1223',
+          occurredAt: new Date().toISOString(),
+          source: 'organization-service',
+          version: 1,
+          data: {
+            id: 'ddda11',
+            name: 'title',
+            status: 'theks',
+          },
+        };
+
+        // 3) Fire-and-forget publish
+        // Pattern string becomes the routing key on amq.topic
+        this.eventBus.emit<any>('organization.created.v1', event);
 
     if (data.all) {
       const notification = await this.prisma.notification.findMany({
@@ -108,16 +149,18 @@ export class NotificationService {
     const methodName: string = this.findOne.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
+    console.log(data, 'data');
 
     const notification = await this.prisma.notification.findFirst({
       where: {
-        id: data.id,
+        organizationId: data.id,
         status: DefaultStatus.ACTIVE,
       },
     });
     if (!notification) {
       throw new NotFoundException('notification is not found');
     }
+    console.log(notification, 'okkk1');
 
     if (notification.isRead == false) {
       await this.prisma.notification.update({
@@ -129,6 +172,41 @@ export class NotificationService {
         },
       });
     }
+
+        this.logger.debug(`Method: ${methodName} - Request: `, data);
+        console.log('eventdan oldin 2');
+
+        const event: any = {
+          eventId: 'asasq1223',
+          occurredAt: new Date().toISOString(),
+          source: 'organization-service',
+          version: 1,
+          data: {
+            id: 'ddda11',
+            name: 'title',
+            status: 'theks',
+          },
+        };
+
+        // 3) Fire-and-forget publish
+        // Pattern string becomes the routing key on amq.topic
+    this.logger.debug(`Publishing event: organization.created.v1`, event);
+    this.eventBus.emit<any>('organizationv1', event);
+    try {
+    this.eventBus.emit(
+      { exchange: 'amq.topic', routingKey: 'organizationv1' },
+      { id: '1', name: 'tiitle' }
+    );    
+    } catch (error) {
+      console.log(error);
+      
+    }
+    this.eventBus.emit(
+      { exchange: 'amq.topic', routingKey: 'organization.created.v1' },
+      { id: '1', name: 'tiitle' }
+    );
+    this.logger.debug(`Event published ✅`);
+
     this.logger.debug(`Method: ${methodName} - Response: `, notification);
 
     return notification;
@@ -174,6 +252,17 @@ export class NotificationService {
 
     return updatedNotification;
   }
+
+  // async sentNotification(
+  //   data: NotificationCreateDto
+  // ): Promise<NotificationInterfaces.Response> {
+  //   return await lastValueFrom(
+  //     this.adminClient.send<
+  //       NotificationInterfaces.Response,
+  //       NotificationInterfaces.Request
+  //     >({ cmd: Commands.SENT_NOTIFICATION }, data)
+  //   );
+  // }
 
   async remove(data: DeleteDto): Promise<NotificationInterfaces.Response> {
     const methodName: string = this.remove.name;

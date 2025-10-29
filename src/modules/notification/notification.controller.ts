@@ -1,7 +1,7 @@
-import { Controller, Post, Get, Put, Delete, Patch } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Patch, HttpCode, HttpStatus, Body } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { CityServiceCommands as Commands } from 'types/organization/city/commands';
+import { NotificationServiceCommands as Commands } from 'types/organization/notification/commands';
 import {
   NotificationInterfaces,
   NotificationUpdateDto,
@@ -15,6 +15,7 @@ import {
 } from 'types/global';
 import { CityFilterDto } from 'types/organization/city/dto/filter-city.dto';
 import { NotificationFilterDto } from 'types/organization/notification/dto/filter-notification.dto';
+import { ApiBody } from '@nestjs/swagger';
 
 @Controller('city')
 export class NotificationController {
@@ -65,4 +66,13 @@ export class NotificationController {
   ): Promise<NotificationInterfaces.Response> {
     return this.notificationService.restore(data);
   }
+
+  // @Post()
+  // @ApiBody({ type: NotificationCreateDto })
+  // @HttpCode(HttpStatus.CREATED)
+  // async sentNotification(
+  //   @Body() data: NotificationCreateDto
+  // ): Promise<NotificationInterfaces.Response> {
+  //   return this.notificationService.sentNotification(data);
+  // }
 }
