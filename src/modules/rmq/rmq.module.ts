@@ -1,20 +1,16 @@
-// organization-service/src/rmq/rmq.module.ts
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-
+import { RmqConfig } from './../../common/config/rmq.config';
 @Module({
   imports: [
     ClientsModule.register([
       {
-        name: 'ORG_EVENT_BUS',
+        name: 'CLIENT_GATEWAY', // name for injection
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://guest:guest@localhost:5672'],
-          // The "queue" here is required by Nest, but publishing goes to amq.topic with routing keys
-          queue: 'organization-service.q.emitter',
+          urls: [RmqConfig.getConnectionUrl()],
+          queue: RmqConfig.clientQueue, // 👈 your target callback queue
           queueOptions: { durable: true },
-          persistent: true,
-          // exchange: 'amq.topic' ,  // topic exchange
         },
       },
     ]),

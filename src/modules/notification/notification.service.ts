@@ -27,7 +27,7 @@ export class NotificationService {
   private logger = new Logger(NotificationService.name);
   constructor(
     private readonly prisma: PrismaService,
-    @Inject('ORG_EVENT_BUS') private readonly eventBus: ClientProxy
+    @Inject('CLIENT_GATEWAY') private readonly clientGateway: ClientProxy
   ) {}
 
   async create(
@@ -62,7 +62,7 @@ export class NotificationService {
 
     // 3) Fire-and-forget publish
     // Pattern string becomes the routing key on amq.topic
-    this.eventBus.emit<any>('organization.created.v1', event);
+    this.clientGateway.emit<any>('organization.created.v1', event);
     // no await required; emit returns an Observable (fire & forget)
 
     return notification;
@@ -73,23 +73,23 @@ export class NotificationService {
   ): Promise<NotificationInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-console.log('eventdan oldin');
+    console.log('eventdan oldin');
 
-        const event: any = {
-          eventId: 'asasq1223',
-          occurredAt: new Date().toISOString(),
-          source: 'organization-service',
-          version: 1,
-          data: {
-            id: 'ddda11',
-            name: 'title',
-            status: 'theks',
-          },
-        };
+    const event: any = {
+      eventId: 'asasq1223',
+      occurredAt: new Date().toISOString(),
+      source: 'organization-service',
+      version: 1,
+      data: {
+        id: 'ddda11',
+        name: 'title',
+        status: 'theks',
+      },
+    };
 
-        // 3) Fire-and-forget publish
-        // Pattern string becomes the routing key on amq.topic
-        this.eventBus.emit<any>('organization.created.v1', event);
+    // 3) Fire-and-forget publish
+    // Pattern string becomes the routing key on amq.topic
+    this.clientGateway.emit<any>('organization.created.v1', event);
 
     if (data.all) {
       const notification = await this.prisma.notification.findMany({
@@ -173,35 +173,34 @@ console.log('eventdan oldin');
       });
     }
 
-        this.logger.debug(`Method: ${methodName} - Request: `, data);
-        console.log('eventdan oldin 2');
+    this.logger.debug(`Method: ${methodName} - Request: `, data);
+    console.log('eventdan oldin 2');
 
-        const event: any = {
-          eventId: 'asasq1223',
-          occurredAt: new Date().toISOString(),
-          source: 'organization-service',
-          version: 1,
-          data: {
-            id: 'ddda11',
-            name: 'title',
-            status: 'theks',
-          },
-        };
+    const event: any = {
+      eventId: 'asasq1223',
+      occurredAt: new Date().toISOString(),
+      source: 'organization-service',
+      version: 1,
+      data: {
+        id: 'ddda11',
+        name: 'title',
+        status: 'theks',
+      },
+    };
 
-        // 3) Fire-and-forget publish
-        // Pattern string becomes the routing key on amq.topic
+    // 3) Fire-and-forget publish
+    // Pattern string becomes the routing key on amq.topic
     this.logger.debug(`Publishing event: organization.created.v1`, event);
-    this.eventBus.emit<any>('organizationv1', event);
+    this.clientGateway.emit<any>('organizationv1', event);
     try {
-    this.eventBus.emit(
-      { exchange: 'amq.topic', routingKey: 'organizationv1' },
-      { id: '1', name: 'tiitle' }
-    );    
+      this.clientGateway.emit(
+        { exchange: 'amq.topic', routingKey: 'organizationv1' },
+        { id: '1', name: 'tiitle' }
+      );
     } catch (error) {
       console.log(error);
-      
     }
-    this.eventBus.emit(
+    this.clientGateway.emit(
       { exchange: 'amq.topic', routingKey: 'organization.created.v1' },
       { id: '1', name: 'tiitle' }
     );
