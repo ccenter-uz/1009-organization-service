@@ -10,7 +10,13 @@ import { RmqConfig } from './../../common/config/rmq.config';
         options: {
           urls: [RmqConfig.getConnectionUrl()],
           queue: RmqConfig.clientQueue, // 👈 your target callback queue
-          queueOptions: { durable: true },
+          queueOptions: {
+            durable: true,
+            arguments: {
+              'x-dead-letter-exchange': 'amq.topic',
+              'x-dead-letter-routing-key': 'client.dlq',
+            },
+          },
         },
       },
     ]),

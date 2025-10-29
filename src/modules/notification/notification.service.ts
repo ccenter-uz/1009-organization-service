@@ -190,20 +190,8 @@ export class NotificationService {
 
     // 3) Fire-and-forget publish
     // Pattern string becomes the routing key on amq.topic
-    this.logger.debug(`Publishing event: organization.created.v1`, event);
+    this.logger.debug(`Publishing event: organizationv1`, event);
     this.clientGateway.emit<any>('organizationv1', event);
-    try {
-      this.clientGateway.emit(
-        { exchange: 'amq.topic', routingKey: 'organizationv1' },
-        { id: '1', name: 'tiitle' }
-      );
-    } catch (error) {
-      console.log(error);
-    }
-    this.clientGateway.emit(
-      { exchange: 'amq.topic', routingKey: 'organization.created.v1' },
-      { id: '1', name: 'tiitle' }
-    );
     this.logger.debug(`Event published ✅`);
 
     this.logger.debug(`Method: ${methodName} - Response: `, notification);
