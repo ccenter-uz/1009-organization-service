@@ -37,33 +37,36 @@ export class NotificationService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
+
     const notification = await this.prisma.notification.create({
       data: {
         title: data.title,
         message: data.message,
         organizationId: data.organizationId,
-        userId: +data.userId,
+        organizationStatus: data.organizationStatus,
+        userId: 1,
         status: DefaultStatus.ACTIVE,
       },
     });
     this.logger.debug(`Method: ${methodName} - Response: `, notification);
 
-    const event: any = {
-      eventId: 'asasq1223',
-      occurredAt: new Date().toISOString(),
-      source: 'organization-service',
-      version: 1,
-      data: {
-        id: notification.id,
-        name: notification.title,
-        status: notification.status,
-      },
+
+    const event: NotificationInterfaces.Response = {
+      id: notification.id,
+      status: notification.status,
+      title: notification.title,
+      message: notification.message,
+      organizationId: notification.organizationId,
+      organizationStatus: notification.organizationStatus,
+      isRead: notification.isRead,
+      userId: notification.userId,
     };
 
-    // 3) Fire-and-forget publish
-    // Pattern string becomes the routing key on amq.topic
-    this.clientGateway.emit<any>('organization.created.v1', event);
-    // no await required; emit returns an Observable (fire & forget)
+
+    this.clientGateway.emit<NotificationInterfaces.Response>(
+      'notification.created',
+      event
+    );
 
     return notification;
   }
@@ -73,24 +76,6 @@ export class NotificationService {
   ): Promise<NotificationInterfaces.ResponseWithPagination> {
     const methodName: string = this.findAll.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    console.log('eventdan oldin');
-
-    const event: any = {
-      eventId: 'asasq1223',
-      occurredAt: new Date().toISOString(),
-      source: 'organization-service',
-      version: 1,
-      data: {
-        id: 'ddda11',
-        name: 'title',
-        status: 'theks',
-      },
-    };
-
-    // 3) Fire-and-forget publish
-    // Pattern string becomes the routing key on amq.topic
-    this.clientGateway.emit<any>('organization.created.v1', event);
-
     if (data.all) {
       const notification = await this.prisma.notification.findMany({
         where: {
@@ -98,8 +83,6 @@ export class NotificationService {
           status: DefaultStatus.ACTIVE,
         },
       });
-      this.logger.debug(`Method: ${methodName} -  Response: `, notification);
-
       return {
         data: notification,
         totalDocs: notification.length,
@@ -149,19 +132,16 @@ export class NotificationService {
     const methodName: string = this.findOne.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    console.log(data, 'data');
 
     const notification = await this.prisma.notification.findFirst({
       where: {
-        organizationId: data.id,
+        id: data.id,
         status: DefaultStatus.ACTIVE,
       },
     });
     if (!notification) {
       throw new NotFoundException('notification is not found');
     }
-    console.log(notification, 'okkk1');
-
     if (notification.isRead == false) {
       await this.prisma.notification.update({
         where: {
@@ -172,28 +152,6 @@ export class NotificationService {
         },
       });
     }
-
-    this.logger.debug(`Method: ${methodName} - Request: `, data);
-    console.log('eventdan oldin 2');
-
-    const event: any = {
-      eventId: 'asasq1223',
-      occurredAt: new Date().toISOString(),
-      source: 'organization-service',
-      version: 1,
-      data: {
-        id: 'ddda11',
-        name: 'title',
-        status: 'theks',
-      },
-    };
-
-    // 3) Fire-and-forget publish
-    // Pattern string becomes the routing key on amq.topic
-    this.logger.debug(`Publishing event: organizationv1`, event);
-    this.clientGateway.emit<any>('organizationv1', event);
-    this.logger.debug(`Event published ✅`);
-
     this.logger.debug(`Method: ${methodName} - Response: `, notification);
 
     return notification;
@@ -206,23 +164,8 @@ export class NotificationService {
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
 
-    const notification = await this.findOne({ id: data.id });
-
-    const updatedNotification = await this.prisma.notification.update({
-      where: {
-        id: notification.id,
-      },
-      data: {
-        title: data.title,
-        message: data.message,
-        organizationId: data.organizationId,
-        userId: +data.userId,
-        isRead: data.isRead,
-      },
-    });
-
     if (data.allRead) {
-      await this.prisma.notification.updateMany({
+      const notifications = await this.prisma.notification.updateMany({
         where: {
           organizationId: data.organizationId,
         },
@@ -230,26 +173,31 @@ export class NotificationService {
           isRead: true,
         },
       });
+      return notifications[0];
+    } else {
+      const notification = await this.findOne({ id: data.id });
+
+      const updatedNotification = await this.prisma.notification.update({
+        where: {
+          id: notification.id,
+        },
+        data: {
+          title: data.title,
+          message: data.message,
+          organizationId: data.organizationId,
+          userId: +data.userId,
+          isRead: data.isRead,
+        },
+      });
+
+      this.logger.debug(
+        `Method: ${methodName} - Response: `,
+        updatedNotification
+      );
+
+      return updatedNotification;
     }
-
-    this.logger.debug(
-      `Method: ${methodName} - Response: `,
-      updatedNotification
-    );
-
-    return updatedNotification;
   }
-
-  // async sentNotification(
-  //   data: NotificationCreateDto
-  // ): Promise<NotificationInterfaces.Response> {
-  //   return await lastValueFrom(
-  //     this.adminClient.send<
-  //       NotificationInterfaces.Response,
-  //       NotificationInterfaces.Request
-  //     >({ cmd: Commands.SENT_NOTIFICATION }, data)
-  //   );
-  // }
 
   async remove(data: DeleteDto): Promise<NotificationInterfaces.Response> {
     const methodName: string = this.remove.name;

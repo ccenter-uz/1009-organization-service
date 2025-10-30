@@ -67,12 +67,4 @@ export class NotificationController {
     return this.notificationService.restore(data);
   }
 
-  // @Post()
-  // @ApiBody({ type: NotificationCreateDto })
-  // @HttpCode(HttpStatus.CREATED)
-  // async sentNotification(
-  //   @Body() data: NotificationCreateDto
-  // ): Promise<NotificationInterfaces.Response> {
-  //   return this.notificationService.sentNotification(data);
-  // }
 }

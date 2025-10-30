@@ -71,6 +71,7 @@ import { getOneOrgOptimizedQuery } from '@/common/helper/for-Org/get-one-org';
 import { OrganizationFilterBusinessDto } from 'types/organization/organization/dto/filter-business.dto';
 import { getOneOrgBusinessQuery } from '@/common/helper/for-Org/get-one-Business-org.dto';
 import { generateCount, generateRate } from '@/common/helper/generate-number';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class OrganizationService {
@@ -99,6 +100,7 @@ export class OrganizationService {
     private readonly SegmentService: SegmentService,
     private readonly PhoneTypeService: PhoneTypeService,
     private readonly PassageService: PassageService,
+    private readonly notificationService: NotificationService,
     private readonly cacheService: CacheService
   ) {}
 
@@ -1261,7 +1263,17 @@ export class OrganizationService {
             UpdateVersion
           );
 
-          return await this.update(data.id);
+          const updateOrg = await this.update(data.id);
+
+            
+          await this.notificationService.create({
+            title: updateOrg.name,
+            message: 'Updated',
+            organizationId: updateOrg.id,
+            organizationStatus: OrganizationStatusEnum.Accepted,
+          }); 
+
+          return updateOrg;
         } else if (
           organizationVersion.method == OrganizationMethodEnum.Create
         ) {
@@ -1287,7 +1299,16 @@ export class OrganizationService {
 
           await this.cacheService.invalidateAllCaches('organization');
 
-          return await this.update(data.id);
+          const updateOrg = await this.update(data.id);
+
+          await this.notificationService.create({
+            title: updateOrg.name,
+            message: 'Created',
+            organizationId: updateOrg.id,
+            organizationStatus: OrganizationStatusEnum.Accepted,
+          });
+
+          return updateOrg;
         } else if (
           organizationVersion.method == OrganizationMethodEnum.Delete
         ) {
@@ -1305,7 +1326,7 @@ export class OrganizationService {
             `Method: ${methodName} - Response: `,
             UpdateVersion
           );
-          return await this.prisma.organization.update({
+          const updateOrg = await this.prisma.organization.update({
             where: {
               id: organizationVersion.organizationId,
             },
@@ -1313,6 +1334,16 @@ export class OrganizationService {
               status: OrganizationStatusEnum.Deleted,
             },
           });
+
+
+          await this.notificationService.create({
+            title: updateOrg.name,
+            message: 'Deleted',
+            organizationId: updateOrg.id,
+            organizationStatus: OrganizationStatusEnum.Deleted,
+          });
+
+          return updateOrg;
         } else if (
           organizationVersion.method == OrganizationMethodEnum.Restore
         ) {
@@ -1330,7 +1361,7 @@ export class OrganizationService {
             `Method: ${methodName} - Response: `,
             UpdateVersion
           );
-          return await this.prisma.organization.update({
+          const updateOrg = await this.prisma.organization.update({
             where: {
               id: organizationVersion.organizationId,
             },
@@ -1338,6 +1369,15 @@ export class OrganizationService {
               status: OrganizationStatusEnum.Accepted,
             },
           });
+
+          await this.notificationService.create({
+            title: updateOrg.name,
+            message: 'Restored',
+            organizationId: updateOrg.id,
+            organizationStatus: OrganizationStatusEnum.Accepted,
+          });
+
+          return updateOrg;
         }
       } else if (data.status == OrganizationStatusEnum.Rejected) {
         const organizationVersion =
@@ -1358,6 +1398,14 @@ export class OrganizationService {
             status: OrganizationStatusEnum.Rejected,
             rejectReason: data.rejectReason,
           },
+        });
+
+
+        await this.notificationService.create({
+          title: UpdateVersion.name,
+          message: data.rejectReason,
+          organizationId: UpdateVersion.organizationId,
+          organizationStatus: OrganizationStatusEnum.Rejected,
         });
 
         this.logger.debug(`Method: ${methodName} - Response: `, UpdateVersion);
