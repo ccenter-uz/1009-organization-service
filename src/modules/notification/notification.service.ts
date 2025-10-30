@@ -44,7 +44,7 @@ export class NotificationService {
         message: data.message,
         organizationId: data.organizationId,
         organizationStatus: data.organizationStatus,
-        userId: 1,
+        userId: +data.userId || null,
         status: DefaultStatus.ACTIVE,
       },
     });
