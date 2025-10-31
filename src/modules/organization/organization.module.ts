@@ -22,6 +22,7 @@ import { PhoneTypeModule } from '../phone-type/phone-type.module';
 import { PassageModule } from '../passage/passage.module';
 import { NeighborhoodModule } from '../neighborhood/neighborhood.module';
 import { CacheRedisModule } from '../cache/cache.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { CacheRedisModule } from '../cache/cache.module';
     PassageModule,
     NeighborhoodModule,
     CacheRedisModule,
+    NotificationModule,
   ],
   controllers: [OrganizationController],
   providers: [OrganizationService],

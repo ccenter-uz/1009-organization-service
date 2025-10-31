@@ -46,7 +46,7 @@ import Redis from 'ioredis';
 import { SavedOrganizationModule } from './modules/saved-organization/saved-organization.module';
 import { TempCacheModule } from './modules/temp-cache/temp-cache.module';
 import { siteStatisticsModule } from './modules/site-statisticts/site-statistics.module';
-
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -94,6 +94,7 @@ import { siteStatisticsModule } from './modules/site-statisticts/site-statistics
     SavedOrganizationModule,
     TempCacheModule,
     siteStatisticsModule,
+    NotificationModule,
 
     // CronJobModule,
   ],
