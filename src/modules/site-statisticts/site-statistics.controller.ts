@@ -8,7 +8,6 @@ import {
   siteStatisticsCommands as Commands,
   GetSiteStatisticsDto,
 } from 'types/organization/site-statistics';
-import { ListQueryWithOrderDto } from 'types/global/dto/list-query-with-order.dto';
 
 @Controller('site-Statistics')
 export class siteStatisticsController {
