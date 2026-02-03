@@ -26,28 +26,52 @@ export class siteStatisticsService {
   async create(
     data: siteStatisticsCreateDto
   ): Promise<siteStatisticsInterfaces.Response> {
-    const methodName: string = this.create.name;
+    const methodName = this.create.name;
 
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    const siteStatistics = await this.prisma.siteStatistics.create({
-      data: {
-        address: data.addressCity,
-        userLogId: data.userLogId,
-        device: data.device,
-        sourceSite: data.sourceSite,
-        sessionTime: data.sessionTime,
+
+    // UNIQUE KEY
+    const uniqueKey = `${data.ip}_${data.userAgent}_${data.organizationId}`;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const existing = await this.prisma.siteStatistics.findFirst({
+      where: {
         OrganizationId: data.organizationId,
-      },
-      select: {
-        id: true,
-        address: true,
-        device: true,
-        sourceSite: true,
-        createdAt: true,
-        deletedAt: true,
-        updatedAt: true,
+        uniqueKey: 'uniqueKey',
+        createdAt: {
+          gte: today,
+        },
       },
     });
+
+    let siteStatistics;
+
+    if (existing && existing.uniqueKey === uniqueKey) {
+      siteStatistics = await this.prisma.siteStatistics.update({
+        where: { id: existing.id },
+        data: {
+          updatedAt: new Date(),
+        },
+      });
+    } else {
+      siteStatistics = await this.prisma.siteStatistics.create({
+        data: {
+          uniqueKey,
+          ip: data.ip,
+          userAgent: data.userAgent,
+
+          address: data.addressCity,
+          userLogId: data.userLogId,
+          device: data.device,
+          sourceSite: data.sourceSite,
+          sessionTime: data.sessionTime,
+          OrganizationId: data.organizationId,
+        },
+      });
+    }
+
     this.logger.debug(`Method: ${methodName} - Response: `, siteStatistics);
 
     return siteStatistics;
@@ -56,11 +80,8 @@ export class siteStatisticsService {
   async findOne(
     data: GetSiteStatisticsDto
   ): Promise<siteStatisticsInterfaces.Response> {
-    console.log(data, 'data');
-
-    const methodName: string = this.findOne.name;
+    const methodName = this.findOne.name;
     this.logger.debug(`Method: ${methodName} - Request: `, data);
-    console.log(buildDateFilter(data.dateRange));
 
     const statistics = await this.prisma.siteStatistics.findMany({
       where: {
@@ -68,6 +89,10 @@ export class siteStatisticsService {
         createdAt: buildDateFilter(data.dateRange),
       },
     });
+
+    if (!statistics.length) {
+      throw new NotFoundException('statistics is not found');
+    }
 
     const result = {
       total: statistics.length,
@@ -79,39 +104,52 @@ export class siteStatisticsService {
       bySourceSite: {} as Record<string, number>,
       byViewsGraph: {} as Record<string, number>,
     };
-    const uniqueUserIds = new Set<number>();
-    for (const item of statistics) {
-      const device = item.device?.toLowerCase() || 'other';
-      const address = item.address?.toLowerCase() || 'other';
-      const site = item.sourceSite?.toLowerCase() || 'other';
 
+    // 🔥 uniqueKey orqali unique
+    const uniqueVisitors = new Set<string>();
+
+    for (const item of statistics) {
+      // UNIQUE USERS
+      if (item.uniqueKey) {
+        uniqueVisitors.add(item.uniqueKey);
+      }
+
+      // DEVICE
+      const device = item.device?.toLowerCase() || 'other';
       result.byDevice[device] = (result.byDevice[device] || 0) + 1;
 
+      // ADDRESS
+      const address = item.address?.toLowerCase() || 'other';
       result.byAddress[address] = (result.byAddress[address] || 0) + 1;
 
+      // SOURCE
+      const site = item.sourceSite?.toLowerCase() || 'other';
       result.bySourceSite[site] = (result.bySourceSite[site] || 0) + 1;
-      if (item.userLogId) {
-        uniqueUserIds.add(item.userLogId);
-      }
+
+      // SESSION TIME
       if (item.sessionTime && +item.sessionTime >= 0) {
         result.avarageSessionTime += +item.sessionTime;
       }
 
+      // GRAPH
       if (item.createdAt) {
         const date = new Date(item.createdAt);
-        const formatted = date
-          .toLocaleDateString('uz-UZ') // "20.10.2025" format
-          .replace(/\//g, '.'); // ayrim lokalarda / chiqadi, shu sabab almashtiramiz
+        const formatted = date.toLocaleDateString('uz-UZ').replace(/\//g, '.');
+
         result.byViewsGraph[formatted] =
           (result.byViewsGraph[formatted] || 0) + 1;
       }
     }
 
-    if (!statistics) {
-      throw new NotFoundException('statistics is not found');
+    // FINAL UNIQUE COUNT
+    result.uniqueUsers = uniqueVisitors.size;
+
+    // AVERAGE TIME
+    if (statistics.length) {
+      result.avarageSessionTime = result.avarageSessionTime / statistics.length;
     }
-    this.logger.debug(`Method: ${methodName} - Response: `, statistics);
-    result.uniqueUsers = uniqueUserIds.size;
+
+    this.logger.debug(`Method: ${methodName} - Response: `, result);
 
     return result;
   }
